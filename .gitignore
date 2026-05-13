@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Spike artefacts — full transcripts move to gktuition-prod on DAY_22
+pipelines/spike/audio/
+pipelines/spike/transcripts/
+*.mp3

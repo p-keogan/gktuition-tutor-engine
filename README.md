@@ -1,6 +1,6 @@
 # gktuition-tutor-engine
 
-> 🚧 **Status: in progress.** Active build May–August 2026. First public demo target: Phase 3 launch (~mid-July 2026).
+> 🚧 **Status: in progress.** Active build May–August 2026. First public demo target: Phase 3 launch (~mid-July 2026). **Current phase:** ingestion spike working end-to-end; DAG-ification starts Mon.
 
 A retrieval-augmented AI tutor over the [GKTuition.ie](https://www.gktuition.ie) corpus of Irish Leaving Cert Higher Level (LCHL) mathematics tutorial videos (~550 videos, ~100 hours of recorded teaching). This repo holds the **engineering and methodology** of the build — architecture decisions, ingestion pipeline, postprocessing rules, eval framework, and FastAPI scaffold. The commercial corpus and production deployment live in a separate private repo.
 
@@ -12,7 +12,7 @@ Backend API (FastAPI on Fly.io v1 → AWS Lambda production)
 ↓
 Snowflake Cortex Search + Cortex COMPLETE / Claude API
 
-The tutor is embedded in gktuition.ie as a chat widget; students never see Snowflake or the backend. The freemium product model, two-tier LLM routing, and full architecture rationale are documented in the ADRs below.
+The tutor is embedded in gktuition.ie as a chat widget; students never see Snowflake or the backend. The access model, two-tier LLM routing, cost controls, and full architecture rationale are documented in the ADRs below.
 
 ## Architecture decisions
 
@@ -20,6 +20,10 @@ Each significant design choice is captured as an ADR in [`docs/architecture/`](d
 
 - [ADR-001](docs/architecture/ADR-001-vector-store.md) — Vector store: Snowflake Cortex Search
 - [ADR-002](docs/architecture/ADR-002-product-model.md) — Access model & cost controls: free-for-all with six-layer defence
+
+## Build
+
+The first executable code in the repo is [`pipelines/spike/spike_one_video.py`](pipelines/spike/spike_one_video.py), which proves the YouTube → Whisper → markdown transcript path end-to-end on a single video. See [`examples/sample-output-truncated.md`](examples/sample-output-truncated.md) for a redacted sample of the output.
 
 ## About the corpus
 
