@@ -14,13 +14,12 @@ Snowflake Cortex Search + Cortex COMPLETE / Claude API
 
 The tutor is embedded in gktuition.ie as a chat widget; students never see Snowflake or the backend. The freemium product model, two-tier LLM routing, and full architecture rationale are documented in the ADRs below.
 
-## Architecture Decision Records (ADRs)
+## Architecture decisions
 
-| # | Decision | Status |
-|---|---|---|
-| [ADR-001](docs/architecture/ADR-001-vector-store.md) | Snowflake Cortex Search as the vector store | ✅ accepted |
-| ADR-002 | Freemium product model + two-tier LLM routing | in progress |
-| ADR-003 | WordPress widget + FastAPI/Lambda + Snowflake architecture | planned |
+Each significant design choice is captured as an ADR in [`docs/architecture/`](docs/architecture/).
+
+- [ADR-001](docs/architecture/ADR-001-vector-store.md) — Vector store: Snowflake Cortex Search
+- [ADR-002](docs/architecture/ADR-002-product-model.md) — Access model & cost controls: free-for-all with six-layer defence
 
 ## About the corpus
 
