@@ -1,6 +1,6 @@
 # gktuition-tutor-engine
 
-> 🚧 **Status: in progress.** Active build May–August 2026. First public demo target: Phase 3 launch (~mid-July 2026). **Current phase:** ingestion spike working end-to-end; DAG-ification starts Mon.
+> 🚧 **Status: in progress.** Active build May–August 2026. First public demo target: Phase 3 launch (~mid-July 2026). **Current phase:** all 3 ADRs landed; ingestion DAG skeleton starts Sunday.
 
 A retrieval-augmented AI tutor over the [GKTuition.ie](https://www.gktuition.ie) corpus of Irish Leaving Cert Higher Level (LCHL) mathematics tutorial videos (~550 videos, ~100 hours of recorded teaching). This repo holds the **engineering and methodology** of the build — architecture decisions, ingestion pipeline, postprocessing rules, eval framework, and FastAPI scaffold. The commercial corpus and production deployment live in a separate private repo.
 
@@ -20,6 +20,7 @@ Each significant design choice is captured as an ADR in [`docs/architecture/`](d
 
 - [ADR-001](docs/architecture/ADR-001-vector-store.md) — Vector store: Snowflake Cortex Search
 - [ADR-002](docs/architecture/ADR-002-product-model.md) — Access model & cost controls: free-for-all with six-layer defence
+- [ADR-003](docs/architecture/ADR-003-system-architecture.md) — System architecture: 3-layer (WordPress widget · FastAPI on Fly.io · Snowflake), two-tier LLM routing (Cortex + Haiku)
 
 ## Build
 
