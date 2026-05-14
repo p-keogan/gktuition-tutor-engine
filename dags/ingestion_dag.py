@@ -32,6 +32,9 @@ WORKER_SCRIPT_TRANSCRIBE = (
 WORKER_PYTHON = (
     HOME / "code" / "career-transition-2026" / ".venv-py312" / "bin" / "python"
 )
+TRANSCRIPTS_CLEAN_DIR = DATA_ROOT / "transcripts" / "clean"
+POSTPROCESSING_RULES = HOME / "code" / "career-transition-2026" / "tutorials" / "postprocessing-rules.md"
+STORE_DIR = HOME / "code" / "gktuition-prod" / "transcripts" / "clean"
 
 
 # Whisper API hard limit is 25 MB. Recompress before sending if >24 MB.
@@ -142,6 +145,88 @@ def transcribe(audio_path: str) -> str:
     )
     return str(raw_path)
 
+@task(
+    retries=1,
+    retry_delay=timedelta(minutes=1),
+    execution_timeout=timedelta(minutes=2),
+)
+def postprocess(raw_path: str) -> str:
+    """Convert Whisper raw JSON to timestamped markdown transcript.
+
+    Output: data/transcripts/clean/<slug>.md
+    Format: "**[MM:SS]** segment text" per Whisper segment.
+
+    Idempotent: skips if clean file exists AND its mtime is newer than the
+    postprocessing rules file. When new rules are added (rules-file mtime
+    advances), the clean file is regenerated automatically — enabling
+    overnight "I added a new rule, re-clean all transcripts" workflows.
+
+    v1 scope: format conversion only. Rule application (Americanisation
+    fixes, Cert-family variants, etc.) lands in v2.
+    """
+    import json
+
+    raw = Path(raw_path)
+    slug = raw.stem
+    TRANSCRIPTS_CLEAN_DIR.mkdir(parents=True, exist_ok=True)
+    clean_path = TRANSCRIPTS_CLEAN_DIR / f"{slug}.md"
+
+    # Idempotency: skip if clean file exists AND rules haven't changed since
+    if clean_path.exists():
+        rules_mtime = (
+            POSTPROCESSING_RULES.stat().st_mtime
+            if POSTPROCESSING_RULES.exists()
+            else 0
+        )
+        if clean_path.stat().st_mtime > rules_mtime:
+            print(f"[idempotency] {clean_path} is newer than rules; skipping")
+            return str(clean_path)
+        print(f"Rules file newer than clean file; regenerating")
+
+    data = json.loads(raw.read_text())
+
+    lines = [f"# Transcript: {slug}", ""]
+    for segment in data["segments"]:
+        mm, ss = divmod(int(segment["start"]), 60)
+        text = segment["text"].strip()
+        lines.append(f"**[{mm:02d}:{ss:02d}]** {text}")
+        lines.append("")
+
+    clean_path.write_text("\n".join(lines))
+    print(f"Wrote {clean_path} ({clean_path.stat().st_size / 1024:.1f} KB)")
+    return str(clean_path)
+
+
+@task(
+    retries=1,
+    retry_delay=timedelta(minutes=1),
+    execution_timeout=timedelta(minutes=1),
+)
+def store(clean_path: str) -> str:
+    """Copy the cleaned transcript to the private gktuition-prod repo.
+
+    Output: gktuition-prod/transcripts/clean/<slug>.md
+
+    Idempotent: skips if the destination already exists. This intentionally
+    preserves hand-corrections made directly in the private repo. To force
+    a re-copy after a postprocess re-run, delete the destination first.
+    """
+    import shutil
+
+    clean = Path(clean_path)
+    slug = clean.stem
+    STORE_DIR.mkdir(parents=True, exist_ok=True)
+    dest_path = STORE_DIR / f"{slug}.md"
+
+    if dest_path.exists():
+        print(f"[idempotency] {dest_path} already exists; skipping copy "
+              f"(preserves hand-corrections)")
+        return str(dest_path)
+
+    shutil.copy2(clean, dest_path)
+    print(f"Copied to {dest_path}")
+    return str(dest_path)
+
 # ── DAG definition ────────────────────────────────────────────────────────
 @dag(
     dag_id="ingestion_dag",
@@ -155,7 +240,9 @@ def transcribe(audio_path: str) -> str:
 def ingestion_dag():
     entries = read_corpus_list()
     audio_paths = download_audio.expand(entry=entries)
-    transcribe.expand(audio_path=audio_paths)
+    raw_paths = transcribe.expand(audio_path=audio_paths)
+    clean_paths = postprocess.expand(raw_path=raw_paths)
+    store.expand(clean_path=clean_paths)
 
 
 ingestion_dag()
