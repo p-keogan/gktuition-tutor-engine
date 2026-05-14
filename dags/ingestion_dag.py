@@ -73,8 +73,10 @@ def read_corpus_list() -> list[VideoEntry]:
 def download_audio(entry: VideoEntry) -> str:
     """Pull audio from YouTube via yt-dlp; recompress if >24 MB.
 
-    Idempotent: skips download if data/audio/<slug>.mp3 already exists.
-    Returns the local audio file path.
+    Idempotent on download — skips yt-dlp if data/audio/<slug>.mp3 exists.
+    NON-idempotent on size check — recompression runs every invocation
+    if the file is over the Whisper 25 MB API limit. This is the fix for
+    the 'cached oversized file slips through to Whisper' bug.
     """
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     slug = entry["slug"]
@@ -82,18 +84,18 @@ def download_audio(entry: VideoEntry) -> str:
 
     if audio_path.exists():
         print(f"[idempotency] {audio_path} already exists; skipping download")
-        return str(audio_path)
+    else:
+        output_template = str(AUDIO_DIR / f"{slug}.%(ext)s")
+        subprocess.run(
+            [
+                "yt-dlp", "-x", "--audio-format", "mp3",
+                "-o", output_template, entry["youtube_url"],
+            ],
+            check=True,
+        )
 
-    output_template = str(AUDIO_DIR / f"{slug}.%(ext)s")
-    subprocess.run(
-        [
-            "yt-dlp", "-x", "--audio-format", "mp3",
-            "-o", output_template, entry["youtube_url"],
-        ],
-        check=True,
-    )
-
-    # Recompress if oversized for the Whisper API
+    # Size check ALWAYS runs — catches both fresh downloads AND cached
+    # files that were never recompressed in a previous task attempt.
     size_mb = audio_path.stat().st_size / (1024 * 1024)
     if size_mb > WHISPER_SIZE_LIMIT_MB:
         print(f"Audio is {size_mb:.1f} MB > {WHISPER_SIZE_LIMIT_MB} MB; recompressing")
