@@ -97,8 +97,15 @@ with open(path) as fh:
         pairs[key] = v
 
 for k in sorted(pairs):
-    # Use NUL as field separator so we can survive any character in values.
-    sys.stdout.write(f"{k}={pairs[k]}\0")
+    # Originally NUL-separated, but Bash 5.x's command substitution strips
+    # NUL bytes from `$(...)` capture (with a warning), which caused the
+    # entire concatenated payload to land in a single read-loop iteration
+    # and parse as one giant key. Switch to newline-separated; values in
+    # this file are simple shell-style KEY=VALUE and never contain a
+    # literal newline, so this is safe. If a value ever needs to carry a
+    # newline (unlikely), encode it base64 at write-time and decode in the
+    # consumer.
+    print(f"{k}={pairs[k]}")
 PYEOF
 )
 
@@ -107,11 +114,12 @@ PYEOF
 # ---------------------------------------------------------------------------
 
 declare -A PAIRS
-while IFS= read -r -d $'\0' kv; do
+while IFS= read -r kv; do
+  [ -z "$kv" ] && continue
   k="${kv%%=*}"
   v="${kv#*=}"
   PAIRS[$k]="$v"
-done < <(printf '%s' "$RAW_PAIRS")
+done < <(printf '%s\n' "$RAW_PAIRS")
 
 missing=()
 for k in "${REQUIRED[@]}"; do
