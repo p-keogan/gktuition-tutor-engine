@@ -37,9 +37,10 @@ import json
 import logging
 import re
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from threading import Lock
-from typing import Any, Callable
+from typing import Any
 
 from ._log import event
 from .settings import get_settings
@@ -113,7 +114,7 @@ def _default_lookup(cache_key: str) -> CachedResponse | None:
     try:
         with _cursor() as cs:
             cs.execute(
-                f"SELECT response_json, model_used, "  # noqa: S608 (table fqn is config)
+                f"SELECT response_json, model_used, "
                 f"       DATE_PART('EPOCH_SECOND', created_at) AS created_epoch "
                 f"FROM {table} WHERE cache_key = %s",
                 (cache_key,),

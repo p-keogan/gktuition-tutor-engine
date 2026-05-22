@@ -476,7 +476,7 @@ def default_anthropic_haiku_client(
     lazily so unit tests that mock the seam never need ``anthropic``
     installed.
     """
-    import anthropic  # noqa: PLC0415
+    import anthropic
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:

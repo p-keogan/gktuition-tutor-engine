@@ -44,7 +44,7 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Deque
+from typing import Any
 
 from fastapi import HTTPException, Request, status
 
@@ -88,8 +88,8 @@ class _Bucket:
     structures never grow unboundedly.
     """
 
-    minute_window: Deque[float] = field(default_factory=deque)
-    day_window: Deque[float] = field(default_factory=deque)
+    minute_window: deque[float] = field(default_factory=deque)
+    day_window: deque[float] = field(default_factory=deque)
 
     def evict(self, now: float) -> None:
         while self.minute_window and self.minute_window[0] < now - 60.0:
@@ -125,7 +125,7 @@ def clear_buckets() -> None:
 # ---------------------------------------------------------------------------
 
 
-_subnet_breaches: dict[str, Deque[float]] = {}
+_subnet_breaches: dict[str, deque[float]] = {}
 _flagged_subnets: dict[str, float] = {}  # subnet -> expiry timestamp
 _subnet_lock = Lock()
 

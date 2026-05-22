@@ -21,9 +21,9 @@ from __future__ import annotations
 import logging
 import time
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Callable, Deque
 
 from ._log import event
 from .settings import get_settings
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class _BreakerState:
-    failures: Deque[float] = field(default_factory=deque)
+    failures: deque[float] = field(default_factory=deque)
     tripped_until: float = 0.0  # unix ts; 0 means closed
     last_trip_at: float = 0.0
     last_recovery_at: float = 0.0

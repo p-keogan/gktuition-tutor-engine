@@ -17,7 +17,7 @@ class _FakeLangfuse:
     def __init__(self) -> None:
         self.traces: list[dict[str, Any]] = []
 
-    def trace(self, **kw: Any) -> "_FakeTrace":
+    def trace(self, **kw: Any) -> _FakeTrace:
         t: dict[str, Any] = {"meta": kw, "spans": []}
         self.traces.append(t)
         return _FakeTrace(t)

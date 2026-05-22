@@ -35,10 +35,8 @@ def _scrub_firewall_state() -> None:
     test (so state never leaks into Agent 09's existing tests that don't
     know about the firewall).
     """
-    from api.firewall import L1_turnstile, L2_rate_limit, L3_semantic_cache
-    from api.firewall import L4_router
+    from api.firewall import L1_turnstile, L2_rate_limit, L3_semantic_cache, L4_router, L6_tracing
     from api.firewall import L5_kill_switch as L5
-    from api.firewall import L6_tracing
     from api.firewall.settings import reload_settings
     from api.orchestrator import synthesizer
 

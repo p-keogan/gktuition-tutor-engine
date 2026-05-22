@@ -25,6 +25,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request, status
 
 from ..auth import jwt as _jwt
+
 # We reference _jwt.JWTValidationError and _jwt.decode_or_anonymous via the
 # module rather than importing them as names, so that ``importlib.reload()``
 # on the jwt module (used by integration/test_jwt_round_trip.py to refresh

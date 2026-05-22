@@ -30,10 +30,11 @@ from __future__ import annotations
 import hashlib
 import logging
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Iterator
+from typing import Any
 
 from ._log import event
 from .settings import get_settings
@@ -303,7 +304,7 @@ def _safe_query_preview(q: str, *, max_chars: int = 200) -> str:
 class _NullClient:
     """Drop-in replacement for the Langfuse client that records nothing."""
 
-    def trace(self, *args: Any, **kwargs: Any) -> "_NullTrace":
+    def trace(self, *args: Any, **kwargs: Any) -> _NullTrace:
         return _NullTrace()
 
     def flush(self) -> None:

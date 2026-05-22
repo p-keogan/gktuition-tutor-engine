@@ -26,11 +26,11 @@ Toggle: ``KILL_SWITCH_ENABLED=true``.
 from __future__ import annotations
 
 import logging
-import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from threading import Lock
-from typing import Any, Callable
+from typing import Any
 
 from fastapi import HTTPException, status
 
@@ -148,7 +148,7 @@ def snowflake_read(tier: str, day: str) -> float:
 
         with _cursor() as cs:
             cs.execute(
-                f"SELECT spend_eur FROM {settings.spend_table_fqn} "  # noqa: S608
+                f"SELECT spend_eur FROM {settings.spend_table_fqn} "
                 f"WHERE tier = %s AND spend_date = %s",
                 (tier, day),
             )
@@ -167,7 +167,7 @@ def snowflake_increment(tier: str, day: str, delta: float) -> float:
 
         with _cursor() as cs:
             cs.execute(
-                f"MERGE INTO {settings.spend_table_fqn} t "  # noqa: S608
+                f"MERGE INTO {settings.spend_table_fqn} t "
                 f"USING (SELECT %s AS tier, %s AS spend_date, %s AS delta) s "
                 f"ON t.tier = s.tier AND t.spend_date = s.spend_date "
                 f"WHEN MATCHED THEN UPDATE SET spend_eur = t.spend_eur + s.delta, "

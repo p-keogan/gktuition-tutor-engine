@@ -79,11 +79,29 @@ ignore = [
     "UP042",    # `class Foo(str, Enum)` is the documented Pydantic-friendly form
     "B905",     # zip without strict= is fine in our control flow
     "RUF002",   # docstring × (multiplication) is intentional in routing docs
+    "RUF001",   # ambiguous Unicode in strings — × / − / – are deliberate
+                # in the LCHL maths corpus (Plotly tick labels, error
+                # messages with maths notation, etc.). Same rationale as
+                # RUF002 for docstrings.
+    "RUF003",   # ambiguous Unicode in comments — same rationale.
     "PLR0124",  # `s != s` is the canonical NaN check
+    "PLR0911",  # too many return statements — the synthesizer-extension
+                # and classifier-dispatch functions are deliberately fan-out
+                # ladders. Refactoring into early-return helpers makes them
+                # harder to read, not easier.
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["PLR", "B017", "RUF"]
+# Wider glob — picks up nested test dirs like tests/integration/, tests/firewall/,
+# visualisation/tests/, etc. The previous "tests/*" only matched direct
+# children of api/tests/.
+"tests/**" = ["PLR", "B017", "RUF", "PLW1510"]
+"**/tests/**" = ["PLR", "B017", "RUF", "PLW1510"]
+
+# L5_kill_switch.py's atexit-handler block does some intentional
+# destructuring with sentinel names. The RUF059 / PLR1714 hits are
+# stylistic — accepted in this file but not relaxed across the codebase.
+"firewall/L5_kill_switch.py" = ["RUF059", "PLR1714"]
 
 # -----------------------------------------------------------------------------
 # mypy

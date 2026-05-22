@@ -18,7 +18,6 @@ import pytest
 
 from api.visualisation import synthesizer_extension as se
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -158,7 +157,7 @@ def test_should_emit_graph_accepts_dict_chunks() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _make_llm_returning(payload: dict) -> "callable":
+def _make_llm_returning(payload: dict) -> callable:
     """Build a fake llm_client(sys, user) → str(json.dumps(payload))."""
 
     def _fake(system_prompt: str, user_prompt: str) -> str:
