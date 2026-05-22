@@ -71,14 +71,18 @@ jobs:
         run: python -m ruff check .
 
       - name: mypy --strict
-        working-directory: api
+        # Run from the repo root, NOT from inside api/. The pyproject.toml's
+        # per-module overrides reference modules by their `api.*` fully-qualified
+        # names (e.g. `api.services.auth`); for those to match, mypy has to see
+        # the `api` package, which it can only do when invoked from the package
+        # parent. Running from inside api/ with bare directory names ("routes",
+        # "auth", …) makes mypy treat each as a separate top-level package, and
+        # the relative imports `from .auth import ...` then fail to resolve.
         run: |
-          # Same scope Agent 09 documented in their delivery note —
-          # api/services + api/models are covered by relaxed overrides
-          # in pyproject.toml.
-          MYPYPATH=. python -m mypy --strict --explicit-package-bases \
-            --config-file pyproject.toml \
-            orchestrator auth routes main.py observability
+          python -m mypy --strict --explicit-package-bases \
+            --config-file api/pyproject.toml \
+            -p api.orchestrator -p api.auth -p api.routes \
+            -p api.observability -m api.main
       - name: pytest
         working-directory: api
         env:
