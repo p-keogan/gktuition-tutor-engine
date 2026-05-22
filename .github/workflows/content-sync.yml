@@ -62,6 +62,16 @@ concurrency:
   group: content-sync-${{ github.ref }}
   cancel-in-progress: false
 
+# The "Post commit comment with run summary" step uses
+# actions/github-script to call `github.rest.repos.createCommitComment`,
+# which requires `contents: write` on the GITHUB_TOKEN. The default
+# permission set is `contents: read`, which produces a 403 "Resource not
+# accessible by integration". Granting write at the workflow level keeps
+# the comment surface working without giving any other step write power
+# it doesn't already have.
+permissions:
+  contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
