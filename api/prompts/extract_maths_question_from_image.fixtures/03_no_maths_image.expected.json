@@ -1,0 +1,6 @@
+{
+  "_comment": "Expected shape for the no-maths negative test. Vision model must classify this as no_maths_detected and the API must respond 422.",
+  "expected_outcome": "no_maths_detected",
+  "expected_http_status": 422,
+  "expected_error_body_contains": "no maths question detected"
+}

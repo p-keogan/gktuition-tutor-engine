@@ -1,0 +1,10 @@
+{
+  "_comment": "Expected shape for the handwritten-homework fixture. Vision quality on handwriting is the main reason we chose Sonnet 4. The smoke test asserts outcome=='single_question_extracted'. Update the resemble string when you drop in your real photo.",
+  "expected_outcome": "single_question_extracted",
+  "extracted_question_contains": [
+    "solve",
+    "x"
+  ],
+  "extracted_question_should_resemble": "Solve for x: 2x + 3 = 11.",
+  "must_use_ascii_notation": true
+}

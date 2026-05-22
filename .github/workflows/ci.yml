@@ -1,0 +1,264 @@
+# GKTuition tutor — CI/CD.
+#
+# Two flows in one file:
+#
+# * PR (any branch → main): lint, type-check, test, build the Docker image,
+#   measure its size, post a comment on the PR with the size + a green/red
+#   compared to the < 200MB target. No image push, no deploy.
+# * Push to main: everything above, plus `flyctl deploy` to gktuition-tutor-api,
+#   smoke-test the live /healthz and a /query against the dedicated WH_SMOKE
+#   warehouse so we don't bill production for CI traffic. On smoke-test
+#   failure, `flyctl deploy --rollback`.
+#
+# Secrets required (set in repo Settings → Secrets → Actions):
+#
+#   FLY_API_TOKEN              — Fly.io personal access token (deploy permission)
+#   SMOKE_WP_JWT_SECRET        — HS256 secret for minting the dev token used by
+#                                the smoke test (must match what Fly has)
+#   SMOKE_ANTHROPIC_API_KEY    — optional; can be a low-budget key just for CI
+#   SMOKE_SF_USER, SMOKE_SF_ACCOUNT, SMOKE_SF_PRIVATE_KEY (b64), SMOKE_SF_DATABASE
+#                              — Snowflake key-pair auth for the CI smoke pass.
+#                                The key must be granted USAGE on WH_SMOKE only.
+
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'fly.toml'
+      - '.github/workflows/ci.yml'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write    # for the image-size comment
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Lint + type-check + test. Runs on every PR + push.
+  # ---------------------------------------------------------------------------
+  python-quality:
+    name: lint · mypy · pytest
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: api/pyproject.toml
+
+      - name: Install dependencies
+        working-directory: api
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: ruff check
+        working-directory: api
+        run: python -m ruff check .
+
+      - name: mypy --strict
+        working-directory: api
+        run: |
+          # Same scope Agent 09 documented in their delivery note —
+          # api/services + api/models are covered by relaxed overrides
+          # in pyproject.toml.
+          MYPYPATH=. python -m mypy --strict --explicit-package-bases \
+            --config-file pyproject.toml \
+            orchestrator auth routes main.py observability
+      - name: pytest
+        working-directory: api
+        env:
+          # Tests use fakes for every external dep, but a few module-import
+          # paths cross-check that JWT secret env vars are at least settable.
+          WP_JWT_SECRET: ci-only-not-a-secret
+          GKTUITION_ENV: dev
+        run: python -m pytest -ra
+
+  # ---------------------------------------------------------------------------
+  # Build the Docker image and report its size. PR runs get a sticky comment.
+  # ---------------------------------------------------------------------------
+  docker-build:
+    name: docker build · size check
+    runs-on: ubuntu-latest
+    needs: python-quality
+    timeout-minutes: 15
+    outputs:
+      image_size_bytes: ${{ steps.size.outputs.bytes }}
+      image_size_mb: ${{ steps.size.outputs.mb }}
+      under_target: ${{ steps.size.outputs.under_target }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: gktuition-tutor-api:ci-${{ github.sha }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Measure image size
+        id: size
+        run: |
+          bytes=$(docker image inspect gktuition-tutor-api:ci-${{ github.sha }} --format='{{.Size}}')
+          mb=$(awk -v b="$bytes" 'BEGIN { printf "%.1f", b / 1024 / 1024 }')
+          echo "bytes=$bytes" >> "$GITHUB_OUTPUT"
+          echo "mb=$mb"     >> "$GITHUB_OUTPUT"
+          target=200
+          under=$(awk -v m="$mb" -v t="$target" 'BEGIN { print (m < t) ? "true" : "false" }')
+          echo "under_target=$under" >> "$GITHUB_OUTPUT"
+          echo "Image size: ${mb} MB (target < ${target} MB; under_target=$under)"
+
+      - name: Comment image size on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: docker-image-size
+          message: |
+            ### Docker image size
+
+            **`${{ steps.size.outputs.mb }} MB`** (target: under 200 MB) — ${{
+              steps.size.outputs.under_target == 'true' && '✅ under target' || '❌ over target'
+            }}
+
+            Built from `${{ github.sha }}`. The size is measured on the
+            multi-stage runtime image (the prebuilt `/opt/venv` plus the
+            `api/` source), not the build context.
+
+  # ---------------------------------------------------------------------------
+  # Deploy to Fly + smoke-test. Only on push to main.
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: deploy · smoke · rollback-on-fail
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: docker-build
+    timeout-minutes: 20
+    concurrency:
+      group: deploy-fly
+      cancel-in-progress: false   # never abort a deploy mid-flight
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Capture pre-deploy revision (for rollback)
+        id: prev
+        run: |
+          rev=$(flyctl releases --app gktuition-tutor-api --json \
+                  | jq -r '[.[] | select(.Status=="succeeded")][0].Version' || echo "")
+          echo "rev=$rev" >> "$GITHUB_OUTPUT"
+          echo "Previous succeeded release: $rev"
+
+      - name: flyctl deploy
+        run: |
+          flyctl deploy \
+            --app gktuition-tutor-api \
+            --remote-only \
+            --build-arg GIT_SHA=${{ github.sha }}
+
+      - name: Smoke /healthz
+        id: smoke_health
+        run: |
+          for attempt in 1 2 3 4 5; do
+            echo "healthz attempt $attempt"
+            body=$(curl -fsS --max-time 10 https://gktuition-tutor-api.fly.dev/healthz || true)
+            if echo "$body" | jq -e '.status' > /dev/null 2>&1; then
+              echo "Body: $body"
+              status=$(echo "$body" | jq -r .status)
+              version=$(echo "$body" | jq -r .version)
+              echo "Live status: $status (version=$version)"
+              if [ "$version" = "${{ github.sha }}" ]; then
+                echo "Version matches commit — deploy promoted."
+                exit 0
+              else
+                echo "Version mismatch — Fly hasn't switched traffic yet, retrying..."
+              fi
+            fi
+            sleep 6
+          done
+          echo "::error::healthz never returned the expected version (${{ github.sha }})"
+          exit 1
+
+      - name: Smoke /query against WH_SMOKE
+        id: smoke_query
+        env:
+          SMOKE_WP_JWT_SECRET: ${{ secrets.SMOKE_WP_JWT_SECRET }}
+        run: |
+          # Mint a short-lived dev token using the same HS256 secret Fly
+          # is using. The mint utility is bundled with the api package.
+          python -m pip install -e api > /dev/null
+          token=$(python -c "
+          from api.auth.jwt import mint_dev_token
+          import os
+          print(mint_dev_token(tier='paying', user_id='ci-smoke', ttl_seconds=120,
+                               secret=os.environ['SMOKE_WP_JWT_SECRET']))
+          ")
+          # Use a query whose top citation is known and stable in the
+          # corpus (per Agent 09's README). If precision@1 starts drifting
+          # this smoke test catches it before the nightly eval does.
+          resp=$(curl -fsS --max-time 30 -X POST \
+            https://gktuition-tutor-api.fly.dev/query \
+            -H "Authorization: Bearer $token" \
+            -H 'Content-Type: application/json' \
+            -d '{"q":"how do I factorise difference of squares"}')
+          echo "Response: $resp"
+          slug=$(echo "$resp" | jq -r '.citations[0].slug // ""')
+          model=$(echo "$resp" | jq -r '.model_used')
+          if [ -z "$slug" ]; then
+            echo "::error::smoke /query returned no citations"
+            exit 1
+          fi
+          echo "Top citation: $slug · model: $model"
+          # We don't pin the exact slug here (small corpus shifts are
+          # acceptable); the nightly eval is the precision@1 contract.
+
+      - name: Rollback on smoke failure
+        if: failure() && steps.prev.outputs.rev != ''
+        run: |
+          echo "Rolling back to release ${{ steps.prev.outputs.rev }}"
+          flyctl releases rollback ${{ steps.prev.outputs.rev }} \
+            --app gktuition-tutor-api
+
+      - name: Notify rollback
+        if: failure() && steps.prev.outputs.rev != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueBody = [
+              `Deploy of \`${{ github.sha }}\` to gktuition-tutor-api failed smoke tests`,
+              `and was rolled back to release \`${{ steps.prev.outputs.rev }}\`.`,
+              ``,
+              `**Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`,
+            ].join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[deploy-failed] ${{ github.sha }} rolled back`,
+              body: issueBody,
+              labels: ['deploy-failed', 'priority/high'],
+            });

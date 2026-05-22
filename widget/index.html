@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GKTuition Tutor — local dev scratch</title>
+    <style>
+      body { font-family: system-ui; padding: 32px; max-width: 720px; }
+      .stub { padding: 12px; background: #f3f4f6; border-radius: 8px; }
+    </style>
+  </head>
+  <body>
+    <h1>GKTuition AI Tutor — scratch host page</h1>
+    <p class="stub">
+      This page mimics what a WordPress page with the
+      <code>[gktuition_ai_tutor]</code> shortcode renders. Run
+      <code>npm run dev</code> and click the floating button.
+    </p>
+    <div id="gktuition-tutor-mount"></div>
+    <script>
+      // Mock the WordPress REST endpoint locally so the widget boots without
+      // a real WP install. The /query call still goes to FASTAPI_URL — point
+      // it at a running uvicorn on :8000 for the live happy path.
+      const origFetch = window.fetch;
+      window.fetch = async function (input, init) {
+        const url = typeof input === 'string' ? input : String(input);
+        if (url.includes('/wp-json/gktuition/v1/tier')) {
+          return new Response(
+            JSON.stringify({
+              tier: 'anonymous',
+              jwt: 'fake.jwt.token',
+              exp: Math.floor(Date.now() / 1000) + 3600,
+              fastapi_url: 'http://localhost:8000',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          );
+        }
+        return origFetch(input, init);
+      };
+      window.GKTuitionTutorOpts = {
+        tierEndpoint: '/wp-json/gktuition/v1/tier',
+        position: 'bottom-right',
+      };
+    </script>
+    <script type="module" src="/src/Widget.tsx"></script>
+    <script type="module">
+      import GKTuitionTutor from '/src/Widget.tsx';
+      GKTuitionTutor.mount(
+        document.getElementById('gktuition-tutor-mount'),
+        window.GKTuitionTutorOpts,
+      );
+    </script>
+  </body>
+</html>

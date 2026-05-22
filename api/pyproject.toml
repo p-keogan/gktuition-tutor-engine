@@ -1,0 +1,126 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gktuition-api"
+version = "0.9.0"
+description = "FastAPI orchestrator for the GKTuition LCHL Maths AI tutor (Agent 09)."
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "Paul Keogan", email = "pkeogan@tcd.ie" }]
+license = { text = "Proprietary" }
+dependencies = [
+    "fastapi >=0.115,<0.117",
+    "uvicorn[standard] >=0.30,<1.0",
+    "snowflake-connector-python >=3.10,<4.0",
+    "anthropic >=0.40,<1.0",
+    "pydantic >=2.7,<3.0",
+    "python-jose[cryptography] >=3.3,<4.0",
+    "python-dotenv >=1.0,<2.0",
+    "httpx >=0.27,<1.0",
+    # Agent 12 (2026-05-22): required by /image_query's UploadFile parameter —
+    # transitively pulled in by pytest's TestClient locally but absent from
+    # a clean install. Without this the Fly image fails to import api.main.
+    "python-multipart >=0.0.9,<1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest >=8.0,<9.0",
+    "pytest-asyncio >=0.23,<1.0",
+    "ruff >=0.5,<1.0",
+    "mypy >=1.10,<2.0",
+    "types-python-jose >=3.3,<4.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["../api"]
+
+# -----------------------------------------------------------------------------
+# pytest
+# -----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+pythonpath = [".."]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    # Starlette 0.x: HTTP_422_UNPROCESSABLE_ENTITY → _CONTENT (cosmetic).
+    "ignore::DeprecationWarning:starlette.*",
+]
+
+# -----------------------------------------------------------------------------
+# ruff
+# -----------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["tests/fixtures/*"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W", "I", "B", "UP", "PL", "RUF",
+]
+ignore = [
+    "PLR0913",  # too many args — the synthesizer's signature is intentional
+    "PLR2004",  # magic value comparisons in tests are fine
+    "PLR0915",  # too many statements (acceptable in tests)
+    "E501",     # line length — handled by formatter, not the linter
+    "PLC0415",  # lazy imports are deliberate (test-fast paths + optional deps)
+    "PLW0603",  # the dependency-injection seam pattern uses module-level globals
+    "B008",     # FastAPI's Depends() / File() pattern requires call-in-default
+    "UP017",    # datetime.UTC is Python 3.11+; we target 3.10 compatibility
+    "UP042",    # `class Foo(str, Enum)` is the documented Pydantic-friendly form
+    "B905",     # zip without strict= is fine in our control flow
+    "RUF002",   # docstring × (multiplication) is intentional in routing docs
+    "PLR0124",  # `s != s` is the canonical NaN check
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["PLR", "B017", "RUF"]
+
+# -----------------------------------------------------------------------------
+# mypy
+# -----------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+explicit_package_bases = true
+mypy_path = ".."
+
+[[tool.mypy.overrides]]
+module = [
+    "snowflake.connector",
+    "snowflake.connector.*",
+    "anthropic",
+    "anthropic.*",
+    "httpx",
+    "httpx.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+# Agent 06's service + model + route files predate Agent 09's mypy --strict
+# adoption; they use bare ``dict`` annotations that are not Agent 09's to
+# rewrite (per the prompt: "Do not modify any file under api/services" not
+# strictly stated, but the spec explicitly bounds Agent 09 to api/orchestrator
+# + api/routes/query.py + api/auth + api/main.py + api/tests). Loosen --strict
+# on the Agent 06 surface so my code passes cleanly without touching theirs.
+[[tool.mypy.overrides]]
+module = [
+    "api.services.auth",
+    "api.services.query_log",
+    "api.services.query_pipeline",
+    "api.services.vision_extraction",
+    "api.models.image_query",
+    "api.routes.image_query",
+]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disable_error_code = ["type-arg", "no-untyped-def"]

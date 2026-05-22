@@ -1,0 +1,855 @@
+# ============================================================================
+# semantic_model.yaml
+# ----------------------------------------------------------------------------
+# Cortex Analyst semantic model — `lchl_exam_analytics`.
+#
+# Backs the analytical (text-to-SQL) leg of the GKTuition AI Tutor's
+# retrieval layer, per ADR-004 Decision 2. Sits beside the three Cortex
+# Search Services (TUTOR_SEARCH, SOLUTIONS_SEARCH, SUMMARY_SEARCH) and
+# answers questions of shape "how often / how many / trends / since YYYY"
+# that vector search cannot answer.
+#
+# Two tables, deliberately independent (no `relationships:` block):
+#
+#   exam_parts             — one row per exam question-part. The view
+#                            CORTEX.EXAM_PARTS_FLAT does the strand-bucket
+#                            derivation up front so the LLM doesn't have to
+#                            invent regex. 1,213 rows after Agent 02's load.
+#
+#   exam_parts_by_tutorial — one row per (part × cited tutorial slug).
+#                            CORTEX.EXAM_PARTS_BY_TUTORIAL exposes the
+#                            tutorial-citation grain so questions of shape
+#                            "how often is indices-logs-5 cited" don't
+#                            require ARRAY_CONTAINS / FLATTEN gymnastics.
+#                            1,000+ rows (187 parts have no tutorials,
+#                            tracked in Agent 02's delivery note).
+#
+# Synonym policy: every dimension carries a `synonyms:` list that covers
+#   • teacher vocabulary       — "the discriminant", "nature of roots", "AVM"
+#   • student paraphrases      — "calculus 1", "imaginary numbers"
+#   • formal exam-board wording — "Paper 1", "Section A", "main sitting"
+#   • slug-form aliases        — "complex-numbers", "the-line"
+# This is the single most load-bearing piece of the model — without it,
+# Cortex Analyst fails on the same question phrased two ways.
+#
+# 10 verified queries are at the bottom; canonical_queries.md documents
+# each one in plain English.
+# ============================================================================
+
+name: lchl_exam_analytics
+description: |
+  Analytical model over 11 years of Leaving Certificate Higher Level (LCHL)
+  Mathematics state exams. Covers Paper 1 + Paper 2, main sittings 2015–2025
+  plus deferred sittings 2022–2025 — 30 papers and ~1,213 individually
+  tagged question-parts in total.
+
+  Use this model to answer questions about:
+    • exam-trend frequency      — "how often has X appeared on P1 since 2020?"
+    • topic distribution        — "what's the strand mix on Paper 2 in 2024?"
+    • marks allocation          — "average marks per integration part"
+    • tutorial citation         — "how often is indices-logs-5 cited?"
+    • cross-year trends         — "differentiation parts year-over-year"
+    • format-shift comparisons  — "pre-2021 vs 2021-onwards part counts"
+    • Section A vs Section B    — "where do algebra questions live?"
+    • proof-question frequency  — "which years asked a Paper 1 proof?"
+
+  Do NOT use this model for conceptual / pedagogical questions — those go
+  through the Cortex Search Services (see routing_contract.md).
+
+tables:
+
+  # =========================================================================
+  # TABLE 1 — exam_parts (one row per part)
+  # =========================================================================
+  - name: exam_parts
+    description: |
+      One row per LCHL exam question-part. Backs frequency, marks-allocation,
+      and strand-mix queries.
+    base_table:
+      database: GKTUITION_TUTOR
+      schema: CORTEX
+      table: EXAM_PARTS_FLAT
+    primary_key:
+      columns: [part_id]
+
+    # ─── Dimensions ──────────────────────────────────────────────────────
+    dimensions:
+
+      - name: part_id
+        synonyms:
+          - "question-part id"
+          - "part identifier"
+          - "exam part id"
+        description: |
+          Synthetic primary key, e.g. "2025_main_P1_Q1a", "2024_main_P2_Q5biii",
+          "2015_main_P1_Q2" (no sub-part suffix when the question is unsplit).
+        expr: part_id
+        data_type: VARCHAR
+        unique: true
+
+      - name: paper
+        synonyms:
+          - "paper number"
+          - "Paper 1"
+          - "Paper 2"
+          - "P1"
+          - "P2"
+          - "paper 1"
+          - "paper 2"
+          - "first paper"
+          - "second paper"
+        description: "Exam paper number — 1 (Algebra/Calculus heavy) or 2 (Geometry/Stats heavy)."
+        expr: paper
+        data_type: NUMBER
+
+      - name: sitting
+        synonyms:
+          - "exam sitting"
+          - "main sitting"
+          - "deferred sitting"
+          - "main exam"
+          - "deferred exam"
+          - "DF"
+          - "df"
+          - "deferred paper"
+          - "main paper"
+          - "supplementary exam"
+        description: |
+          Sitting identifier. 'main' = the June exam sitting; 'df' = the
+          deferred sitting (held later in the year). Deferred papers only
+          exist for 2022–2025.
+        expr: sitting
+        data_type: VARCHAR
+
+      - name: question_number
+        synonyms:
+          - "question number"
+          - "Q number"
+          - "question"
+          - "Q1"
+          - "Q2"
+          - "Q3"
+          - "Q4"
+          - "Q5"
+          - "Q6"
+          - "Q7"
+          - "Q8"
+          - "Q9"
+          - "Q10"
+        description: "Question number 1–10. Q1–Q6 = Section A. Q7–Q10 = Section B."
+        expr: question_number
+        data_type: NUMBER
+
+      - name: sub_part
+        synonyms:
+          - "sub-part"
+          - "subpart"
+          - "part letter"
+          - "(a)"
+          - "(b)"
+          - "(c)"
+          - "(d)"
+          - "(e)"
+        description: |
+          Sub-part identifier within a question — 'a', 'b(i)', 'b(ii)', 'c', etc.
+          NULL when the question has no sub-parts (e.g. 2015 P1 Q2).
+        expr: sub_part
+        data_type: VARCHAR
+
+      - name: section
+        synonyms:
+          - "exam section"
+          - "Section A"
+          - "Section B"
+          - "section A"
+          - "section B"
+          - "concepts and skills"
+          - "contexts and applications"
+          - "first section"
+          - "second section"
+          - "short questions"
+          - "long questions"
+        description: |
+          Exam section. 'A' = Section A (Concepts and Skills, Q1–Q6, 150 marks,
+          students answer any 5). 'B' = Section B (Contexts and Applications,
+          Q7–Q10, 150 marks, students answer any 3).
+        expr: section
+        data_type: VARCHAR
+
+      - name: topic_strand
+        synonyms:
+          - "strand"
+          - "topic"
+          - "subject area"
+          - "syllabus strand"
+          - "topic area"
+          - "category"
+          # ── Paper 1 strands (Algebra) ─────────────────────────────────
+          - "algebra"
+          - "factor theorem"
+          - "factorising"
+          - "quadratics"
+          - "discriminant"
+          - "nature of roots"
+          - "modulus"
+          - "modulus equation"
+          - "modulus inequality"
+          - "surd"
+          - "surd equation"
+          - "polynomial long division"
+          - "long division"
+          - "manipulation of formula"
+          - "change of subject"
+          - "simultaneous equations"
+          - "inequalities"
+          - "rational inequalities"
+          # ── Paper 1 strands (Differentiation) ─────────────────────────
+          - "differentiation"
+          - "calculus 1"
+          - "derivatives"
+          - "differentiating"
+          - "derivative"
+          - "first principles"
+          - "turning point"
+          - "maximum"
+          - "minimum"
+          - "stationary point"
+          - "rate of change"
+          - "rates of change"
+          - "rate problem"
+          - "chain rule"
+          - "product rule"
+          - "quotient rule"
+          - "second derivative"
+          - "concavity"
+          - "point of inflection"
+          - "tangent line"
+          # ── Paper 1 strands (Integration) ─────────────────────────────
+          - "integration"
+          - "calculus 2"
+          - "antiderivative"
+          - "antiderivatives"
+          - "integrating"
+          - "integral"
+          - "definite integral"
+          - "indefinite integral"
+          - "average value"
+          - "area under curve"
+          - "area under a curve"
+          - "integration by parts"
+          # ── Paper 1 strands (Sequences) ───────────────────────────────
+          - "sequences"
+          - "series"
+          - "sequences and series"
+          - "geometric sequences"
+          - "geometric series"
+          - "arithmetic sequences"
+          - "arithmetic series"
+          - "sum to infinity"
+          - "geometric progression"
+          - "arithmetic progression"
+          - "GP"
+          - "AP"
+          - "common ratio"
+          - "common difference"
+          - "convergence"
+          # ── Paper 1 strands (Indices and Logs) ────────────────────────
+          - "indices"
+          - "logs"
+          - "logarithms"
+          - "indices and logs"
+          - "natural log"
+          - "ln"
+          - "exponential"
+          - "exponential equation"
+          - "log equation"
+          - "change of base"
+          - "rules of logs"
+          # ── Paper 1 strands (Complex Numbers) ─────────────────────────
+          - "complex numbers"
+          - "complex number"
+          - "imaginary numbers"
+          - "complex plane"
+          - "argand diagram"
+          - "argand"
+          - "polar form"
+          - "rectangular form"
+          - "de Moivre"
+          - "de moivre's theorem"
+          - "conjugate"
+          - "modulus of a complex number"
+          - "argument"
+          # ── Paper 1 strands (Functions and Graphs) ────────────────────
+          - "functions"
+          - "graphs"
+          - "functions and graphs"
+          - "composite function"
+          - "inverse function"
+          - "injective"
+          - "surjective"
+          - "bijective"
+          - "limits"
+          - "limit at infinity"
+          - "translation"
+          - "domain"
+          - "range"
+          # ── Paper 1 strands (Financial Maths) ─────────────────────────
+          - "financial maths"
+          - "financial mathematics"
+          - "compound interest"
+          - "annuities"
+          - "amortisation"
+          - "amortization"
+          - "mortgage"
+          - "present value"
+          - "future value"
+          - "AER"
+          # ── Paper 1 strands (Induction) ───────────────────────────────
+          - "induction"
+          - "proof by induction"
+          - "mathematical induction"
+          - "divisibility proof"
+          # ── Paper 1 strands (Number Theory) ───────────────────────────
+          - "number theory"
+          - "irrational proof"
+          - "root 2"
+          - "sqrt 2"
+          - "rational numbers"
+          - "irrational numbers"
+          - "venn"
+          # ── Paper 1 strands (Paper 1 Proofs) ──────────────────────────
+          - "paper 1 proofs"
+          - "P1 proofs"
+          - "prescribed proofs paper 1"
+          # ── Paper 2 strands (Probability) ─────────────────────────────
+          - "probability"
+          - "bernoulli"
+          - "bernoulli trials"
+          - "independent events"
+          - "conditional probability"
+          - "expected value"
+          - "combinations"
+          - "permutations"
+          - "fundamental counting principle"
+          - "binomial"
+          # ── Paper 2 strands (Statistics) ──────────────────────────────
+          - "statistics"
+          - "stats"
+          - "z-score"
+          - "z score"
+          - "z-scores"
+          - "standardising"
+          - "standardizing"
+          - "standard normal"
+          - "normal distribution"
+          - "confidence interval"
+          - "hypothesis test"
+          - "hypothesis testing"
+          - "CLT"
+          - "central limit theorem"
+          - "margin of error"
+          - "empirical rule"
+          # ── Paper 2 strands (Trigonometry) ────────────────────────────
+          - "trigonometry"
+          - "trig"
+          - "trigonometry 1"
+          - "trig 1"
+          - "trigonometry 2"
+          - "trig 2"
+          - "trigonometry 3"
+          - "trig 3"
+          - "trigonometry 4"
+          - "trig 4"
+          - "sine rule"
+          - "cosine rule"
+          - "pythagoras"
+          - "sohcahtoa"
+          - "unit circle"
+          - "compound angle"
+          - "trig identities"
+          - "sector"
+          - "arc length"
+          - "non-right-angled triangle"
+          # ── Paper 2 strands (The Line) ────────────────────────────────
+          - "the line"
+          - "coordinate geometry"
+          - "coordinate geometry of the line"
+          - "perpendicular distance"
+          - "slope"
+          - "section formula"
+          - "line equation"
+          - "page-18 formula"
+          # ── Paper 2 strands (The Circle) ──────────────────────────────
+          - "the circle"
+          - "circle equation"
+          - "tangent to a circle"
+          - "centre and radius"
+          - "two circles"
+          - "internal tangency"
+          - "external tangency"
+          # ── Paper 2 strands (Geometry 1) ──────────────────────────────
+          - "geometry"
+          - "geometry 1"
+          - "similar triangles"
+          - "congruent triangles"
+          - "prescribed theorems"
+          - "theorem 11"
+          - "theorem 12"
+          - "theorem 13"
+          - "theorem 16"
+          - "theorem 17"
+          - "Maths Set Constructions"
+          - "constructions"
+          # ── Paper 2 strands (AVM 1) ───────────────────────────────────
+          - "AVM"
+          - "AVM 1"
+          - "area volume measurement"
+          - "area volume and measurement"
+          - "area, volume and measurement"
+          - "cone"
+          - "cylinder"
+          - "sphere"
+          - "volume"
+          - "trapezoidal rule"
+          - "cone formulas"
+          # ── Paper 2 strands (Paper 2 Proofs) ──────────────────────────
+          - "paper 2 proofs"
+          - "P2 proofs"
+          - "prescribed proofs paper 2"
+          - "geometry proofs"
+        description: |
+          Canonical strand bucket. Values: 'algebra', 'differentiation',
+          'integration', 'sequences-series', 'indices-logs', 'complex-numbers',
+          'functions-graphs', 'financial-maths', 'induction', 'number-theory',
+          'paper-1-proofs', 'probability', 'statistics', 'trigonometry-1',
+          'trigonometry-2', 'trigonometry-3', 'trigonometry-4', 'the-line',
+          'the-circle', 'geometry-1', 'avm-1', 'paper-2-proofs',
+          'uncategorised'.
+        expr: topic_strand
+        data_type: VARCHAR
+
+      - name: topic_raw
+        synonyms:
+          - "free-form topic"
+          - "topic description"
+          - "topic label"
+          - "topic line"
+        description: |
+          Free-form per-part topic string from the source `**Topic:**` line.
+          Use for substring matching when topic_strand isn't granular enough
+          (e.g. WHERE topic_raw ILIKE '%nature of roots%').
+        expr: topic_raw
+        data_type: VARCHAR
+
+      - name: paper_strand_key
+        synonyms:
+          - "paper strand combo"
+          - "paper and strand"
+        description: "Composite key 'paper:strand', e.g. '1:differentiation', '2:probability'."
+        expr: paper_strand_key
+        data_type: VARCHAR
+
+      - name: is_load_bearing
+        synonyms:
+          - "load bearing"
+          - "load-bearing"
+          - "marked as load-bearing"
+          - "key technique"
+          - "flagged as critical"
+        description: |
+          TRUE when the per-part commentary contains the literal phrase
+          "load-bearing", matching the LCHL_exam_trends.md methodology.
+        expr: is_load_bearing
+        data_type: BOOLEAN
+
+      - name: has_proof_request
+        synonyms:
+          - "proof question"
+          - "asks for a proof"
+          - "prove that"
+          - "show that"
+          - "verify"
+          - "prescribed proof"
+        description: |
+          TRUE when the question_text starts with "Prove" / "Show that" / "verify"
+          — i.e. asks the student to produce a proof rather than a numerical answer.
+        expr: has_proof_request
+        data_type: BOOLEAN
+
+      - name: is_recent
+        synonyms:
+          - "recent"
+          - "new format"
+          - "post-2021"
+          - "since 2021"
+          - "modern format"
+          - "after format shift"
+        description: |
+          TRUE when year >= 2021 — i.e. the part is from a paper on the
+          post-SEC-reform format (~45 parts per paper rather than ~35).
+        expr: is_recent
+        data_type: BOOLEAN
+
+      - name: source_path
+        description: "Absolute path of the source `_solutions.md` file. Provenance only."
+        expr: source_path
+        data_type: VARCHAR
+
+    # ─── Time dimensions ─────────────────────────────────────────────────
+    time_dimensions:
+      - name: year
+        synonyms:
+          - "exam year"
+          - "year of sitting"
+          - "year"
+          - "calendar year"
+          - "sitting year"
+        description: "Exam year. 2015–2025 inclusive."
+        expr: year
+        data_type: NUMBER
+
+    # ─── Measures ────────────────────────────────────────────────────────
+    measures:
+      - name: parts_count
+        synonyms:
+          - "question count"
+          - "number of parts"
+          - "frequency"
+          - "how many parts"
+          - "how often"
+          - "occurrences"
+          - "count of parts"
+        description: "Count of question-parts. Use for frequency questions."
+        expr: COUNT(*)
+        data_type: NUMBER
+        default_aggregation: sum
+
+      - name: total_marks
+        synonyms:
+          - "marks awarded"
+          - "total marks"
+          - "sum of marks"
+          - "mark sum"
+          - "aggregate marks"
+        description: "Sum of marks across the parts in scope."
+        expr: SUM(marks)
+        data_type: NUMBER
+        default_aggregation: sum
+
+      - name: avg_marks_per_part
+        synonyms:
+          - "average marks"
+          - "mean marks"
+          - "marks per part"
+          - "typical part marks"
+          - "average mark allocation"
+        description: "Mean marks per part."
+        expr: AVG(marks)
+        data_type: NUMBER
+        default_aggregation: avg
+
+      - name: avg_tutorials_per_part
+        synonyms:
+          - "average tutorials per part"
+          - "tutorial citations per part"
+          - "mean tutorial citations"
+        description: "Mean number of tutorials cited per part."
+        expr: AVG(tutorial_count)
+        data_type: NUMBER
+        default_aggregation: avg
+
+      - name: distinct_parts
+        synonyms:
+          - "distinct parts"
+          - "unique parts"
+        description: "COUNT(DISTINCT part_id). Use when joining tables would otherwise double-count."
+        expr: COUNT(DISTINCT part_id)
+        data_type: NUMBER
+
+      - name: load_bearing_parts
+        synonyms:
+          - "load-bearing parts"
+          - "key-technique parts"
+        description: "Count of parts where is_load_bearing = TRUE."
+        expr: COUNT_IF(is_load_bearing)
+        data_type: NUMBER
+
+      - name: proof_parts
+        synonyms:
+          - "proof questions"
+          - "parts that ask for a proof"
+        description: "Count of parts where has_proof_request = TRUE."
+        expr: COUNT_IF(has_proof_request)
+        data_type: NUMBER
+
+  # =========================================================================
+  # TABLE 2 — exam_parts_by_tutorial (one row per part × tutorial slug)
+  # =========================================================================
+  - name: exam_parts_by_tutorial
+    description: |
+      One row per (exam part × cited tutorial slug). Backs tutorial-citation
+      frequency queries. Independent of `exam_parts` — the semantic model
+      declares no `relationships:` block so Cortex Analyst will choose
+      whichever table is the right grain for the question.
+    base_table:
+      database: GKTUITION_TUTOR
+      schema: CORTEX
+      table: EXAM_PARTS_BY_TUTORIAL
+
+    dimensions:
+
+      - name: part_id
+        synonyms: ["question-part id", "part identifier"]
+        description: "Foreign-key-like reference to exam_parts.part_id (but no relationship declared)."
+        expr: part_id
+        data_type: VARCHAR
+
+      - name: tutorial_slug
+        synonyms:
+          - "tutorial"
+          - "tutorial reference"
+          - "cited tutorial"
+          - "video slug"
+          - "the-line-5"
+          - "indices-logs-5"
+          - "differentiation-15"
+          - "complex-numbers-10"
+          - "probability-3"
+          - "algebra-2"
+          - "tutorial id"
+          - "tutorial name"
+        description: |
+          Kebab-case tutorial slug, e.g. 'indices-logs-5-unknown-in-power-natural-log',
+          'differentiation-15-turning-points-max-min', 'the-line-5-perpendicular-distance-from-a-point-to-a-line'.
+        expr: tutorial_slug
+        data_type: VARCHAR
+
+      - name: tutorial_strand
+        synonyms:
+          - "tutorial's strand"
+          - "strand of cited tutorial"
+          - "tutorial category"
+        description: "Strand parsed from the slug prefix. Same value set as exam_parts.topic_strand."
+        expr: tutorial_strand
+        data_type: VARCHAR
+
+      - name: paper
+        synonyms: ["paper", "Paper 1", "Paper 2", "P1", "P2"]
+        description: "Paper number 1 or 2."
+        expr: paper
+        data_type: NUMBER
+
+      - name: sitting
+        synonyms: ["main sitting", "deferred sitting", "DF", "df"]
+        description: "'main' or 'df'."
+        expr: sitting
+        data_type: VARCHAR
+
+      - name: section
+        synonyms: ["Section A", "Section B"]
+        description: "'A' or 'B'."
+        expr: section
+        data_type: VARCHAR
+
+      - name: question_number
+        synonyms: ["question number", "Q number"]
+        description: "Question number 1–10."
+        expr: question_number
+        data_type: NUMBER
+
+      - name: sub_part
+        synonyms: ["sub-part", "subpart"]
+        description: "Sub-part letter / roman path."
+        expr: sub_part
+        data_type: VARCHAR
+
+      - name: topic_raw
+        synonyms: ["topic line", "free-form topic"]
+        description: "Verbatim topic string of the part this citation comes from."
+        expr: topic_raw
+        data_type: VARCHAR
+
+    time_dimensions:
+      - name: year
+        synonyms: ["year", "exam year", "year of sitting"]
+        description: "Year of the part that cites this tutorial."
+        expr: year
+        data_type: NUMBER
+
+    measures:
+      - name: citation_count
+        synonyms:
+          - "citation count"
+          - "times cited"
+          - "how often cited"
+          - "tutorial citations"
+          - "appearance count"
+        description: "Count of (part, tutorial) citations."
+        expr: COUNT(*)
+        data_type: NUMBER
+        default_aggregation: sum
+
+      - name: distinct_parts_citing
+        synonyms:
+          - "distinct parts citing"
+          - "unique parts referencing"
+        description: "COUNT(DISTINCT part_id) — distinct parts that cite the slug(s) in scope."
+        expr: COUNT(DISTINCT part_id)
+        data_type: NUMBER
+
+      - name: total_marks_at_stake
+        synonyms:
+          - "marks at stake"
+          - "total marks of citing parts"
+          - "marks weighted by citation"
+        description: "SUM(marks) across parts that cite the slug(s) in scope."
+        expr: SUM(marks)
+        data_type: NUMBER
+        default_aggregation: sum
+
+
+# ============================================================================
+# Verified queries — the 10 canonical analytical questions a student or Paul
+# might ask. Each query teaches Cortex Analyst a high-precision SQL pattern.
+# When the natural-language question hits, the model should reproduce the
+# pattern; if it diverges, the synonym list above probably needs a tweak.
+# ============================================================================
+verified_queries:
+
+  - name: integration_by_parts_p1_last_5y
+    question: "How often has integration by parts appeared on Paper 1 in the last five years?"
+    sql: |
+      SELECT COUNT(*) AS parts_count
+      FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_FLAT
+      WHERE topic_strand = 'integration'
+        AND paper = 1
+        AND sitting = 'main'
+        AND year BETWEEN 2021 AND 2025
+        AND (
+              topic_raw     ILIKE '%integration by parts%'
+           OR solution_text ILIKE '%integration by parts%'
+        );
+
+  - name: discriminant_questions_p1_by_year
+    question: "How many discriminant questions appear on Paper 1 each year?"
+    sql: |
+      SELECT year,
+             COUNT(*) AS parts_count
+      FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_FLAT
+      WHERE paper = 1
+        AND sitting = 'main'
+        AND (
+              topic_raw ILIKE '%discriminant%'
+           OR topic_raw ILIKE '%nature of roots%'
+           OR topic_raw ILIKE '%nature of the roots%'
+        )
+      GROUP BY year
+      ORDER BY year;
+
+  - name: differentiation_trend_p1
+    question: "What's the year-over-year trend of differentiation parts on Paper 1?"
+    sql: |
+      SELECT year,
+             COUNT(*) AS parts_count
+      FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_FLAT
+      WHERE topic_strand = 'differentiation'
+        AND paper = 1
+        AND sitting = 'main'
+      GROUP BY year
+      ORDER BY year;
+
+  - name: strand_growth_since_2020_p2
+    question: "Which Paper 2 strands have grown since 2020?"
+    sql: |
+      WITH recent AS (
+          SELECT topic_strand, COUNT(*) AS recent_parts
+          FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_FLAT
+          WHERE paper = 2 AND sitting = 'main' AND year BETWEEN 2020 AND 2025
+          GROUP BY topic_strand
+      ),
+      prior AS (
+          SELECT topic_strand, COUNT(*) AS prior_parts
+          FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_FLAT
+          WHERE paper = 2 AND sitting = 'main' AND year BETWEEN 2015 AND 2019
+          GROUP BY topic_strand
+      )
+      SELECT COALESCE(r.topic_strand, p.topic_strand) AS topic_strand,
+             COALESCE(p.prior_parts, 0)              AS prior_2015_2019,
+             COALESCE(r.recent_parts, 0)             AS recent_2020_2025,
+             COALESCE(r.recent_parts, 0)
+                - COALESCE(p.prior_parts, 0)          AS delta
+      FROM recent r
+      FULL OUTER JOIN prior p USING (topic_strand)
+      ORDER BY delta DESC;
+
+  - name: avg_marks_nature_of_roots
+    question: "What's the average mark allocation for a 'nature of roots' question?"
+    sql: |
+      SELECT AVG(marks) AS avg_marks_per_part,
+             COUNT(*)   AS parts_count
+      FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_FLAT
+      WHERE topic_raw ILIKE '%nature of%root%'
+         OR topic_raw ILIKE '%discriminant%';
+
+  - name: most_cited_tutorial_p1_all_years
+    question: "Which single tutorial is cited most often on Paper 1 across all years?"
+    sql: |
+      SELECT tutorial_slug,
+             COUNT(*) AS citation_count
+      FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_BY_TUTORIAL
+      WHERE paper = 1
+        AND sitting = 'main'
+      GROUP BY tutorial_slug
+      ORDER BY citation_count DESC
+      LIMIT 10;
+
+  - name: deferred_vs_main_strand_mix
+    question: "How does the strand mix differ between main and deferred sittings on Paper 2?"
+    sql: |
+      SELECT topic_strand,
+             COUNT_IF(sitting = 'main') AS main_parts,
+             COUNT_IF(sitting = 'df')   AS deferred_parts
+      FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_FLAT
+      WHERE paper = 2
+      GROUP BY topic_strand
+      ORDER BY main_parts DESC;
+
+  - name: p1_vs_p2_part_count_per_year
+    question: "How does the Paper 1 vs Paper 2 part count compare year by year?"
+    sql: |
+      SELECT year,
+             COUNT_IF(paper = 1) AS paper_1_parts,
+             COUNT_IF(paper = 2) AS paper_2_parts
+      FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_FLAT
+      WHERE sitting = 'main'
+      GROUP BY year
+      ORDER BY year;
+
+  - name: ten_year_average_parts_per_strand_p1
+    question: "What's the 10-year average number of parts per strand on Paper 1?"
+    sql: |
+      SELECT topic_strand,
+             COUNT(*)                                AS total_parts,
+             COUNT(DISTINCT year)                    AS years_appeared,
+             ROUND(COUNT(*) * 1.0
+                   / COUNT(DISTINCT year), 1)        AS avg_parts_per_year_appeared
+      FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_FLAT
+      WHERE paper = 1
+        AND sitting = 'main'
+        AND year BETWEEN 2015 AND 2025
+      GROUP BY topic_strand
+      ORDER BY total_parts DESC;
+
+  - name: differentiation_p1_since_2020_heavy
+    question: "How many differentiation parts on Paper 1 since 2020 are worth 10 marks or more?"
+    sql: |
+      SELECT year,
+             COUNT(*) AS heavy_diff_parts
+      FROM GKTUITION_TUTOR.CORTEX.EXAM_PARTS_FLAT
+      WHERE topic_strand = 'differentiation'
+        AND paper = 1
+        AND sitting = 'main'
+        AND year >= 2020
+        AND marks >= 10
+      GROUP BY year
+      ORDER BY year;

@@ -1,0 +1,116 @@
+# Fly.io app config — GKTuition AI Tutor (FastAPI + cost firewall).
+#
+# Phase 1.5-3 deployment target per ADR-003. The AWS Lambda migration is
+# deferred to a future ADR (ADR-005) and is gated on >1,000 daily queries.
+# Until that trigger fires, Fly.io carries the orchestrator.
+#
+# Region: fra (Frankfurt) — closest Fly region to Ireland, lowest p50 latency
+# for student traffic on gktuition.ie. Re-evaluate once we have real RUM.
+#
+# Sizing: one shared-cpu-1x machine, 256MB RAM, scale-to-zero. The orchestrator
+# is mostly I/O (Snowflake + Anthropic), CPU is rarely the bottleneck. 256MB
+# is comfortable headroom for FastAPI + the Snowflake connector + connection
+# pool; if we see OOM kills, the first step is to bump to 512MB before
+# reaching for bigger CPUs.
+#
+# Secrets: declared by name only. Run `scripts/setup_fly_secrets.sh` from a
+# local checkout to populate them; the agent never writes secrets here.
+
+app = "gktuition-tutor-api"
+primary_region = "fra"
+kill_signal = "SIGTERM"
+kill_timeout = "10s"
+
+# -----------------------------------------------------------------------------
+# Build — produce the image from our multi-stage Dockerfile. GitHub Actions
+# also drives this with `flyctl deploy`, which respects this section.
+# -----------------------------------------------------------------------------
+[build]
+  dockerfile = "Dockerfile"
+  # GIT_SHA is wired through from CI via --build-arg so /healthz reports the
+  # commit that's actually running.
+  [build.args]
+    GIT_SHA = "unknown"
+
+# -----------------------------------------------------------------------------
+# App env — non-secret defaults. Secrets live in `fly secrets`.
+# -----------------------------------------------------------------------------
+[env]
+  PORT = "8000"
+  GKTUITION_ENV = "prod"
+
+  # Firewall layers — every layer toggled ON in production. Tuning happens
+  # via secrets or via `fly machines update` for short-lived experiments.
+  TURNSTILE_ENABLED = "true"
+  RATE_LIMIT_ENABLED = "true"
+  SEMANTIC_CACHE_ENABLED = "true"
+  CIRCUIT_BREAKER_ENABLED = "true"
+  KILL_SWITCH_ENABLED = "true"
+  LANGFUSE_ENABLED = "true"
+
+  # Observability — point the Snowflake log sink at the right table. The
+  # sink itself is wired in api/observability/snowflake_log_sink.py.
+  SNOWFLAKE_LOG_SINK_ENABLED = "true"
+  SNOWFLAKE_LOG_SINK_TABLE = "GKTUITION_TUTOR.RAW.QUERY_LOG"
+  SNOWFLAKE_LOG_SINK_FLUSH_INTERVAL_S = "30"
+  SNOWFLAKE_LOG_SINK_FLUSH_SIZE = "100"
+
+# -----------------------------------------------------------------------------
+# HTTP service — one TCP port, two health probes (an HTTP probe at /healthz
+# every 10s + a TCP probe so Fly knows the machine accepted a connection).
+# -----------------------------------------------------------------------------
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"     # cold-start ok per ADR-003 cost profile
+  auto_start_machines = true
+  min_machines_running = 0        # scale-to-zero saves money during quiet hours
+  processes = ["app"]
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "10s"
+    method = "GET"
+    timeout = "5s"
+    path = "/healthz"
+    protocol = "http"
+    tls_skip_verify = false
+
+# -----------------------------------------------------------------------------
+# Machine specs
+# -----------------------------------------------------------------------------
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+# -----------------------------------------------------------------------------
+# Secrets declaration — these are referenced by name only. Setting them is
+# done with `fly secrets set` (see scripts/setup_fly_secrets.sh). Listing
+# them here is informational; Fly does not enforce that they exist before
+# deploy but the app will fail to boot if they don't.
+#
+# Required at boot:
+#   SF_ACCOUNT, SF_USER, SF_WAREHOUSE, SF_DATABASE
+#   SF_PRIVATE_KEY  (base64-encoded RSA key — see runbook)
+#   ANTHROPIC_API_KEY
+#   WP_JWT_SECRET
+#
+# Optional (firewall + observability):
+#   TURNSTILE_SECRET_KEY
+#   LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST
+# -----------------------------------------------------------------------------
+
+[deploy]
+  # Rolling strategy means the old machine keeps serving until the new one
+  # passes /healthz. For min_machines_running=0 this still works — Fly spins
+  # up the new machine, waits for green, then retires the old.
+  strategy = "rolling"
+  # Hard ceiling on a single deploy; if the new machine never reports
+  # healthy within this window, `flyctl deploy` exits non-zero and CI rolls
+  # back via `flyctl deploy --rollback`.
+  wait_timeout = "5m"
+
+[metrics]
+  port = 9091
+  path = "/metrics"

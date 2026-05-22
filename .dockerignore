@@ -1,0 +1,46 @@
+# Repo content the runtime image doesn't need. Keeps the build context small
+# (faster `docker build`) and prevents accidentally shipping local secrets.
+
+# VCS + editor
+.git
+.gitignore
+.gitattributes
+.github
+.vscode
+.idea
+
+# Local caches
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.venv*
+**/*.egg-info
+
+# Compiled / scratch
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.DS_Store
+
+# Things that aren't the runtime API — kept out of the build context so that
+# touching a tutorial or notebook doesn't bust the Docker layer cache.
+content-pipeline/
+dags/
+docs/
+eval/
+examples/
+pipelines/
+snowflake/
+widget/
+scripts/
+
+# Repo-level docs & READMEs
+README.md
+AGENT_*.md
+
+# Secrets that should never make it into an image
+.env*
+*.pem
+*.p8
+*.key

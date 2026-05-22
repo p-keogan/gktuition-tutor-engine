@@ -1,0 +1,264 @@
+# =====================================================================
+# content-sync.yml — propagate tutorial edits to Snowflake
+# ---------------------------------------------------------------------
+# Trigger: push to `main` that touches a tutorial-corpus `.md` file.
+# Effect: dispatch only the loaders that need to fire, append an audit
+#         row to RAW.CONTENT_CHANGE_LOG, optionally force a Cortex
+#         Search refresh.
+#
+# Owner: content-pipeline/ (Agent 14).
+#
+# IMPORTANT — this workflow is DELIVERED DISABLED. The user must:
+#   1. Add the SNOWFLAKE_* secrets to the repo's Settings → Secrets and
+#      variables → Actions panel.
+#   2. (Optional) Add CAREER_TRANSITION_2026_DEPLOY_KEY if the
+#      tutorials repo is private and a different repo from this one.
+#   3. Confirm GKTUITION_TUTOR.RAW.CONTENT_CHANGE_LOG exists in the
+#      target Snowflake account (run
+#      content-pipeline/sync/bootstrap_content_change_log.sql once).
+#   4. Enable the workflow under the Actions tab.
+#
+# Until enabled, this file lives in the repo as inert documentation —
+# the YAML is valid, but GitHub doesn't run disabled workflows.
+# =====================================================================
+
+name: content-sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # Trigger on tutorial-corpus edits regardless of where the
+      # tutorials live in the repo tree. The detect_changes script
+      # narrows further; the trigger is intentionally loose so a
+      # SCHEMA.md edit (which routes to a STOP) still fires the
+      # workflow and surfaces the message in the CI log.
+      - "tutorials/**/*.md"
+      - "content-pipeline/**"
+      - "snowflake/**/*.py"
+      - "snowflake/**/*.sql"
+
+  # Manual fire — useful for replaying after a SCHEMA.md change or
+  # forcing a full-corpus eval. The `force_cortex_refresh` input
+  # bypasses the >3-files threshold for the post-load refresh.
+  workflow_dispatch:
+    inputs:
+      from_ref:
+        description: "Git ref to diff from (default: previous commit)"
+        required: false
+        default: "HEAD~1"
+      to_ref:
+        description: "Git ref to diff to (default: HEAD)"
+        required: false
+        default: "HEAD"
+      force_cortex_refresh:
+        description: "Force a Cortex Search REFRESH regardless of diff size"
+        required: false
+        default: "false"
+
+concurrency:
+  # Serialise runs on main — back-to-back pushes shouldn't race each
+  # other into the same audit row or compete for warehouse credits.
+  group: content-sync-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      # Loader credentials. Configured under Settings → Secrets and
+      # variables → Actions on the gktuition-tutor-engine repo.
+      SNOWFLAKE_ACCOUNT:  ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER:     ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_ROLE:     ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_WAREHOUSE: WH_TUTOR
+      SNOWFLAKE_DATABASE:  GKTUITION_TUTOR
+
+    steps:
+      # ─────────────────────────────────────────────────────────────
+      # Checkout — depth=2 so HEAD~1 resolves for the diff.
+      # ─────────────────────────────────────────────────────────────
+      - name: Checkout engine repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # The tutorials live in a sibling repository. Checked out into
+      # ../career-transition-2026 so the loaders' default
+      # `--tutorials-root` (relative `../../career-transition-2026/tutorials`)
+      # resolves the same way it does on the user's laptop.
+      #
+      # NOTE: this step is only required while the corpus lives in a
+      # separate repo. If the corpus ever moves into this repo,
+      # delete this step and the path inputs flip to `tutorials/`
+      # at the engine root. The detect_changes script tolerates both.
+      - name: Checkout tutorials corpus (sibling repo)
+        if: ${{ env.TUTORIALS_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TUTORIALS_REPO }}
+          ssh-key: ${{ secrets.CAREER_TRANSITION_2026_DEPLOY_KEY }}
+          path: ../career-transition-2026
+          fetch-depth: 2
+        env:
+          # Set this in repo variables to the org/repo of the
+          # tutorials corpus. Leave empty to assume the tutorials
+          # live in this repo's `tutorials/` directory.
+          TUTORIALS_REPO: ${{ vars.TUTORIALS_REPO }}
+
+      # ─────────────────────────────────────────────────────────────
+      # Python + deps
+      # ─────────────────────────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pipeline dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install snowflake-connector-python pyyaml
+
+      # ─────────────────────────────────────────────────────────────
+      # Step 1 — validator. Hard fail before anything else runs.
+      # ─────────────────────────────────────────────────────────────
+      - name: Validate YAML frontmatter across the corpus
+        run: |
+          python content-pipeline/validators/yaml_frontmatter.py \
+              --all \
+              --tutorials-root "$GITHUB_WORKSPACE/../career-transition-2026/tutorials"
+
+      # ─────────────────────────────────────────────────────────────
+      # Step 2 — detect what changed.
+      # The diff base is the previous commit on main (HEAD~1) for
+      # push events, or the workflow_dispatch inputs.
+      # ─────────────────────────────────────────────────────────────
+      - name: Detect changed files → manifest.json
+        id: detect
+        env:
+          FROM_REF: ${{ github.event.inputs.from_ref || 'HEAD~1' }}
+          TO_REF:   ${{ github.event.inputs.to_ref || 'HEAD' }}
+        run: |
+          # The diff runs against the tutorials repo when the corpus
+          # is in a sibling. Default is the engine repo.
+          if [[ -d "$GITHUB_WORKSPACE/../career-transition-2026/.git" ]]; then
+              REPO_ROOT="$GITHUB_WORKSPACE/../career-transition-2026"
+          else
+              REPO_ROOT="$GITHUB_WORKSPACE"
+          fi
+          python content-pipeline/sync/detect_changes.py \
+              --from "$FROM_REF" --to "$TO_REF" \
+              --repo-root "$REPO_ROOT" \
+              --output manifest.json
+          echo "=== manifest.json ==="
+          cat manifest.json
+
+      # ─────────────────────────────────────────────────────────────
+      # Step 3 — dispatch the loaders.
+      # run_loaders.py honours the schema-touched / loader-code-touched
+      # STOP gates internally; we propagate its exit code.
+      # ─────────────────────────────────────────────────────────────
+      - name: Run loaders + write audit row
+        id: load
+        run: |
+          python content-pipeline/sync/run_loaders.py \
+              --manifest manifest.json \
+              --tutorials-root "$GITHUB_WORKSPACE/../career-transition-2026/tutorials"
+
+      # ─────────────────────────────────────────────────────────────
+      # Step 4 — Cortex Search refresh.
+      # Only fire when the change set is "non-trivial":
+      #   • >3 files in any one category, OR
+      #   • a _SUMMARY-* file was touched (small corpus, big impact), OR
+      #   • the operator passed force_cortex_refresh=true.
+      # The 1-day TARGET_LAG covers normal cadence; this gate ensures
+      # we don't burn warehouse credits on every typo fix.
+      # ─────────────────────────────────────────────────────────────
+      - name: Decide whether to force a Cortex Search refresh
+        id: refresh_gate
+        run: |
+          python <<'PY'
+          import json, os
+          m = json.loads(open("manifest.json").read())
+          total = (
+              m["summary"].get("n_tutorials", 0)
+              + m["summary"].get("n_exam_solutions", 0)
+              + m["summary"].get("n_summaries", 0)
+          )
+          summary_touched = m["summary"].get("n_summaries", 0) > 0
+          forced = os.environ.get("FORCE_REFRESH", "false").lower() == "true"
+          should = forced or summary_touched or total > 3
+          # Emit the decision for downstream steps.
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"should_refresh={'true' if should else 'false'}\n")
+              f.write(f"reason={'forced' if forced else 'summary' if summary_touched else 'gt3' if total > 3 else 'skip'}\n")
+          print(f"refresh decision: should={should} (total={total}, summary_touched={summary_touched}, forced={forced})")
+          PY
+        env:
+          FORCE_REFRESH: ${{ github.event.inputs.force_cortex_refresh || 'false' }}
+
+      - name: Force Cortex Search REFRESH
+        if: steps.refresh_gate.outputs.should_refresh == 'true'
+        run: |
+          python content-pipeline/sync/refresh_cortex.py \
+              --services TUTOR_SEARCH,SOLUTIONS_SEARCH,SUMMARY_SEARCH \
+              --timeout-s 600
+
+      # ─────────────────────────────────────────────────────────────
+      # Step 5 — post a summary comment back to the commit so the
+      # human pushing the change sees the outcome in their git UI.
+      # GitHub commit comments don't need a webhook; the default
+      # GITHUB_TOKEN has the necessary perms.
+      # ─────────────────────────────────────────────────────────────
+      - name: Post commit comment with run summary
+        if: always() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            let manifest = {summary: {}};
+            try { manifest = JSON.parse(fs.readFileSync("manifest.json", "utf-8")); } catch (e) {}
+            const s = manifest.summary || {};
+            const refreshed = "${{ steps.refresh_gate.outputs.should_refresh }}" === "true";
+            const loadOk = "${{ steps.load.outcome }}" === "success";
+            const body = [
+              "### content-sync run",
+              "",
+              `- **loaders ok:** ${loadOk ? "✅" : "❌"}`,
+              `- **tutorials touched:** ${s.n_tutorials || 0}`,
+              `- **exam solutions touched:** ${s.n_exam_solutions || 0}`,
+              `- **summaries touched:** ${s.n_summaries || 0}`,
+              `- **schema touched:** ${s.schema_touched ? "yes (STOP gate)" : "no"}`,
+              `- **loader code touched:** ${s.loader_touched ? "yes (STOP gate)" : "no"}`,
+              `- **cortex refresh forced:** ${refreshed ? "yes" : "no (1-day TARGET_LAG covers it)"}`,
+              "",
+              `Run: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+              "",
+              "_See `content-pipeline/docs/content-pipeline-handbook.md` for what to do if this failed._",
+            ].join("\n");
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body,
+            });
+
+      # ─────────────────────────────────────────────────────────────
+      # Step 6 — upload the manifest + audit JSONL as artefacts so
+      # the operator can pull them down post-hoc even if the
+      # Snowflake audit write failed for some reason.
+      # ─────────────────────────────────────────────────────────────
+      - name: Upload manifest + audit artefacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-sync-${{ github.run_id }}
+          path: |
+            manifest.json
+            content-pipeline/last-run.json
+          if-no-files-found: ignore
+          retention-days: 30

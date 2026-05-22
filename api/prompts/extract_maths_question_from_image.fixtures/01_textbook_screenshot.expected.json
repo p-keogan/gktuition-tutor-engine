@@ -1,0 +1,10 @@
+{
+  "_comment": "Expected shape for the textbook-screenshot fixture. The smoke test asserts outcome=='single_question_extracted' and does a relaxed string-similarity match (>= 0.7 token overlap) on extracted_question. Update extracted_question_contains and extracted_question_should_resemble when you swap in your real fixture.",
+  "expected_outcome": "single_question_extracted",
+  "extracted_question_contains": [
+    "differentiate"
+  ],
+  "extracted_question_should_resemble": "Differentiate y = sin(2x) with respect to x.",
+  "must_use_ascii_notation": true,
+  "must_not_contain_unicode_math_chars": ["√", "²", "π", "θ", "∫"]
+}

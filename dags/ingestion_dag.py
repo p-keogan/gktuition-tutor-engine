@@ -110,6 +110,20 @@ def download_audio(entry: VideoEntry) -> str:
         compressed.replace(audio_path)
         print(f"Recompressed to {audio_path.stat().st_size / (1024 * 1024):.1f} MB")
 
+    # FALLBACK: if recompression alone didn't get us below the Whisper limit
+    # (very long videos — roughly >100 min at 32 kbps mono 16 kHz), split into
+    # ~15-min chunks. The downstream transcribe task detects the .chunks.json
+    # extension and routes through the chunked-transcription path.
+    size_mb_post = audio_path.stat().st_size / (1024 * 1024)
+    if size_mb_post > WHISPER_SIZE_LIMIT_MB:
+        print(
+            f"Still {size_mb_post:.1f} MB after recompression; "
+            f"chunking via audio_utils"
+        )
+        from audio_utils import chunk_audio_for_whisper
+        manifest_path = chunk_audio_for_whisper(audio_path, slug, AUDIO_DIR)
+        return str(manifest_path)
+
     return str(audio_path)
 
 @task(
@@ -123,11 +137,22 @@ def transcribe(audio_path: str) -> str:
     fork-safety + httpx-after-fork crashes that happen when openai is
     imported in Airflow's worker process.
 
+    Accepts either:
+      - <slug>.mp3            (single audio file — the common case)
+      - <slug>.chunks.json    (manifest of chunks — for very long videos
+                                where audio_utils.chunk_audio_for_whisper
+                                kicked in inside download_audio)
+
+    Slug is derived from the input filename; the worker script handles both
+    invocation styles transparently.
+
     Idempotent: skips if data/transcripts/raw/<slug>.json already exists.
     Returns the local raw-JSON path.
     """
     audio = Path(audio_path)
-    slug = audio.stem
+    # `.chunks.json` → stem is `<slug>.chunks`; strip the trailing `.chunks`.
+    # `.mp3` → stem is `<slug>` directly.
+    slug = audio.stem[:-len(".chunks")] if audio.stem.endswith(".chunks") else audio.stem
     TRANSCRIPTS_RAW_DIR.mkdir(parents=True, exist_ok=True)
     raw_path = TRANSCRIPTS_RAW_DIR / f"{slug}.json"
 

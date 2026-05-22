@@ -1,0 +1,30 @@
+# Anthropic API pricing config — USD per 1M tokens. The kill switch uses
+# these numbers to estimate spend at request time. Refresh whenever Anthropic
+# publishes a price change.
+#
+# Source: https://www.anthropic.com/pricing  (snapshot taken 2026-05-22)
+#
+# Conversion to EUR happens via ``eur_per_usd`` below; the kill switch
+# thresholds are denominated in EUR per the rationale in
+# firewall/spend_cap_rationale.md.
+
+eur_per_usd: 0.92
+
+# Per-model rates. Keys MUST match the strings emitted as ``model_used`` by
+# the orchestrator's synthesizer (api/orchestrator/synthesizer.py).
+models:
+  anthropic.claude-haiku-4-5:
+    input_per_million_usd: 1.00
+    output_per_million_usd: 5.00
+  anthropic.claude-sonnet-4:
+    input_per_million_usd: 3.00
+    output_per_million_usd: 15.00
+  # Cortex is in-warehouse and billed by credit consumption, not tokens — we
+  # carry a flat per-call cost here so the kill switch can still attribute
+  # spend.
+  cortex.mistral-large2:
+    flat_per_call_usd: 0.00050
+  cortex.analyst:
+    flat_per_call_usd: 0.00100
+  "(none)":
+    flat_per_call_usd: 0.00020

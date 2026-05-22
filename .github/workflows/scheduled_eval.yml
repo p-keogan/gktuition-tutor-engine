@@ -1,0 +1,204 @@
+# Nightly retrieval-quality scoring run.
+#
+# At 02:00 UTC every day, run the eval scorer against the live Cortex Search
+# services using the golden subset. Write the report to
+# `eval/scoring_history/YYYY-MM-DD.md`. If precision@1 drops by ≥ 5 percentage
+# points vs. the prior week's median, open a PR against main (rather than
+# paging — a PR is a gentler interrupt and gives the author the diff context).
+#
+# Secrets required:
+#
+#   EVAL_SF_USER, EVAL_SF_ACCOUNT, EVAL_SF_PRIVATE_KEY (b64), EVAL_SF_DATABASE
+#                — Snowflake key-pair auth scoped to WH_EVAL (small read-only
+#                  warehouse so the eval doesn't share spend with prod traffic).
+#   EVAL_OPEN_PR_TOKEN
+#                — A fine-grained PAT with `contents: write` + `pull-requests:
+#                  write` on this repo. The default GITHUB_TOKEN can't open
+#                  PRs that trigger other workflows.
+
+name: scheduled_eval
+
+on:
+  schedule:
+    # Daily at 02:00 UTC. Cron uses UTC.
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # let the user trigger manually for spot checks
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: scheduled-eval
+  cancel-in-progress: false
+
+jobs:
+  score:
+    name: golden-subset scoring + regression check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # We need full history so the "prior 7 days of reports" lookup
+          # works regardless of how recently the branch was created.
+          fetch-depth: 30
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install eval dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e "api[dev]"
+          # The eval script needs pandas + matplotlib for the report; install
+          # them explicitly so the api package's deps stay lean.
+          pip install pandas matplotlib
+
+      - name: Decode private key + write to disk
+        env:
+          EVAL_SF_PRIVATE_KEY: ${{ secrets.EVAL_SF_PRIVATE_KEY }}
+        run: |
+          mkdir -p .secrets
+          echo "$EVAL_SF_PRIVATE_KEY" | base64 -d > .secrets/sf_key.p8
+          chmod 600 .secrets/sf_key.p8
+
+      - name: Run scorer (golden subset only)
+        env:
+          SNOWFLAKE_USER:            ${{ secrets.EVAL_SF_USER }}
+          SNOWFLAKE_ACCOUNT:         ${{ secrets.EVAL_SF_ACCOUNT }}
+          SNOWFLAKE_PRIVATE_KEY_PATH: ${{ github.workspace }}/.secrets/sf_key.p8
+          SNOWFLAKE_DATABASE:        ${{ secrets.EVAL_SF_DATABASE }}
+          SNOWFLAKE_WAREHOUSE:       WH_EVAL
+        run: |
+          cd eval
+          python score_against_cortex_search.py --only-golden-subset
+
+      - name: Promote latest report into scoring_history/YYYY-MM-DD.md
+        id: promote
+        run: |
+          set -euo pipefail
+          today=$(date -u +%Y-%m-%d)
+          mkdir -p eval/scoring_history
+          latest=$(ls -1t eval/scoring_report_*.md 2>/dev/null | head -n1 || true)
+          if [ -z "$latest" ]; then
+            echo "::error::scorer produced no markdown report"
+            exit 1
+          fi
+          dest="eval/scoring_history/${today}.md"
+          cp "$latest" "$dest"
+          echo "report_path=$dest" >> "$GITHUB_OUTPUT"
+          echo "today=$today"      >> "$GITHUB_OUTPUT"
+          echo "Promoted $latest to $dest"
+
+      - name: Extract precision@1 + compute regression vs prior week median
+        id: regression
+        run: |
+          python <<'PYEOF'
+          import os
+          import re
+          import statistics
+          from datetime import date, timedelta
+          from pathlib import Path
+
+          today_path = Path(os.environ["REPORT_PATH"])
+          history = Path("eval/scoring_history")
+
+          def parse_precision_at_1(text: str) -> float | None:
+              # The scoring report (Agent 05's format) renders precision@1
+              # like "precision@1: 0.83" or "Precision@1 | 0.83". Be tolerant
+              # of both forms; first match wins.
+              for pattern in (
+                  r"precision@1\s*[:|]\s*([0-9.]+)",
+                  r"Precision@1\s*[:|]\s*([0-9.]+)",
+              ):
+                  m = re.search(pattern, text)
+                  if m:
+                      return float(m.group(1))
+              return None
+
+          today_val = parse_precision_at_1(today_path.read_text())
+          if today_val is None:
+              raise SystemExit(f"could not parse precision@1 from {today_path}")
+          print(f"Today precision@1: {today_val:.4f}")
+
+          today_d = date.fromisoformat(os.environ["TODAY"])
+          window_start = today_d - timedelta(days=8)
+          window_end   = today_d - timedelta(days=1)
+
+          prior: list[float] = []
+          for p in sorted(history.glob("*.md")):
+              try:
+                  d = date.fromisoformat(p.stem)
+              except ValueError:
+                  continue
+              if window_start <= d <= window_end:
+                  val = parse_precision_at_1(p.read_text())
+                  if val is not None:
+                      prior.append(val)
+          if not prior:
+              print("No prior reports in the 7-day window — skipping regression check.")
+              regression_pp = 0.0
+              triggered = False
+          else:
+              median_prior = statistics.median(prior)
+              regression_pp = (median_prior - today_val) * 100
+              triggered = regression_pp >= 5.0
+              print(
+                  f"Prior 7-day median: {median_prior:.4f} | "
+                  f"regression: {regression_pp:.1f}pp | triggered={triggered}"
+              )
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"today_precision={today_val:.4f}\n")
+              fh.write(f"regression_pp={regression_pp:.2f}\n")
+              fh.write(f"triggered={'true' if triggered else 'false'}\n")
+          PYEOF
+        env:
+          REPORT_PATH: ${{ steps.promote.outputs.report_path }}
+          TODAY: ${{ steps.promote.outputs.today }}
+
+      - name: Commit today's report (no PR)
+        if: steps.regression.outputs.triggered != 'true'
+        run: |
+          git config user.name  'gktuition-eval-bot'
+          git config user.email 'eval-bot@gktuition.ie'
+          git add eval/scoring_history/
+          if git diff --cached --quiet; then
+            echo "No new report to commit (already in tree)."
+          else
+            git commit -m "eval: scoring report for ${{ steps.promote.outputs.today }}"
+            git push origin HEAD:main
+          fi
+
+      - name: Open regression PR
+        if: steps.regression.outputs.triggered == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.EVAL_OPEN_PR_TOKEN }}
+          branch: eval/regression-${{ steps.promote.outputs.today }}
+          base: main
+          title: "[eval-regression] precision@1 dropped ${{ steps.regression.outputs.regression_pp }}pp on ${{ steps.promote.outputs.today }}"
+          body: |
+            The nightly scorer detected a precision@1 drop of
+            **${{ steps.regression.outputs.regression_pp }} percentage points**
+            vs. the prior 7-day median.
+
+            * Today's precision@1: **${{ steps.regression.outputs.today_precision }}**
+            * Regression threshold (open a PR): **≥ 5.0pp**
+            * Report: `${{ steps.promote.outputs.report_path }}`
+
+            Likely causes (in rough order of frequency):
+            1. A new tutorial slug was added or renamed, but the
+               golden-subset CSV wasn't updated.
+            2. Cortex Search index was rebuilt and the reranker drifted.
+            3. A retriever change in `api/orchestrator/retriever.py`
+               unintentionally shifted top-1 ordering.
+
+            Triage steps live in `docs/ops/runbook.md` → "Eval regression PR".
+          commit-message: "eval: regression report for ${{ steps.promote.outputs.today }}"
+          labels: |
+            eval-regression
+            priority/high

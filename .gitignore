@@ -3,6 +3,27 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Fly.io — secrets digest + any local cache the flyctl CLI drops
+.fly/
+
+# Local untracked secrets file consumed by scripts/setup_fly_secrets.sh
+.gktuition_secrets
+~/.gktuition_secrets
+
+# Internal engineering notes — kept on disk for the author's own reference,
+# never pushed. The public-facing engineering story lives in
+# docs/architecture/ and the per-area READMEs. See SYSTEM_OVERVIEW.md.
+AGENT_*_DELIVERY.md
+AGENT_MAY_*.md
+DAY_*.md
+PLAN_PIVOT_*.md
+
+# macOS / editor noise
+.DS_Store
+*.backup
+*.bak
+*.swp
+
 # C extensions
 *.so
 

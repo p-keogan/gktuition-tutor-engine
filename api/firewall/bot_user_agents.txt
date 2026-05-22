@@ -1,0 +1,39 @@
+# Bot User-Agent prefixes — anonymous requests whose UA starts with any line
+# below get a 403 with no body. Reviewed quarterly per
+# firewall/anti_spam_decisions.md.
+#
+# Lines starting with '#' are comments. Match is a case-insensitive prefix.
+python-requests/
+python-urllib/
+urllib/
+curl/
+Wget/
+Go-http-client/
+node-fetch/
+axios/
+okhttp/
+Apache-HttpClient/
+Java/
+Ruby
+libwww-perl/
+PycURL/
+httpie/
+HTTPie/
+aiohttp/
+scrapy/
+Scrapy/
+zgrab
+masscan
+Nmap
+nikto
+sqlmap
+Bytespider
+SemrushBot
+AhrefsBot
+DotBot
+MJ12bot
+PetalBot
+SeznamBot
+YandexBot
+Sogou
+Baiduspider
