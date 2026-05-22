@@ -23,6 +23,13 @@ dependencies = [
     # transitively pulled in by pytest's TestClient locally but absent from
     # a clean install. Without this the Fly image fails to import api.main.
     "python-multipart >=0.0.9,<1.0",
+    # Agent 13's visualisation layer (api/visualisation/generators.py) imports
+    # numpy at the top level — analytical query results pass through ndarray
+    # before being shaped into Plotly traces. Was missing from Agent 13's
+    # delivery; without it the Fly image can't import api.visualisation, and
+    # mypy --strict raises import-not-found. Modern numpy ships its own
+    # type stubs, so no types-numpy dev dep is needed.
+    "numpy >=1.24,<3.0",
 ]
 
 [project.optional-dependencies]
