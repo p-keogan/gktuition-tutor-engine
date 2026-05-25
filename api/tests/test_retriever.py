@@ -16,26 +16,42 @@ from api.orchestrator.contract import QueryClass
 
 def _fake_search_results(service: str, query: str) -> list[dict[str, Any]]:
     """Tiny in-memory fixture — three slugs per service with monotonically
-    decreasing scores. The retriever's tests don't care about real search
-    quality, only that the orchestration shape is right."""
+    decreasing reranker scores.
+
+    Response shape matches the live Cortex Search Preview output verified
+    against TUTOR_SEARCH on 2026-05-25 (see ``scripts/sniff_cortex.py``):
+    scores live under ``@scores``, not at the top level. The previous
+    fixture put a flat ``score`` field at the top level, which masked a
+    production bug — the parser read ``hit.get('score')`` and got None,
+    so every chunk landed at score=0.0 in prod and tripped the
+    synthesis confidence gate.
+    """
     if "TUTOR_SEARCH" in service:
         return [
             {"slug": "algebra-1-revision-of-jc-factorising", "title": "Algebra 1",
-             "body": "factorising prose...", "score": 0.92, "topic": "algebra"},
+             "body": "factorising prose...", "topic": "algebra",
+             "@scores": {"reranker_score": 2.45, "cosine_similarity": 0.63,
+                         "text_match": 0.44}},
             {"slug": "algebra-2-factorising-quadratics", "title": "Algebra 2",
-             "body": "...", "score": 0.74, "topic": "algebra"},
+             "body": "...", "topic": "algebra",
+             "@scores": {"reranker_score": 1.05, "cosine_similarity": 0.51,
+                         "text_match": 0.31}},
         ]
     if "SOLUTIONS_SEARCH" in service:
         return [
             {"part_id": "2024_main_P2_Q5a", "topic": "vectors",
              "question_text": "Find the coordinates of B and C.",
-             "solution_text": "...", "score": 0.88,
-             "tutorials_referenced": ["the-line-4-area-of-triangle"]},
+             "solution_text": "...",
+             "tutorials_referenced": ["the-line-4-area-of-triangle"],
+             "@scores": {"reranker_score": 1.99, "cosine_similarity": 0.58,
+                         "text_match": 0.42}},
         ]
     if "SUMMARY_SEARCH" in service:
         return [
             {"summary_id": "summary-the-line", "strand_name": "The Line",
-             "body": "Cram sheet body.", "score": 0.81},
+             "body": "Cram sheet body.",
+             "@scores": {"reranker_score": 1.46, "cosine_similarity": 0.55,
+                         "text_match": 0.38}},
         ]
     return []
 
@@ -102,7 +118,12 @@ async def test_concept_hits_tutor_search_only() -> None:
     assert retriever.TUTOR_SEARCH in res.services_called
     assert retriever.SOLUTIONS_SEARCH not in res.services_called
     assert res.chunks[0].slug == "algebra-1-revision-of-jc-factorising"
-    assert res.top_reranker_score == pytest.approx(0.92, abs=1e-3)
+    # Top hit's raw reranker_score = 2.45 → sigmoid ≈ 0.9205. Well above
+    # RETRIEVAL_FLOOR=0.30, so the synthesizer takes the grounded path
+    # rather than the "I'm not sure" fallback — which was the production
+    # regression this test exists to pin.
+    assert res.top_reranker_score == pytest.approx(0.9205, abs=2e-3)
+    assert res.top_reranker_score > retriever.RETRIEVAL_FLOOR
 
 
 @pytest.mark.asyncio
@@ -166,11 +187,58 @@ async def test_image_extracted_acts_like_concept() -> None:
     assert res.chunks
 
 
-@pytest.mark.asyncio
-async def test_normalise_score_clamps_negative_and_nan() -> None:
-    # Indirect — feed a payload through and trust the public surface.
-    assert retriever._normalise_score(-0.5) == 0.0
-    assert retriever._normalise_score(float("nan")) == 0.0
-    assert retriever._normalise_score(2.0) == 1.0
-    assert retriever._normalise_score(None) == 0.0
-    assert retriever._normalise_score("0.5") == 0.5
+def test_extract_reranker_score_handles_real_response_shape() -> None:
+    """Regression test pinned against the live Cortex response shape.
+
+    This is the exact dict shape returned by SEARCH_PREVIEW (verified
+    2026-05-25 via scripts/sniff_cortex.py). Friday's parser read
+    ``hit.get('score')`` and returned None → 0.0 → tripped the synthesis
+    confidence gate on every concept query. This test would have caught
+    that.
+    """
+    real_hit = {
+        "slug": "algebra-1-revision-of-jc-factorising",
+        "title": "Algebra 1 — Revision Of Junior Cert Factorising",
+        "@scores": {
+            "reranker_score": 2.4509184,
+            "cosine_similarity": 0.6312332,
+            "text_match": 0.43972465,
+        },
+    }
+    assert retriever._extract_reranker_score(real_hit) == pytest.approx(
+        2.4509184, abs=1e-6
+    )
+
+    # Falls back to cosine_similarity if reranker_score is missing.
+    no_reranker = {"@scores": {"cosine_similarity": 0.42}}
+    assert retriever._extract_reranker_score(no_reranker) == pytest.approx(
+        0.42, abs=1e-6
+    )
+
+    # Falls back to flat ``score`` (test-fixture compatibility path).
+    flat = {"score": 0.5}
+    assert retriever._extract_reranker_score(flat) == pytest.approx(0.5, abs=1e-6)
+
+    # Defensive: missing / None / non-numeric all return 0.
+    assert retriever._extract_reranker_score({}) == 0.0
+    assert retriever._extract_reranker_score({"@scores": None}) == 0.0
+    assert retriever._extract_reranker_score({"score": None}) == 0.0
+    assert retriever._extract_reranker_score({"score": "not-a-number"}) == 0.0
+
+
+def test_sigmoid_normalize_calibration() -> None:
+    """Pin the sigmoid calibration so future score-related tuning is
+    visible at review time. RETRIEVAL_FLOOR is 0.30 — calibration must
+    keep neutral-or-better reranker scores above it."""
+    assert retriever._sigmoid_normalize(0.0) == pytest.approx(0.5, abs=1e-6)
+    assert retriever._sigmoid_normalize(2.0) == pytest.approx(0.8808, abs=1e-3)
+    assert retriever._sigmoid_normalize(-2.0) == pytest.approx(0.1192, abs=1e-3)
+    # Neutral score should land above RETRIEVAL_FLOOR (synthesise, not fallback)
+    assert retriever._sigmoid_normalize(0.0) > retriever.RETRIEVAL_FLOOR
+    # Strongly-negative reranker should land below RETRIEVAL_FLOOR (fallback)
+    assert retriever._sigmoid_normalize(-2.0) < retriever.RETRIEVAL_FLOOR
+    # NaN guard
+    assert retriever._sigmoid_normalize(float("nan")) == 0.0
+    # Overflow guards
+    assert retriever._sigmoid_normalize(1000.0) == 1.0
+    assert retriever._sigmoid_normalize(-1000.0) == 0.0

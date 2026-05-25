@@ -21,6 +21,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 import os
 import time
 from collections.abc import Callable, Iterator
@@ -354,7 +355,7 @@ def _from_tutor_search(query: str) -> tuple[list[RetrievedChunk], list[Citation]
         if not slug:
             continue
         snippet = _shorten(h.get("body") or h.get("title") or "", 600)
-        score = _normalise_score(h.get("score"))
+        score = _normalise_score(h)
         chunks.append(RetrievedChunk(slug=slug, snippet=snippet, score=score))
         citations.append(
             Citation(
@@ -383,7 +384,7 @@ def _from_solutions_search(query: str) -> tuple[list[RetrievedChunk], list[Citat
             (h.get("question_text") or "") + "\n\n" + (h.get("solution_text") or ""),
             800,
         )
-        score = _normalise_score(h.get("score"))
+        score = _normalise_score(h)
         chunks.append(RetrievedChunk(slug=part_id, snippet=snippet, score=score))
         # Citations from SOLUTIONS_SEARCH point at the underlying tutorials,
         # not the exam part — that's what the widget needs to deep-link to a
@@ -426,7 +427,7 @@ def _from_summary_search(query: str) -> tuple[list[RetrievedChunk], list[Citatio
         if not sid:
             continue
         snippet = _shorten(h.get("body") or "", 800)
-        score = _normalise_score(h.get("score"))
+        score = _normalise_score(h)
         chunks.append(RetrievedChunk(slug=sid, snippet=snippet, score=score))
         citations.append(
             Citation(
@@ -539,20 +540,102 @@ def _shorten(text: str, max_chars: int) -> str:
     return text[: max_chars - 1].rstrip() + "…"
 
 
-def _normalise_score(raw: Any) -> float:
-    """Cortex Search Preview returns scores as floats in roughly the (0, 1]
-    range but with occasional values outside it. Clamp + default to 0 on
-    missing.
+def _extract_reranker_score(hit: dict[str, Any]) -> float:
+    """Pull the raw reranker score out of a Cortex Search Preview hit.
+
+    The Cortex Search response shape (verified against the live
+    TUTOR_SEARCH service 2026-05-25) nests scores under ``@scores``::
+
+        {
+          "slug": "...",
+          "title": "...",
+          "@scores": {
+            "reranker_score":    2.4509184,   # unbounded; can be negative
+            "cosine_similarity": 0.6312332,   # [0, 1]
+            "text_match":        0.43972465   # [0, 1]
+          }
+        }
+
+    The previous parser read ``hit.get("score")`` — that field doesn't
+    exist in real responses, so every chunk landed at score=0.0 and
+    tripped the synthesis confidence gate (RETRIEVAL_FLOOR=0.30), forcing
+    the "I'm not sure" fallback on every concept query.
+
+    Fallback order: ``@scores.reranker_score`` → ``@scores.cosine_similarity``
+    → ``hit['score']`` (preserves test-fixture compatibility) → 0.0. NaN
+    or non-numeric values return 0.0 (defensive against malformed
+    responses).
     """
+    scores = hit.get("@scores")
+    if isinstance(scores, dict):
+        for key in ("reranker_score", "cosine_similarity", "text_match"):
+            v = scores.get(key)
+            if v is not None:
+                try:
+                    f = float(v)
+                except (TypeError, ValueError):
+                    continue
+                if f == f:  # not NaN
+                    return f
+    # Fallback for the test fixture, which puts a flat ``score`` field at
+    # the top level of each hit. Keeps existing tests compatible without
+    # forcing every test to mirror the production response shape.
+    raw = hit.get("score")
+    if raw is None:
+        return 0.0
     try:
-        s = float(raw)
+        f = float(raw)
     except (TypeError, ValueError):
         return 0.0
-    if s != s or s < 0:  # NaN check + negatives
+    if f != f:  # NaN
         return 0.0
-    if s > 1.0:
+    return f
+
+
+def _sigmoid_normalize(raw: float) -> float:
+    """Map an unbounded reranker score onto ``[0, 1]`` via the logistic.
+
+    Raw reranker scores are unbounded (observed range in our corpus is
+    roughly -3 to +5). Downstream consumers — the Pydantic contract
+    (``contract.RetrievalResult.top_reranker_score`` is ``ge=0.0, le=1.0``),
+    the query-log schema, and the firewall — assume a bounded score, so we
+    sigmoid-normalize before passing on.
+
+    The mapping is order-preserving (so ranking is unchanged) and gives a
+    natural calibration against the existing ``RETRIEVAL_FLOOR = 0.30``:
+
+        raw  -2.0  →  σ ≈ 0.12   (below floor → "I don't know" fallback)
+        raw   0.0  →  σ = 0.50   (neutral; above floor → synthesise)
+        raw  +2.0  →  σ ≈ 0.88   (confident; well above floor)
+        raw  +4.0  →  σ ≈ 0.98
+
+    The previous ``_normalise_score`` clamped to ``[0, 1]`` directly,
+    which only worked when scores were already in range — i.e. never,
+    against the real ``@scores.reranker_score`` field. Tests below pin
+    representative inputs to expected outputs so any future change to
+    this calibration is visible.
+    """
+    if raw != raw:  # NaN guard
+        return 0.0
+    # Avoid OverflowError on extreme inputs; math.exp(-1000) is fine but
+    # math.exp(1000) overflows. Cortex never returns values that extreme,
+    # but a single defensive clamp keeps a future malformed response from
+    # crashing the request.
+    if raw >= 700:
         return 1.0
-    return s
+    if raw <= -700:
+        return 0.0
+    return 1.0 / (1.0 + math.exp(-raw))
+
+
+def _normalise_score(hit: dict[str, Any]) -> float:
+    """Extract a reranker score from a Cortex hit and normalize to ``[0, 1]``.
+
+    Composition of :func:`_extract_reranker_score` and
+    :func:`_sigmoid_normalize` — the canonical scoring path for the three
+    per-service parsers.
+    """
+    return _sigmoid_normalize(_extract_reranker_score(hit))
 
 
 _TC = tuple[list[RetrievedChunk], list[Citation]]
