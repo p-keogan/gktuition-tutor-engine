@@ -33,7 +33,11 @@ examples/
 pipelines/
 snowflake/
 widget/
-scripts/
+
+# scripts/ — exclude developer-side tools but let the runtime-required
+# always_warm.py through so the AGENT_18 'warm' Fly process can run it.
+scripts/*
+!scripts/always_warm.py
 
 # Repo-level docs & READMEs
 README.md
