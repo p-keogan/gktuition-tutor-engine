@@ -242,3 +242,122 @@ def test_sigmoid_normalize_calibration() -> None:
     # Overflow guards
     assert retriever._sigmoid_normalize(1000.0) == 1.0
     assert retriever._sigmoid_normalize(-1000.0) == 0.0
+
+
+def test_blended_score_arithmetic_pins_default_weights() -> None:
+    """Pin the default ``(w_r=0.6, w_c=0.3, w_t=0.1)`` blend against known
+    inputs so a future weight change is visible at review time.
+
+    Picks the same canonical Algebra 1 hit that exercises the reranker-fix
+    regression test (raw reranker = 2.4509184). Walking through the
+    arithmetic for documentation:
+
+        sigmoid(2.4509184) ≈ 0.9205
+        cosine             = 0.6312332
+        text_match         = 0.43972465
+        blended = 0.6*0.9205 + 0.3*0.6312332 + 0.1*0.43972465
+                ≈ 0.5523 + 0.1894 + 0.0440
+                ≈ 0.7857
+    """
+    hit = {
+        "slug": "algebra-1-revision-of-jc-factorising",
+        "@scores": {
+            "reranker_score": 2.4509184,
+            "cosine_similarity": 0.6312332,
+            "text_match": 0.43972465,
+        },
+    }
+    assert retriever._blended_score(hit) == pytest.approx(0.7857, abs=2e-3)
+
+    # At reranker=0 (sigmoid=0.5), the reranker leg alone contributes
+    # 0.6 * 0.5 = 0.3 — i.e. lands exactly at RETRIEVAL_FLOOR. Any positive
+    # cosine or text-match nudges it above the floor.
+    only_reranker_zero = {
+        "@scores": {"reranker_score": 0.0, "cosine_similarity": 0.0,
+                    "text_match": 0.0}
+    }
+    assert retriever._blended_score(only_reranker_zero) == pytest.approx(
+        0.6 * 0.5, abs=1e-6,
+    )
+
+    # Strongly-negative reranker (sigmoid ≈ 0.12), no cosine/text_match
+    # support → blended ≈ 0.07, well below RETRIEVAL_FLOOR. Confirms the
+    # blend can still demote a low-confidence hit.
+    weak = {
+        "@scores": {"reranker_score": -2.0, "cosine_similarity": 0.0,
+                    "text_match": 0.0}
+    }
+    assert retriever._blended_score(weak) == pytest.approx(
+        0.6 * 0.1192, abs=2e-3,
+    )
+
+    # Defensive: missing @scores block → defaults to sigmoid(0)*w_r only.
+    # Cosine + text_match both fall to 0 silently rather than crashing.
+    assert retriever._blended_score({}) == pytest.approx(
+        0.6 * 0.5,  # sigmoid(0) = 0.5
+        abs=1e-6,
+    )
+
+
+def test_blended_scoring_disabled_by_default(monkeypatch) -> None:
+    """The feature flag is off unless explicitly enabled. ``_normalise_score``
+    must produce the same value as the pre-blended sigmoid path until the
+    flag is flipped — this guards against an accidental default flip.
+    """
+    monkeypatch.delenv("BLENDED_SCORING_ENABLED", raising=False)
+    assert retriever._blended_scoring_enabled() is False
+    hit = {
+        "@scores": {
+            "reranker_score": 2.4509184,
+            "cosine_similarity": 0.6312332,
+            "text_match": 0.43972465,
+        },
+    }
+    # Sigmoid path returns ≈0.9205; blended returns ≈0.7857. They must differ.
+    flag_off = retriever._normalise_score(hit)
+    monkeypatch.setenv("BLENDED_SCORING_ENABLED", "true")
+    assert retriever._blended_scoring_enabled() is True
+    flag_on = retriever._normalise_score(hit)
+    assert flag_off == pytest.approx(0.9205, abs=2e-3)
+    assert flag_on == pytest.approx(0.7857, abs=2e-3)
+    assert flag_off != flag_on
+
+
+def test_blended_scoring_flag_parses_common_truthy_values(monkeypatch) -> None:
+    """The flag accepts any of {true, 1, yes, on}, case-insensitive — matches
+    the convention used elsewhere in the firewall config.
+    """
+    for v in ("true", "TRUE", "True", "1", "yes", "YES", "on"):
+        monkeypatch.setenv("BLENDED_SCORING_ENABLED", v)
+        assert retriever._blended_scoring_enabled() is True, f"failed for {v!r}"
+    for v in ("false", "0", "no", "off", ""):
+        monkeypatch.setenv("BLENDED_SCORING_ENABLED", v)
+        assert retriever._blended_scoring_enabled() is False, f"failed for {v!r}"
+
+
+def test_extract_cosine_and_text_match_defensive() -> None:
+    """``_extract_cosine_similarity`` and ``_extract_text_match`` must both
+    handle missing / malformed ``@scores`` blocks gracefully — they're used
+    inside the blended score and a single NaN would silently poison a row's
+    rank.
+    """
+    assert retriever._extract_cosine_similarity({}) == 0.0
+    assert retriever._extract_cosine_similarity({"@scores": None}) == 0.0
+    assert retriever._extract_cosine_similarity(
+        {"@scores": {"cosine_similarity": "not-a-number"}}
+    ) == 0.0
+    assert retriever._extract_cosine_similarity(
+        {"@scores": {"cosine_similarity": float("nan")}}
+    ) == 0.0
+    assert retriever._extract_cosine_similarity(
+        {"@scores": {"cosine_similarity": 0.42}}
+    ) == pytest.approx(0.42, abs=1e-6)
+
+    assert retriever._extract_text_match({}) == 0.0
+    assert retriever._extract_text_match({"@scores": None}) == 0.0
+    assert retriever._extract_text_match(
+        {"@scores": {"text_match": "boom"}}
+    ) == 0.0
+    assert retriever._extract_text_match(
+        {"@scores": {"text_match": 0.31}}
+    ) == pytest.approx(0.31, abs=1e-6)

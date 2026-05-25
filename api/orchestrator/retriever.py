@@ -63,6 +63,47 @@ RETRIEVAL_FLOOR = 0.30
 
 
 # ---------------------------------------------------------------------------
+# Blended-score post-rank (Algebra precision@1 tuning, DAY_31)
+# ---------------------------------------------------------------------------
+#
+# Default weights for the optional ``_blended_score`` re-rank. The formula
+# is::
+#
+#     blended = w_r * sigmoid(reranker) + w_c * cosine + w_t * text_match
+#
+# where ``sigmoid(reranker)`` is the same calibration the standalone
+# ``_normalise_score`` path uses, so blended outputs land in ``[0, 1]`` and
+# remain directly comparable with ``RETRIEVAL_FLOOR``.
+#
+# The starting-point weights were chosen from the AGENT_16 failure-inspector
+# analysis on the locked Phase-1 baseline (see
+# ``eval/algebra_tuning_DAY_31.md``): the dominant Algebra fail mode is
+# close-cousin within-strand confusion where the reranker semantic signal
+# is the only one that can disambiguate, so ``w_r`` carries the bulk of
+# the weight. ``cosine`` adds a topical-prior nudge for the small number
+# of rows where the reranker ranks two semantically-close candidates
+# tightly; ``text_match`` carries the least weight because boilerplate
+# overlap is *causing* several of the within-strand misranks rather than
+# resolving them.
+BLENDED_WEIGHT_RERANKER = float(os.environ.get("BLENDED_WEIGHT_RERANKER", "0.6"))
+BLENDED_WEIGHT_COSINE = float(os.environ.get("BLENDED_WEIGHT_COSINE", "0.3"))
+BLENDED_WEIGHT_TEXT_MATCH = float(os.environ.get("BLENDED_WEIGHT_TEXT_MATCH", "0.1"))
+
+
+def _blended_scoring_enabled() -> bool:
+    """Feature-flag gate. Defaults to OFF so the helper can land + be
+    test-covered without changing live ranking behaviour.
+
+    Flip via ``BLENDED_SCORING_ENABLED=true`` (any of: ``true``, ``1``,
+    ``yes`` — matches the convention used elsewhere in the firewall code).
+    Read on every call rather than at import time so a test or a Fly
+    secret-flip takes effect without a service restart.
+    """
+    raw = os.environ.get("BLENDED_SCORING_ENABLED", "").strip().lower()
+    return raw in ("true", "1", "yes", "on")
+
+
+# ---------------------------------------------------------------------------
 # Connection-pool seams
 # ---------------------------------------------------------------------------
 
@@ -633,9 +674,83 @@ def _normalise_score(hit: dict[str, Any]) -> float:
 
     Composition of :func:`_extract_reranker_score` and
     :func:`_sigmoid_normalize` — the canonical scoring path for the three
-    per-service parsers.
+    per-service parsers. If ``BLENDED_SCORING_ENABLED`` is on, falls
+    through to :func:`_blended_score` instead.
     """
+    if _blended_scoring_enabled():
+        return _blended_score(hit)
     return _sigmoid_normalize(_extract_reranker_score(hit))
+
+
+def _scores_block(hit: dict[str, Any]) -> dict[str, Any]:
+    """Return the hit's ``@scores`` block as a dict (or empty dict if absent).
+
+    Defensive against the response-shape change that shipped DAY_30: pre-fix
+    Cortex Search responses didn't have ``@scores`` at all, just a flat
+    ``score`` field. Returning ``{}`` on miss lets ``_blended_score`` fall
+    back through the same fixture-compatibility path as the reranker
+    extractor.
+    """
+    sc = hit.get("@scores")
+    return sc if isinstance(sc, dict) else {}
+
+
+def _extract_cosine_similarity(hit: dict[str, Any]) -> float:
+    """Pull ``@scores.cosine_similarity`` (already in ``[0, 1]``). Returns
+    0.0 if missing — same defensive policy as :func:`_extract_reranker_score`.
+    """
+    v = _scores_block(hit).get("cosine_similarity")
+    if v is None:
+        return 0.0
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return 0.0
+    if f != f:  # NaN
+        return 0.0
+    return f
+
+
+def _extract_text_match(hit: dict[str, Any]) -> float:
+    """Pull ``@scores.text_match`` (already in ``[0, 1]``)."""
+    v = _scores_block(hit).get("text_match")
+    if v is None:
+        return 0.0
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return 0.0
+    if f != f:  # NaN
+        return 0.0
+    return f
+
+
+def _blended_score(hit: dict[str, Any]) -> float:
+    """Linear blend of (sigmoid-normalised reranker, cosine, text_match).
+
+    Formula::
+
+        blended = w_r * sigmoid(reranker) + w_c * cosine + w_t * text_match
+
+    The reranker leg is sigmoid-normalised first so all three terms live
+    on the same ``[0, 1]`` scale and the weights have intuitive meaning.
+
+    Returns a value in ``[0, sum(weights)]`` — when the weights sum to 1
+    (the default; ``w_r=0.6, w_c=0.3, w_t=0.1``), the output is in
+    ``[0, 1]`` and directly comparable with ``RETRIEVAL_FLOOR``.
+
+    Gated behind the ``BLENDED_SCORING_ENABLED`` env flag at the
+    ``_normalise_score`` callsite — this helper itself is unconditional so
+    tests can pin its arithmetic without touching the flag.
+    """
+    r = _sigmoid_normalize(_extract_reranker_score(hit))
+    c = _extract_cosine_similarity(hit)
+    t = _extract_text_match(hit)
+    return (
+        BLENDED_WEIGHT_RERANKER * r
+        + BLENDED_WEIGHT_COSINE * c
+        + BLENDED_WEIGHT_TEXT_MATCH * t
+    )
 
 
 _TC = tuple[list[RetrievedChunk], list[Citation]]
