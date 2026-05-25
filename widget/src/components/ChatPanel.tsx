@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, type FormEvent } from 'react';
 import type { ApiClient } from '../api/client';
-import type { QueryClass, Tier, WidgetOptions } from '../api/types';
+import { streamQuery, streamSupported } from '../api/stream';
+import type { Citation, QueryClass, Tier, WidgetOptions } from '../api/types';
 import { MessageBubble, type ChatMessage } from './MessageBubble';
 import { EmailCaptureWall } from './EmailCaptureWall';
 
@@ -10,6 +11,12 @@ interface ChatPanelProps {
   tier: Tier;
   anonymousRateLimit: number;
   onClose: () => void;
+  /**
+   * Force the non-streaming JSON path even when ``streamSupported()`` is
+   * true. Defaults to false. Exposed for tests + as an emergency kill
+   * switch for the streaming code path.
+   */
+  disableStreaming?: boolean;
 }
 
 const PROGRESS_TEXT: Record<QueryClass, string> = {
@@ -21,17 +28,33 @@ const PROGRESS_TEXT: Record<QueryClass, string> = {
   ambiguous: 'Searching across tutorials, solutions, and summaries…',
 };
 
+/**
+ * Generic pre-first-token thinking indicator (AGENT_17). Shown between
+ * "user pressed Send" and "first ``token`` event arrives". Once tokens
+ * start flowing the indicator disappears — the in-progress assistant
+ * bubble takes over.
+ */
+const LOOKING_UP_TEXT = 'Looking up answer…';
+
 export function ChatPanel({
   position,
   client,
   tier,
   anonymousRateLimit,
   onClose,
+  disableStreaming = false,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<QueryClass | null>(null);
+  /**
+   * AGENT_17: shown between "user submitted" and "first token arrived"
+   * on the streaming path. Replaced by the in-progress assistant bubble
+   * as soon as a token lands. Independent of ``progress`` so the
+   * non-streaming path keeps its query-class-aware indicator.
+   */
+  const [thinking, setThinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [wallShown, setWallShown] = useState(false);
   const [wallDismissed, setWallDismissed] = useState(false);
@@ -44,7 +67,7 @@ export function ChatPanel({
   // Auto-scroll on new messages.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages, progress]);
+  }, [messages, progress, thinking]);
 
   // Cleanup any inflight request on unmount.
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -71,11 +94,31 @@ export function ChatPanel({
     const userMsg: ChatMessage = { id: makeId(), role: 'user', text: q };
     setMessages((prev) => [...prev, userMsg]);
     setBusy(true);
-    setProgress('concept'); // generic initial guess; replaced by server response
 
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
+    // AGENT_17: prefer the streaming path when the runtime supports it
+    // and it hasn't been disabled. Fall back to the non-streaming JSON
+    // path on any error mid-stream.
+    const useStream = !disableStreaming && streamSupported();
+
+    if (useStream) {
+      setThinking(true);
+      setProgress(null);
+      const ok = await runStreamingQuery(q, ctrl);
+      if (ok) {
+        setBusy(false);
+        setThinking(false);
+        abortRef.current = null;
+        return;
+      }
+      // Streaming failed — fall through to the JSON path. The error
+      // surfaces only if the JSON path also fails.
+      setThinking(false);
+    }
+
+    setProgress('concept'); // generic initial guess; replaced by server response
     try {
       const res = await client.postQuery({ q, debug: false }, ctrl.signal);
       setProgress(res.query_class);
@@ -96,6 +139,109 @@ export function ChatPanel({
       setProgress(null);
       abortRef.current = null;
     }
+  }
+
+  /**
+   * AGENT_17 streaming-path handler.
+   *
+   * Returns true on a clean stream (``done`` event seen), false on any
+   * error before ``done`` — the caller then falls back to the JSON path.
+   * Mid-stream tokens append to a draft assistant message in-place.
+   */
+  async function runStreamingQuery(q: string, ctrl: AbortController): Promise<boolean> {
+    // We need the current JWT + fastapiUrl from the api client. The
+    // ``_currentToken`` accessor is documented as test-only but it's
+    // also the cleanest way to share the in-memory token with the
+    // streaming path without redesigning the client surface in this
+    // dispatch. AGENT_17 follow-up: promote it to a first-class method.
+    const tok = client._currentToken();
+    if (!tok) {
+      // No cached token — fetch one via the existing JSON-path
+      // ``postQuery`` plumbing by triggering ``fetchTier``. Easiest
+      // way to do this without touching the client surface is to fall
+      // back; the JSON path will fetch + populate the token.
+      return false;
+    }
+
+    const draftId = makeId();
+    let buffer = '';
+    let citations: Citation[] = [];
+    let firstTokenSeen = false;
+    let done = false;
+
+    function flushDraft() {
+      setMessages((prev) => {
+        const idx = prev.findIndex((m) => m.id === draftId);
+        if (idx === -1) {
+          return [
+            ...prev,
+            {
+              id: draftId,
+              role: 'assistant',
+              text: buffer,
+              citations: citations.length ? citations : undefined,
+            },
+          ];
+        }
+        const next = prev.slice();
+        next[idx] = {
+          ...next[idx],
+          text: buffer,
+          citations: citations.length ? citations : next[idx].citations,
+        };
+        return next;
+      });
+    }
+
+    try {
+      await streamQuery(
+        { q, debug: false },
+        {
+          onToken: (ev) => {
+            if (!firstTokenSeen) {
+              firstTokenSeen = true;
+              setThinking(false);
+            }
+            buffer += ev.text;
+            flushDraft();
+          },
+          onCitation: (c) => {
+            citations.push(c);
+            flushDraft();
+          },
+          onDone: () => {
+            done = true;
+          },
+        },
+        {
+          jwt: tok.jwt,
+          fastapiUrl: tok.fastapiUrl,
+          signal: ctrl.signal,
+        },
+      );
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        // User cancelled; don't fall back, don't surface an error.
+        return true;
+      }
+      if (!firstTokenSeen) {
+        // No tokens ever arrived → silent fall-through to JSON path.
+        return false;
+      }
+      // Partial answer was delivered; surface the error and keep what
+      // we got rather than re-running the query.
+      setError(err instanceof Error ? err.message : String(err));
+      return true;
+    }
+
+    if (!done) {
+      // Stream closed without ``done`` — could be a proxy timing out
+      // mid-stream. If we never got a token at all, fall back; if we
+      // got some text, keep it and surface a soft warning via error.
+      if (!firstTokenSeen) return false;
+      setError('Stream closed before completion.');
+    }
+    return true;
   }
 
   if (wallShown && !wallDismissed) {
@@ -160,7 +306,12 @@ export function ChatPanel({
         {messages.map((m) => (
           <MessageBubble key={m.id} message={m} />
         ))}
-        {busy && progress ? (
+        {busy && thinking ? (
+          <div className="gktuition-tutor__progress" data-testid="gktuition-thinking">
+            {LOOKING_UP_TEXT}
+          </div>
+        ) : null}
+        {busy && !thinking && progress ? (
           <div className="gktuition-tutor__progress" data-testid="gktuition-progress">
             {PROGRESS_TEXT[progress]}
           </div>

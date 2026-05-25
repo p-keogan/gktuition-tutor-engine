@@ -17,12 +17,15 @@ the text-query runner) with the already-extracted text. We tag the response
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
 import uuid
+from collections.abc import AsyncIterator
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.responses import StreamingResponse
 
 from ..auth import jwt as _jwt
 
@@ -43,10 +46,13 @@ from ..orchestrator.contract import (
 from ..orchestrator.retriever import retrieve
 from ..orchestrator.synthesizer import (
     GUARDRAIL_ANSWER,
+    NO_MODEL,
+    StreamEvent,
     augment_with_graphs,
     estimate_cost_cents,
     select_citations,
     synthesize,
+    synthesize_stream,
 )
 from ..orchestrator.voice_anchor import infer_strand_from_retrieval
 from ..services import query_log
@@ -124,6 +130,289 @@ async def query_endpoint(request: Request, body: QueryRequest) -> QueryResponse:
         user_id=decoded.user_id,
         debug=body.debug,
         extracted_from_image=False,
+    )
+
+
+# ---------------------------------------------------------------------------
+# /query/stream — AGENT_17 SSE streaming endpoint
+# ---------------------------------------------------------------------------
+#
+# Design notes (see AGENT_17_DELIVERY.md for the full rationale):
+#
+# * Non-streaming ``/query`` contract is unchanged — both endpoints coexist.
+#   CI smoke + eval harness keep using JSON; the widget switches to the
+#   stream and falls back to JSON if EventSource is unavailable.
+# * Auth is identical to ``/query`` (JWT decoded → tier; anonymous fallback).
+# * When the firewall is enabled the stream endpoint short-circuits through
+#   the existing non-streaming firewall path and re-emits the resulting
+#   ``QueryResponse`` as a single ``token`` event + ``done`` — that
+#   preserves L2 rate-limit / L3 cache / L4 breaker / L5 kill-switch
+#   guarantees without re-implementing the firewall in streaming-shaped
+#   form. Cache hits in particular are sub-10 ms; streaming them adds
+#   latency without UX benefit.
+# * On the streaming-direct path (firewall off OR firewall flags absent
+#   in dev), classify + retrieve run in the request thread; the synthesiser
+#   generator is consumed inside the StreamingResponse, with a thread pool
+#   used to hop across sync boundaries (the Cortex + Anthropic clients are
+#   blocking).
+# * L6 observability: the query-log row is written when the stream closes
+#   (not at request start) so ``elapsed_ms`` reflects end-to-end latency
+#   including the time the client spent reading.
+
+
+@router.post("/query/stream")
+async def query_stream_endpoint(request: Request, body: QueryRequest) -> StreamingResponse:
+    """SSE-streaming sibling of ``POST /query``.
+
+    Returns ``text/event-stream``. Emits ``event: token`` / ``event: citation``
+    / ``event: done`` records (in that order). The widget consumes the
+    stream via ``EventSource`` for a "first ink in 1-2s" UX even on a 20s
+    cold-start warehouse.
+
+    See module docstring for the design notes.
+    """
+    token = _extract_bearer(request)
+    try:
+        decoded = _jwt.decode_or_anonymous(token)
+    except _jwt.JWTValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": "invalid token"},
+        ) from exc
+
+    q = body.q.strip()
+    tier = decoded.tier
+    user_id = decoded.user_id
+    debug = body.debug
+
+    # Firewall short-circuit: if any firewall layer is enabled we fall
+    # back to the non-streaming pipeline (so L2/L3/L4/L5 stay enforced)
+    # and emit the resulting QueryResponse as a single token + done. The
+    # cost is no progressive fill for firewall-enabled deployments; the
+    # benefit is no re-implementation of the firewall on the stream path.
+    from ..firewall.settings import get_settings as _firewall_settings
+
+    fw = _firewall_settings()
+    any_firewall_on = any(
+        (
+            fw.turnstile_enabled,
+            fw.rate_limit_enabled,
+            fw.cache_enabled,
+            fw.breaker_enabled,
+            fw.kill_switch_enabled,
+            fw.langfuse_enabled,
+        )
+    )
+
+    if any_firewall_on:
+        # Re-read the raw body so the firewall's honeypot/anti-spam checks
+        # can inspect arbitrary client-supplied keys, exactly like
+        # ``/query`` does.
+        raw_body: dict[str, object]
+        try:
+            raw_body = await request.json()
+            if not isinstance(raw_body, dict):
+                raw_body = {}
+        except Exception:
+            raw_body = {}
+
+        from ..firewall.wire import run_with_firewall
+
+        resp = await run_with_firewall(
+            request,
+            body=raw_body,
+            q=q,
+            tier=tier,
+            user_id=user_id,
+            debug=debug,
+            extracted_from_image=False,
+        )
+        return StreamingResponse(
+            _wrap_full_response_as_sse(resp),
+            media_type="text/event-stream",
+            headers=_sse_headers(),
+        )
+
+    return StreamingResponse(
+        _stream_pipeline(
+            q=q,
+            tier=tier,
+            user_id=user_id,
+            debug=debug,
+        ),
+        media_type="text/event-stream",
+        headers=_sse_headers(),
+    )
+
+
+def _sse_headers() -> dict[str, str]:
+    """SSE-friendly response headers.
+
+    * ``Cache-Control: no-cache`` — proxies must not buffer the stream.
+    * ``X-Accel-Buffering: no`` — nginx / Fly's proxy honour this and
+      forward chunks immediately rather than batching for compression.
+    * ``Connection: keep-alive`` — explicit; Starlette already does this
+      for ``StreamingResponse`` but belt-and-braces.
+    """
+    return {
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+        "Connection": "keep-alive",
+    }
+
+
+def _format_sse(event: str, data: dict[str, Any]) -> bytes:
+    """Encode one ``StreamEvent`` as an SSE record.
+
+    Format (per the SSE spec):
+
+        event: <event_name>\\n
+        data: <json>\\n
+        \\n
+
+    JSON is compact (no spaces) so a single line of ``data:`` is enough;
+    we don't have to worry about multi-line continuation.
+    """
+    payload = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+    return f"event: {event}\ndata: {payload}\n\n".encode("utf-8")
+
+
+async def _stream_pipeline(
+    *,
+    q: str,
+    tier: str,
+    user_id: str,
+    debug: bool,
+) -> AsyncIterator[bytes]:
+    """The streaming-direct pipeline.
+
+    Mirrors :func:`_run_query` stage-by-stage but emits SSE bytes instead
+    of returning a ``QueryResponse``. The synthesiser generator is
+    consumed inside ``asyncio.to_thread`` per chunk because the underlying
+    Cortex/Anthropic clients are sync — we don't want to block the event
+    loop while the cheap path's ``time.sleep`` cadence loop runs.
+    """
+    started = time.perf_counter()
+    request_id = str(uuid.uuid4())
+
+    # 1. Classify
+    cls_result = classify(q, return_matches=debug)
+    query_class = cls_result.query_class
+
+    # 2. Retrieve
+    retrieval = await retrieve(q, query_class)
+
+    # 3. Synthesize — streaming. The synthesiser generator is sync (calls
+    # the blocking Cortex/Anthropic clients); we drain it on a thread so
+    # the event loop stays responsive. Each StreamEvent is converted to
+    # SSE bytes here.
+    model_used = NO_MODEL
+    stream_iter = synthesize_stream(q, retrieval)
+
+    # We need to peek the final ``done`` event so the route can augment it
+    # with elapsed_ms/voice_anchor_strand before serialising. Strategy:
+    # iterate, encode token/citation as we go, and hold the done event
+    # back; emit our augmented done at the end.
+    def _next_event() -> StreamEvent | None:
+        try:
+            return next(stream_iter)
+        except StopIteration:
+            return None
+
+    while True:
+        ev = await asyncio.to_thread(_next_event)
+        if ev is None:
+            break
+        if ev.event == "done":
+            # Capture the synthesiser's model_used; we emit our own
+            # augmented done event below so we can attach elapsed_ms +
+            # voice_anchor_strand.
+            model_used = str(ev.data.get("model_used", NO_MODEL))
+            continue
+        yield _format_sse(ev.event, ev.data)
+
+    # Voice-anchor strand for the eval harness — only meaningful when an
+    # answer was actually produced (i.e. not the guardrail). Same logic as
+    # the non-streaming route.
+    voice_anchor_strand = (
+        infer_strand_from_retrieval(retrieval) if model_used != NO_MODEL else None
+    )
+
+    elapsed_ms = int((time.perf_counter() - started) * 1000)
+    done_payload: dict[str, Any] = {
+        "query": q,
+        "query_class": query_class.value,
+        "model_used": model_used,
+        "from_cache": False,
+        "voice_anchor_strand": voice_anchor_strand,
+        "elapsed_ms": elapsed_ms,
+    }
+    yield _format_sse("done", done_payload)
+
+    # 4. L6 observability — write the query log row AFTER the stream
+    # closes so elapsed_ms reflects end-to-end latency. Fire-and-await,
+    # log failures non-fatally exactly like the non-streaming path.
+    citations = select_citations(retrieval)
+    try:
+        await query_log.write_text_query_log_row(
+            request_id=request_id,
+            user_id=user_id,
+            q=q,
+            tier=tier,
+            query_class=query_class.value,
+            model_used=model_used,
+            top_slug=(citations[0].slug if citations else None),
+            top_reranker_score=retrieval.top_reranker_score,
+            from_cache=False,
+            elapsed_ms=elapsed_ms,
+            cost_estimate_cents=estimate_cost_cents(model_used, retrieval.chunks),
+            extracted_question=None,
+        )
+    except Exception:
+        logger.exception(
+            "stream query log write failed (non-fatal): request_id=%s", request_id
+        )
+
+    if model_used == NO_MODEL:
+        logger.info(
+            "stream guardrail fired: q=%r query_class=%s top_score=%.2f",
+            q,
+            query_class.value,
+            retrieval.top_reranker_score,
+        )
+
+
+async def _wrap_full_response_as_sse(resp: QueryResponse) -> AsyncIterator[bytes]:
+    """Re-emit a non-streaming ``QueryResponse`` as a 1-token-plus-citations-plus-done SSE stream.
+
+    Used when the firewall is enabled (cache hits, rate-limited requests,
+    breaker-open requests, etc.). The widget can't tell from the wire
+    that this wasn't progressively streamed — the data shape is identical.
+    """
+    if resp.answer:
+        yield _format_sse("token", {"text": resp.answer})
+
+    for c in resp.citations:
+        yield _format_sse(
+            "citation",
+            {
+                "slug": c.slug,
+                "title": c.title,
+                "timestamp_seconds": c.timestamp_seconds,
+                "score": c.score,
+            },
+        )
+
+    yield _format_sse(
+        "done",
+        {
+            "query": resp.query,
+            "query_class": resp.query_class.value,
+            "model_used": resp.model_used,
+            "from_cache": resp.from_cache,
+            "voice_anchor_strand": resp.voice_anchor_strand,
+            "elapsed_ms": resp.elapsed_ms,
+        },
     )
 
 

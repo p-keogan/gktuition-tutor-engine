@@ -264,6 +264,97 @@ class QueryResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Streaming (SSE) — AGENT_17
+# ---------------------------------------------------------------------------
+#
+# The ``POST /query/stream`` endpoint emits three Server-Sent Event types:
+#
+# * ``token``    — repeated; one per token chunk produced by the synthesiser.
+#                  ``data`` is ``{"text": "..."}``.
+# * ``citation`` — emitted after the answer text finishes; one per source.
+#                  ``data`` is the same shape as :class:`Citation`.
+# * ``done``     — exactly one per stream, marks end-of-stream.
+#                  ``data`` carries the same metadata fields a non-streaming
+#                  :class:`QueryResponse` would: ``model_used``, ``elapsed_ms``,
+#                  ``from_cache``, ``voice_anchor_strand``, plus ``query`` and
+#                  ``query_class`` so a client that only consumed ``done`` can
+#                  still log the request shape.
+#
+# The streaming wire format is plain SSE:
+#
+#     event: token\n
+#     data: {"text": "To"}\n
+#     \n
+#
+# (one blank line per record). Each event's ``data`` is JSON-encoded; this
+# module owns the type definitions, but the route layer in
+# ``api/routes/query.py`` owns the actual encoding into SSE bytes.
+#
+# The non-streaming :class:`QueryResponse` is unchanged; both endpoints
+# coexist and the CI/eval harness keeps using the JSON path. See
+# ``AGENT_17_DELIVERY.md`` for the rationale.
+
+
+class StreamTokenData(BaseModel):
+    """Payload of an ``event: token`` SSE record."""
+
+    model_config = ConfigDict(frozen=True)
+
+    text: str = Field(
+        ...,
+        description=(
+            "Chunk of the answer text. Concatenating every ``token`` "
+            "event's ``text`` reconstructs the full answer string."
+        ),
+    )
+
+
+class StreamCitationData(BaseModel):
+    """Payload of an ``event: citation`` SSE record.
+
+    Mirrors the fields of :class:`Citation` so the widget can render the
+    same UI it would have rendered from a non-streaming ``QueryResponse``.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    slug: str = Field(...)
+    title: str = Field(...)
+    timestamp_seconds: int | None = Field(None, ge=0)
+    score: float = Field(..., ge=0.0, le=1.0)
+
+
+class StreamDoneData(BaseModel):
+    """Payload of the terminal ``event: done`` SSE record."""
+
+    model_config = ConfigDict(frozen=True)
+
+    query: str = Field(..., description="Echo of the input query (post-trim).")
+    query_class: QueryClass = Field(...)
+    model_used: str = Field(
+        ...,
+        description=(
+            "Same set of values as :class:`QueryResponse.model_used`."
+        ),
+    )
+    from_cache: bool = Field(
+        False,
+        description=(
+            "True when the stream was served by the firewall's L3 semantic "
+            "cache — the answer was emitted as one token + done, not "
+            "progressively. False on the streaming-direct path."
+        ),
+    )
+    voice_anchor_strand: str | None = Field(
+        default=None,
+        description=(
+            "Same field as :class:`QueryResponse.voice_anchor_strand`."
+        ),
+    )
+    elapsed_ms: int = Field(..., ge=0)
+
+
+# ---------------------------------------------------------------------------
 # Internal — not exported on the wire
 # ---------------------------------------------------------------------------
 

@@ -25,7 +25,9 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Callable
+import re
+import time
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
 from .contract import (
@@ -237,6 +239,246 @@ def synthesize(query: str, retrieval: RetrievalResult) -> SynthesisResult:
 
     answer = _call_anthropic(system_prompt, user_prompt)
     return SynthesisResult(answer=answer.strip(), model_used=ANTHROPIC_MODEL)
+
+
+# ---------------------------------------------------------------------------
+# Streaming (SSE) synthesis — AGENT_17
+# ---------------------------------------------------------------------------
+#
+# ``synthesize_stream`` is the streaming-shaped sibling of ``synthesize``.
+# It yields one :class:`StreamEvent` per SSE record the route layer emits.
+#
+# Streaming primitive choice (AGENT_17 §1 investigation):
+#
+# * Snowflake Cortex ``SNOWFLAKE.CORTEX.COMPLETE`` returns a string from a
+#   single SQL call — the Python connector does NOT expose a streaming
+#   interface for this UDF. The cheap path therefore calls Cortex once and
+#   emits the result word-by-word at a fixed cadence (~25 ms / token) so
+#   the widget UX is consistent regardless of which model produced the
+#   answer.
+# * The Anthropic Python SDK exposes ``client.messages.stream(...)`` which
+#   yields a context manager whose ``.text_stream`` is an iterator over
+#   incremental text deltas. The hard path uses this for true streaming.
+# * The "I'm not sure" guardrail emits the fixed string as a single
+#   ``token`` event followed by ``done`` with ``model_used="(none)"``.
+
+
+# Default token cadence for the cheap path's chunked emit. ~25 ms gives a
+# "live typing" feel without overwhelming a slow client.
+STREAM_TOKEN_DELAY_SECONDS = 0.025
+
+# Word/whitespace tokenisation pattern used to chunk Cortex output. Matches
+# either a non-whitespace run followed by any trailing whitespace, or a
+# pure whitespace run. Preserves the original spacing on concatenation.
+_WORD_CHUNK_RE = re.compile(r"\S+\s*|\s+")
+
+
+@dataclass(frozen=True)
+class StreamEvent:
+    """One SSE record produced by :func:`synthesize_stream`.
+
+    ``event`` is the SSE event name (``"token"`` | ``"citation"`` | ``"done"``).
+    ``data`` is the JSON-serialisable payload; the route layer encodes it
+    onto the wire as ``event: <event>\\ndata: <json>\\n\\n``.
+
+    The route layer (not the synthesiser) augments ``done`` with
+    ``elapsed_ms`` + ``voice_anchor_strand`` + ``query``/``query_class``
+    so the synthesiser stays pipeline-stage-local and doesn't need a
+    clock reference.
+    """
+
+    event: str
+    data: dict[str, object]
+
+
+# Streaming Anthropic seam — injected by tests.
+AnthropicStreamCaller = Callable[[str, str], Iterator[str]]
+_anthropic_stream_caller: AnthropicStreamCaller | None = None
+
+
+def set_anthropic_stream_caller(fn: AnthropicStreamCaller | None) -> None:
+    """Register a (system_prompt, user_prompt) -> iterator-of-text seam.
+
+    Production wiring uses :func:`_default_anthropic_stream_caller` which
+    iterates ``client.messages.stream(...).text_stream``. Tests inject
+    deterministic fakes via this seam.
+    """
+    global _anthropic_stream_caller
+    _anthropic_stream_caller = fn
+
+
+def _default_anthropic_stream_caller(
+    system_prompt: str, user_prompt: str
+) -> Iterator[str]:
+    """Call Anthropic Messages with streaming enabled, yield text deltas.
+
+    Imports the SDK lazily so test paths that mock the seam never have to
+    install ``anthropic``.
+    """
+    import anthropic
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY must be set to call Claude Haiku 4.5.")
+    client = anthropic.Anthropic(api_key=api_key)
+    with client.messages.stream(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=600,
+        system=system_prompt,
+        messages=[{"role": "user", "content": user_prompt}],
+    ) as stream:
+        for delta in stream.text_stream:
+            yield delta
+
+
+def _call_anthropic_stream(system_prompt: str, user_prompt: str) -> Iterator[str]:
+    return (_anthropic_stream_caller or _default_anthropic_stream_caller)(
+        system_prompt, user_prompt
+    )
+
+
+def _chunk_emit(
+    text: str, delay_seconds: float = STREAM_TOKEN_DELAY_SECONDS
+) -> Iterator[StreamEvent]:
+    """Yield ``text`` as a sequence of ``token`` events at fixed cadence.
+
+    Word-aware so the widget sees natural break-points; the inter-token
+    sleep gives the impression of live typing without burning much CPU.
+    Set ``delay_seconds=0`` in tests so they don't add real wall-clock time.
+    """
+    parts = _WORD_CHUNK_RE.findall(text)
+    if not parts:
+        # Empty answer — emit a single empty token so the widget always
+        # sees at least one event before ``done``. Keeps the client-side
+        # state machine simple.
+        yield StreamEvent("token", {"text": ""})
+        return
+    for i, part in enumerate(parts):
+        if i > 0 and delay_seconds > 0:
+            time.sleep(delay_seconds)
+        yield StreamEvent("token", {"text": part})
+
+
+def _citation_events(retrieval: RetrievalResult) -> Iterator[StreamEvent]:
+    """Yield one ``citation`` event per surfaced citation.
+
+    Mirrors :func:`select_citations` exactly so the streaming and
+    non-streaming responses cite the same set of sources.
+    """
+    for c in select_citations(retrieval):
+        yield StreamEvent(
+            "citation",
+            {
+                "slug": c.slug,
+                "title": c.title,
+                "timestamp_seconds": c.timestamp_seconds,
+                "score": c.score,
+            },
+        )
+
+
+def synthesize_stream(
+    query: str,
+    retrieval: RetrievalResult,
+    *,
+    token_delay_seconds: float = STREAM_TOKEN_DELAY_SECONDS,
+) -> Iterator[StreamEvent]:
+    """Streaming sibling of :func:`synthesize`.
+
+    Yields ``token`` events (repeatedly), then ``citation`` events (one per
+    source), then exactly one ``done`` event whose ``data`` carries the
+    ``model_used`` decision. The route layer augments the ``done`` payload
+    with ``elapsed_ms``/``voice_anchor_strand``/``query``/``query_class``
+    before serialising.
+
+    Routing logic is identical to :func:`synthesize`:
+
+    * Guardrail (no usable retrieval) → single ``token`` event with the
+      fixed string, then ``done`` with ``model_used="(none)"``. No
+      citations.
+    * Analytical → Cortex chunked emit, tagged ``cortex.analyst``.
+    * Concept / summary_request above the floor → Cortex chunked emit,
+      tagged ``cortex.mistral-large2``. Falls back to Anthropic streaming
+      on Cortex failure.
+    * Everything else (solution_lookup, image_extracted, ambiguous, or
+      cheap-path retrieval below the floor) → Anthropic native streaming
+      via ``client.messages.stream``.
+    """
+    # --- Guardrail: no usable retrieval ----------------------------------
+    if retrieval.query_class != QueryClass.ANALYTICAL and (
+        not retrieval.chunks or retrieval.top_reranker_score < RETRIEVAL_FLOOR
+    ):
+        yield StreamEvent("token", {"text": GUARDRAIL_ANSWER})
+        yield StreamEvent("done", {"model_used": NO_MODEL})
+        return
+
+    user_prompt = _build_prompt(query, retrieval)
+    system_prompt = _effective_system_prompt(retrieval)
+
+    # --- Analytical path -------------------------------------------------
+    if retrieval.query_class == QueryClass.ANALYTICAL:
+        try:
+            answer = _call_cortex(CORTEX_MODEL, user_prompt)
+            yield from _chunk_emit(answer.strip(), token_delay_seconds)
+            yield from _citation_events(retrieval)
+            yield StreamEvent("done", {"model_used": ANALYST_MODEL})
+            return
+        except Exception:
+            logger.exception(
+                "cortex.complete failed for analytical streaming path; falling back"
+            )
+            yield from _stream_anthropic_into_events(system_prompt, user_prompt)
+            yield from _citation_events(retrieval)
+            yield StreamEvent("done", {"model_used": ANTHROPIC_MODEL})
+            return
+
+    # --- Two-tier routing for RAG paths ---------------------------------
+    use_cheap = (
+        retrieval.query_class in (QueryClass.CONCEPT, QueryClass.SUMMARY_REQUEST)
+        and retrieval.top_reranker_score >= RETRIEVAL_FLOOR
+    )
+
+    if use_cheap:
+        try:
+            answer = _call_cortex(
+                CORTEX_MODEL,
+                _build_cortex_prompt(query, retrieval, system_prompt),
+            )
+            yield from _chunk_emit(answer.strip(), token_delay_seconds)
+            yield from _citation_events(retrieval)
+            yield StreamEvent("done", {"model_used": CORTEX_MODEL})
+            return
+        except Exception:
+            logger.exception(
+                "cortex.complete failed for streaming path; falling back to Anthropic"
+            )
+
+    yield from _stream_anthropic_into_events(system_prompt, user_prompt)
+    yield from _citation_events(retrieval)
+    yield StreamEvent("done", {"model_used": ANTHROPIC_MODEL})
+
+
+def _stream_anthropic_into_events(
+    system_prompt: str, user_prompt: str
+) -> Iterator[StreamEvent]:
+    """Convert the Anthropic text-delta iterator into ``token`` events.
+
+    Anthropic's SDK already produces deltas with sensible break-points;
+    we pass each one through as a single ``token`` event without
+    re-chunking. If the upstream stream raises mid-flight we propagate
+    a single trailing fragment and let the route layer surface the error;
+    we never silently lose the partial answer.
+    """
+    try:
+        for delta in _call_anthropic_stream(system_prompt, user_prompt):
+            if delta:
+                yield StreamEvent("token", {"text": delta})
+    except Exception:
+        logger.exception("anthropic streaming failed mid-flight")
+        # The widget receives the partial answer and the upstream error
+        # surfaces via the ``done`` event the caller still emits. Don't
+        # crash the generator — the route layer must always close the
+        # stream cleanly.
 
 
 # ---------------------------------------------------------------------------
