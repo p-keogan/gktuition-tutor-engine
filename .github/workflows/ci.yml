@@ -170,13 +170,21 @@ jobs:
       - name: Set up flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - name: Capture pre-deploy revision (for rollback)
+      - name: Capture pre-deploy image (for rollback)
+        # Modern flyctl (>= mid-2025) dropped `flyctl releases rollback`.
+        # The supported rollback flow is to redeploy the previous image
+        # explicitly via `flyctl deploy --image <ref>`, so we capture the
+        # image ref of the most recent succeeded release here. We also
+        # surface the version number for the issue-notify body so the
+        # ops-on-call human has a friendly handle to grep for.
         id: prev
         run: |
-          rev=$(flyctl releases --app gktuition-tutor-api --json \
-                  | jq -r '[.[] | select(.Status=="succeeded")][0].Version' || echo "")
+          json=$(flyctl releases --app gktuition-tutor-api --json || echo "[]")
+          img=$(echo "$json" | jq -r '[.[] | select(.Status=="succeeded")][0].ImageRef // ""')
+          rev=$(echo "$json" | jq -r '[.[] | select(.Status=="succeeded")][0].Version // ""')
+          echo "img=$img" >> "$GITHUB_OUTPUT"
           echo "rev=$rev" >> "$GITHUB_OUTPUT"
-          echo "Previous succeeded release: $rev"
+          echo "Previous succeeded release: v$rev (image=$img)"
 
       - name: flyctl deploy
         run: |
@@ -231,7 +239,19 @@ jobs:
           # precision@1 contract — this smoke just confirms the live app
           # responds with a well-formed payload, not that it picked the
           # "right" citation. Strict citation gating belongs in the eval.
-          resp=$(curl -fsS --max-time 30 -X POST \
+          #
+          # --max-time 240: right after a fresh deploy the Snowflake
+          # warehouse is auto-suspended AND the Fly machine is freshly
+          # booted, so the first CORTEX.COMPLETE hits a cold-cold path.
+          # DAY_30's measured worst case was 205,717 ms on a Statistics
+          # CI query (see AGENT_DAY_28_to_30_DELIVERY.md §T1.2 Step 5).
+          # AGENT_18's always-warm worker mitigates this 15:00–22:00 IE
+          # once the warehouse stays awake, but the post-deploy smoke
+          # always sees a cold first call. 240 s is the conservative
+          # ceiling. Long-term fix: swap this smoke to /query/stream
+          # (AGENT_17) and assert on first-token-within-N (~25 s cold);
+          # tracked as the AGENT_21 follow-up.
+          resp=$(curl -fsS --max-time 240 -X POST \
             https://gktuition-tutor-api.fly.dev/query \
             -H "Authorization: Bearer $token" \
             -H 'Content-Type: application/json' \
@@ -254,21 +274,31 @@ jobs:
           # acceptable); the nightly eval is the precision@1 contract.
 
       - name: Rollback on smoke failure
-        if: failure() && steps.prev.outputs.rev != ''
+        # `flyctl releases rollback` was removed from modern flyctl. The
+        # supported replacement is `flyctl deploy --image <previous-image>`
+        # which re-deploys the captured pre-deploy image as a fresh
+        # release. `--strategy immediate` skips the rolling-update wait
+        # since we know the image is good (it was just succeeded before
+        # this push). Falls through quietly if the capture step found no
+        # prior succeeded release (first-ever deploy, etc.).
+        if: failure() && steps.prev.outputs.img != ''
         run: |
-          echo "Rolling back to release ${{ steps.prev.outputs.rev }}"
-          flyctl releases rollback ${{ steps.prev.outputs.rev }} \
-            --app gktuition-tutor-api
+          echo "Rolling back: redeploying v${{ steps.prev.outputs.rev }} (image ${{ steps.prev.outputs.img }})"
+          flyctl deploy \
+            --app gktuition-tutor-api \
+            --image "${{ steps.prev.outputs.img }}" \
+            --strategy immediate
 
       - name: Notify rollback
-        if: failure() && steps.prev.outputs.rev != ''
+        if: failure() && steps.prev.outputs.img != ''
         uses: actions/github-script@v7
         with:
           script: |
             const issueBody = [
               `Deploy of \`${{ github.sha }}\` to gktuition-tutor-api failed smoke tests`,
-              `and was rolled back to release \`${{ steps.prev.outputs.rev }}\`.`,
+              `and was rolled back to release \`v${{ steps.prev.outputs.rev }}\`.`,
               ``,
+              `**Image redeployed:** \`${{ steps.prev.outputs.img }}\``,
               `**Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`,
             ].join('\n');
             await github.rest.issues.create({
