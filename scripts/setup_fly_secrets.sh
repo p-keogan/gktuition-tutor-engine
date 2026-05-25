@@ -17,6 +17,8 @@
 #
 #   TURNSTILE_SECRET_KEY
 #   LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST
+#   CORPUS_ROOT                  # Phase 2 voice anchoring; only set when
+#                                # overriding the fly.toml default of /app/corpus
 #
 # Idempotency
 #
@@ -65,7 +67,11 @@ if ! command -v fly >/dev/null 2>&1; then
 fi
 
 REQUIRED=(SF_USER SF_PRIVATE_KEY_PATH SF_ACCOUNT SF_WAREHOUSE SF_DATABASE ANTHROPIC_API_KEY WP_JWT_SECRET)
-OPTIONAL=(TURNSTILE_SECRET_KEY LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST)
+# CORPUS_ROOT (Phase 2, AGENT_15) is OPTIONAL because fly.toml already sets a
+# default of /app/corpus (where the Dockerfile lands the strand summaries +
+# _voice.md). Override here only when running against a non-standard image
+# layout — e.g. a debug build that bind-mounts the live corpus directly.
+OPTIONAL=(TURNSTILE_SECRET_KEY LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST CORPUS_ROOT)
 
 # ---------------------------------------------------------------------------
 # 1. Parse the source file into a name-sorted KEY=VALUE list.

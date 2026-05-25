@@ -48,6 +48,7 @@ from ..orchestrator.synthesizer import (
     select_citations,
     synthesize,
 )
+from ..orchestrator.voice_anchor import infer_strand_from_retrieval
 from ..services import query_log
 
 logger = logging.getLogger(__name__)
@@ -173,6 +174,14 @@ async def _run_query(
 
     # 4. Assemble response
     citations = select_citations(retrieval)
+    # The synth injects the voice anchor into the prompt; we mirror the
+    # decision on the wire so the eval harness can score "voice match" per
+    # strand. Pure function — no second filesystem read.
+    voice_anchor_strand = (
+        infer_strand_from_retrieval(retrieval)
+        if synthesis.answer != GUARDRAIL_ANSWER
+        else None
+    )
     elapsed_ms = int((time.perf_counter() - started) * 1000)
     response = QueryResponse(
         query=q,
@@ -185,6 +194,7 @@ async def _run_query(
         graphs=graphs,
         model_used=synthesis.model_used,
         from_cache=False,
+        voice_anchor_strand=voice_anchor_strand,
         elapsed_ms=elapsed_ms,
         debug_info=_debug_info(retrieval, cls_result.matched_phrases) if debug else None,
     )

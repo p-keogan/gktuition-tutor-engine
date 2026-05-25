@@ -36,6 +36,7 @@ from .contract import (
     RetrievedChunk,
 )
 from .retriever import RETRIEVAL_FLOOR
+from .voice_anchor import build_voice_anchor
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,26 @@ SYSTEM_PROMPT = (
     "equations (wrap in $...$). Do not use code fences.\n"
     "5. Do not introduce yourself or thank the student.\n"
 )
+
+
+def _effective_system_prompt(retrieval: RetrievalResult) -> str:
+    """Compose ``SYSTEM_PROMPT`` + the voice anchor prefix for a retrieval.
+
+    The voice anchor (strand cram summary + ``_voice.md`` rules) is the
+    Phase-2 load-bearing differentiator: without it the soft-path Cortex
+    answer reads like generic Mistral output; with it, the answer adopts
+    Paul's phrasing, log-tables citation discipline, and 'Therefore...'
+    closing convention. See ``voice_anchor.build_voice_anchor`` for the
+    cost trade-off (~3,000 tokens / ~€0.01 per request on Sonnet).
+
+    Returns the bare ``SYSTEM_PROMPT`` unchanged when no anchor is
+    available — keeps Phase-1 behaviour for solution-side queries, missing
+    corpus, etc.
+    """
+    anchor = build_voice_anchor(retrieval)
+    if anchor is None:
+        return SYSTEM_PROMPT
+    return f"{SYSTEM_PROMPT}\n\n{anchor}"
 
 
 # ---------------------------------------------------------------------------
@@ -179,6 +200,11 @@ def synthesize(query: str, retrieval: RetrievalResult) -> SynthesisResult:
         return SynthesisResult(answer=GUARDRAIL_ANSWER, model_used=NO_MODEL)
 
     user_prompt = _build_prompt(query, retrieval)
+    # Voice-anchored system prompt: SYSTEM_PROMPT + strand cram summary +
+    # _voice.md rules. Falls back to bare SYSTEM_PROMPT when the corpus
+    # files are unavailable. See `_effective_system_prompt` for the cost
+    # trade-off.
+    system_prompt = _effective_system_prompt(retrieval)
 
     # --- Analytical path -------------------------------------------------
     if retrieval.query_class == QueryClass.ANALYTICAL:
@@ -188,7 +214,7 @@ def synthesize(query: str, retrieval: RetrievalResult) -> SynthesisResult:
             answer = _call_cortex(CORTEX_MODEL, user_prompt)
         except Exception:
             logger.exception("cortex.complete failed for analytical path; falling back")
-            answer = _call_anthropic(SYSTEM_PROMPT, user_prompt)
+            answer = _call_anthropic(system_prompt, user_prompt)
             return SynthesisResult(answer=answer, model_used=ANTHROPIC_MODEL)
         # Tag with ANALYST_MODEL so callers can see this was the structured
         # path, even though the prose came from mistral-large2.
@@ -202,12 +228,14 @@ def synthesize(query: str, retrieval: RetrievalResult) -> SynthesisResult:
 
     if use_cheap:
         try:
-            answer = _call_cortex(CORTEX_MODEL, _build_cortex_prompt(query, retrieval))
+            answer = _call_cortex(
+                CORTEX_MODEL, _build_cortex_prompt(query, retrieval, system_prompt)
+            )
             return SynthesisResult(answer=answer.strip(), model_used=CORTEX_MODEL)
         except Exception:
             logger.exception("cortex.complete failed; falling back to Anthropic")
 
-    answer = _call_anthropic(SYSTEM_PROMPT, user_prompt)
+    answer = _call_anthropic(system_prompt, user_prompt)
     return SynthesisResult(answer=answer.strip(), model_used=ANTHROPIC_MODEL)
 
 
@@ -251,13 +279,21 @@ def _build_prompt(query: str, retrieval: RetrievalResult) -> str:
     return "\n".join(parts)
 
 
-def _build_cortex_prompt(query: str, retrieval: RetrievalResult) -> str:
+def _build_cortex_prompt(
+    query: str,
+    retrieval: RetrievalResult,
+    system_prompt: str | None = None,
+) -> str:
     """The cheap path uses the same prompt but with the system prompt inlined.
 
     Cortex ``COMPLETE(model, prompt)`` doesn't separate system from user the
-    way the Anthropic API does, so we glue them together.
+    way the Anthropic API does, so we glue them together. When the caller
+    passes a ``system_prompt`` (the voice-anchored one), use that; otherwise
+    fall back to bare ``SYSTEM_PROMPT`` (kept for backwards-compatibility
+    with any caller that might still be on the Phase-1 signature).
     """
-    return SYSTEM_PROMPT + "\n\n" + _build_prompt(query, retrieval)
+    sys_prompt = system_prompt if system_prompt is not None else SYSTEM_PROMPT
+    return sys_prompt + "\n\n" + _build_prompt(query, retrieval)
 
 
 # ---------------------------------------------------------------------------

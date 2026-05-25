@@ -17,6 +17,9 @@ AGENT_*_DELIVERY.md
 AGENT_MAY_*.md
 DAY_*.md
 PLAN_PIVOT_*.md
+# Per-agent delivery scratch (transcripts, prompt-pair JSON, etc.) — same
+# rationale as the AGENT_*_DELIVERY.md entries above.
+.agent_deliveries/
 
 # macOS / editor noise
 .DS_Store

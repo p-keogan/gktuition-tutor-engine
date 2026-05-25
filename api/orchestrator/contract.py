@@ -243,6 +243,17 @@ class QueryResponse(BaseModel):
             "wrapper flips this when serving a cache hit."
         ),
     )
+    voice_anchor_strand: str | None = Field(
+        default=None,
+        description=(
+            "The strand directory whose cram summary was injected into the "
+            "generation prompt for voice anchoring (Phase 2). One of "
+            "'LCHL_Algebra', 'LCHL_Statistics', etc., or None when retrieval "
+            "didn't land in a recognised strand (solution-side queries, "
+            "summary-side queries, or the guardrail path). Surfaced for the "
+            "eval harness and manual voice-match QA."
+        ),
+    )
     elapsed_ms: int = Field(..., ge=0, description="End-to-end latency in milliseconds.")
 
     # Optional diagnostic field — only populated when QueryRequest.debug=True.
