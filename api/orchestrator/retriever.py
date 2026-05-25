@@ -147,7 +147,14 @@ def _get_or_open_snowflake() -> SnowflakeConnection:
         kw: dict[str, Any] = {
             "account": account,
             "user": user,
-            "role": _sf_env("SNOWFLAKE_ROLE", "SF_ROLE") or "ACCOUNTADMIN",
+            # Omit if unset — Snowflake then uses the user's DEFAULT_ROLE,
+            # which we set to GKTUITION_APP_RW on the service account.
+            # Defaulting to ACCOUNTADMIN here was dangerous AND broken in
+            # production: the service account can't USE ACCOUNTADMIN
+            # (least-privilege), so an unset SNOWFLAKE_ROLE env var on a
+            # future deploy would silently fail auth instead of falling
+            # through to the user's intended role.
+            "role": _sf_env("SNOWFLAKE_ROLE", "SF_ROLE"),
             "warehouse": (
                 _sf_env("SNOWFLAKE_WAREHOUSE", "SF_WAREHOUSE") or "WH_TUTOR"
             ),
