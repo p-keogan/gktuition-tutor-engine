@@ -22,6 +22,35 @@ kill_signal = "SIGTERM"
 kill_timeout = "10s"
 
 # -----------------------------------------------------------------------------
+# Processes — two long-running roles driven from the same image.
+#
+#   * app   — uvicorn serving FastAPI on :8000. Reached by http_service.
+#   * warm  — keeps the full /query path JIT-hot (synthesiser + Snowflake
+#             warehouse + L3 cache) during expected-active hours (15:00–22:00
+#             IE, Mon–Sun). Pings /query every ~40s in-window, no-ops
+#             out-of-window. See scripts/always_warm.py for the rationale and
+#             cost model (~€1.30–2.00/month additional spend for guaranteed
+#             sub-5s response in-window). The Fly /healthz probe alone keeps
+#             Snowflake from auto-suspending but doesn't exercise the
+#             synthesiser path — DAY_30 saw a 205s cold-start there even with
+#             the warehouse warm.
+#
+# Alternative: comment out the [processes] block and run the warmup on a
+# Fly Machines cron instead (1-minute resolution instead of 40s):
+#
+#     flyctl m run --schedule '* 15-22 * * *' \
+#         --app gktuition-tutor-api \
+#         --image registry.fly.io/gktuition-tutor-api:latest \
+#         python /app/scripts/always_warm.py
+#
+# The script self-gates to the warm window in both modes, so a cron with
+# a wider schedule is harmless.
+# -----------------------------------------------------------------------------
+[processes]
+  app  = "sh -c 'exec uvicorn api.main:app --host 0.0.0.0 --port ${PORT}'"
+  warm = "python /app/scripts/always_warm.py --loop"
+
+# -----------------------------------------------------------------------------
 # Build — produce the image from our multi-stage Dockerfile. GitHub Actions
 # also drives this with `flyctl deploy`, which respects this section.
 # -----------------------------------------------------------------------------
@@ -55,6 +84,15 @@ kill_timeout = "10s"
   SNOWFLAKE_LOG_SINK_FLUSH_INTERVAL_S = "30"
   SNOWFLAKE_LOG_SINK_FLUSH_SIZE = "100"
 
+  # Voice anchoring (Phase 2, AGENT_15) — root of the sibling
+  # `career-transition-2026` corpus from which the synthesiser reads the
+  # strand cram summaries and `_voice.md` for prompt prefixing. On Fly
+  # this resolves to the in-image location the Dockerfile populates with
+  # `tutorials/_voice.md` + `tutorials/LCHL_*/_SUMMARY-exam-cram.md`. If
+  # the path doesn't exist at runtime the synthesiser falls back to the
+  # bare SYSTEM_PROMPT (degraded but valid) — see voice_anchor.py.
+  CORPUS_ROOT = "/app/corpus"
+
 # -----------------------------------------------------------------------------
 # HTTP service — one TCP port, two health probes (an HTTP probe at /healthz
 # every 10s + a TCP probe so Fly knows the machine accepted a connection).
@@ -77,9 +115,23 @@ kill_timeout = "10s"
     tls_skip_verify = false
 
 # -----------------------------------------------------------------------------
-# Machine specs
+# Machine specs — per-process VM sizing.
+#
+# Both processes run on the smallest shared-cpu-1x footprint (256MB is Fly's
+# minimum for shared-cpu-1x). The warm worker's actual usage is < 50MB
+# resident; we accept the 256MB minimum as overhead. Fly's free allowance
+# (3x shared-cpu-1x) covers both machines at $0 — outside the free
+# allowance, ~$2/month for the second machine, in line with the
+# €1.30–2.00/month cost-model documented in scripts/always_warm.py.
 # -----------------------------------------------------------------------------
 [[vm]]
+  processes = ["app"]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+[[vm]]
+  processes = ["warm"]
   cpu_kind = "shared"
   cpus = 1
   memory_mb = 256

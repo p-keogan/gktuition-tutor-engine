@@ -1,4 +1,9 @@
-"""Shared fixtures for the image_query test suite."""
+"""Shared fixtures for the api/tests/ suite.
+
+Originally seeded for the image_query test suite, this conftest now also
+hosts the suite-wide ``_scrub_credentials_env`` fixture that hides the
+local developer's Snowflake / Anthropic credentials from the test run.
+"""
 from __future__ import annotations
 
 import json
@@ -12,6 +17,45 @@ from fastapi.testclient import TestClient
 from api.routes import image_query as image_query_module
 from api.routes.image_query import router as image_query_router
 from api.services import auth, query_log, query_pipeline
+
+# --- Suite-wide environment hygiene ----------------------------------------
+
+
+@pytest.fixture(autouse=True)
+def _scrub_credentials_env(monkeypatch):
+    """Scrub SF/Snowflake/Anthropic credentials for the test run so
+    ``/healthz`` sub-checks reliably fall into the "skipped (no creds)"
+    branch instead of attempting live calls against the developer's local
+    creds and failing as "degraded".
+
+    Background: ``api/routes/health.py`` sub-checks short-circuit to
+    ``"skipped (no SF creds)"`` / ``"skipped (no API key)"`` when the
+    relevant env var is absent — that's the path the contract test in
+    ``test_query_e2e.py::test_healthz`` and the firewall smoke tests
+    depend on. When a developer runs ``pytest`` in a shell that exports
+    real ``SNOWFLAKE_*`` / ``SF_*`` / ``ANTHROPIC_API_KEY`` values, the
+    sub-checks try to dial out, fail (test setup doesn't wire the
+    pooled connector), and the health-roll-up flips to ``"degraded"``.
+    CI never sees this because its sandbox is clean. This fixture lifts
+    that footgun off local developers.
+
+    Note: ``WP_JWT_SECRET`` is intentionally NOT scrubbed — many tests
+    (e.g. ``test_query_e2e``, the firewall conftest) ``setdefault`` it
+    to ``"dev-only"`` at import time so the app boots; removing it
+    here would break those suites.
+    """
+    for name in (
+        "SNOWFLAKE_ACCOUNT", "SNOWFLAKE_USER", "SNOWFLAKE_PASSWORD",
+        "SNOWFLAKE_ROLE", "SNOWFLAKE_WAREHOUSE", "SNOWFLAKE_DATABASE",
+        "SNOWFLAKE_PRIVATE_KEY_PATH", "SNOWFLAKE_AUTHENTICATOR",
+        "SF_ACCOUNT", "SF_USER", "SF_PASSWORD", "SF_ROLE",
+        "SF_WAREHOUSE", "SF_DATABASE",
+        "SF_PRIVATE_KEY", "SF_PRIVATE_KEY_PATH",
+        "ANTHROPIC_API_KEY",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    yield
+
 
 # --- Anthropic client mock helpers -----------------------------------------
 

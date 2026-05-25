@@ -93,6 +93,12 @@ COPY --from=builder /opt/venv /opt/venv
 WORKDIR /app
 COPY --chown=gktuition:gktuition api/ ./api/
 
+# Scripts directory — small, self-contained Python utilities executed by
+# Fly Machines (currently: scripts/always_warm.py, driven by the `warm`
+# process declared in fly.toml). Kept separate from the api/ tree so the
+# import surface of the app remains a single package.
+COPY --chown=gktuition:gktuition scripts/ ./scripts/
+
 # GIT_SHA is baked at build time so /healthz can report it. CI passes it via
 # --build-arg; locally it stays "unknown" which is fine.
 ARG GIT_SHA=unknown
