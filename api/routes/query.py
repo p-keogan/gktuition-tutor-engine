@@ -274,7 +274,7 @@ def _format_sse(event: str, data: dict[str, Any]) -> bytes:
     we don't have to worry about multi-line continuation.
     """
     payload = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
-    return f"event: {event}\ndata: {payload}\n\n".encode("utf-8")
+    return f"event: {event}\ndata: {payload}\n\n".encode()
 
 
 async def _stream_pipeline(

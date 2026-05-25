@@ -327,8 +327,7 @@ def _default_anthropic_stream_caller(
         system=system_prompt,
         messages=[{"role": "user", "content": user_prompt}],
     ) as stream:
-        for delta in stream.text_stream:
-            yield delta
+        yield from stream.text_stream
 
 
 def _call_anthropic_stream(system_prompt: str, user_prompt: str) -> Iterator[str]:

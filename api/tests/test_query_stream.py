@@ -114,8 +114,7 @@ def client() -> TestClient:
 
     # Hard-path streaming caller — yields deterministic deltas.
     def fake_anthropic_stream(sysp: str, userp: str):
-        for piece in ["In ", "2024 ", "P2 ", "Q5, ", "the ", "candidate..."]:
-            yield piece
+        yield from ["In ", "2024 ", "P2 ", "Q5, ", "the ", "candidate..."]
 
     synthesizer.set_anthropic_caller(
         lambda sysp, userp: "Walk through the worked solution... [2024_main_P2_Q5a]"
