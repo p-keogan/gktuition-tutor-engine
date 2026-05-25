@@ -299,6 +299,45 @@ def _rank_in_slugs(expected: str, slugs: list[str]) -> int | None:
     return None
 
 
+def _best_rank_over_slugs(
+    valid_slugs: set[str], ranked: list[str],
+) -> int | None:
+    """Best (lowest) 1-indexed rank of any slug in ``valid_slugs`` within
+    ``ranked``; None if no slug in ``valid_slugs`` appears in ``ranked``.
+
+    Used by ``_score_solutions_search`` for cross-ref rows where an exam-part
+    references multiple tutorials. The eval set arbitrarily pins one as
+    ``expected_slug``, but **any** of the referenced tutorials at rank 1 is a
+    legitimate hit — they all describe the same exam question from the
+    curriculum-judging author's viewpoint.
+    """
+    best: int | None = None
+    for slug in valid_slugs:
+        rank = _rank_in_slugs(slug, ranked)
+        if rank is not None and (best is None or rank < best):
+            best = rank
+    return best
+
+
+def _build_part_id_to_referenced_slugs(
+    rows: list[EvalInput],
+) -> dict[str, set[str]]:
+    """For ``source='solution_cross_ref'`` rows the eval set emits one row per
+    ``(part_id, expected_slug)`` pair. Group by ``part_id`` to recover the
+    full ``tutorials_referenced`` set for each exam-part — that set is what
+    counts as a "hit" under the recall@1-over-refs scoring rule.
+    """
+    mapping: dict[str, set[str]] = defaultdict(set)
+    for row in rows:
+        if row.source != "solution_cross_ref":
+            continue
+        part_id = row.source_metadata.get("part_id")
+        if not part_id:
+            continue
+        mapping[part_id].add(row.expected_slug)
+    return mapping
+
+
 def _score_tutor_search(
     cursor, row: EvalInput,
 ) -> RowResult:
@@ -313,8 +352,20 @@ def _score_tutor_search(
 
 
 def _score_solutions_search(
-    cursor, row: EvalInput, also_try_tutor: bool,
+    cursor,
+    row: EvalInput,
+    also_try_tutor: bool,
+    valid_slugs_for_row: set[str] | None = None,
 ) -> RowResult:
+    """Score a cross-ref row against SOLUTIONS_SEARCH.
+
+    ``valid_slugs_for_row`` is the full set of ``tutorials_referenced`` for
+    this row's exam-part (recovered by grouping eval rows on ``part_id``).
+    A hit is counted if **any** slug in that set lands at the same rank as
+    the best match in the flattened result ranking. When ``valid_slugs_for_row``
+    is ``None`` or empty, falls back to the legacy single-expected-slug rule
+    for backward compatibility.
+    """
     hits = _search_preview(
         cursor, SOLUTIONS_SEARCH, row.question_text,
         columns=["part_id", "topic", "tutorials_referenced"],
@@ -339,7 +390,14 @@ def _score_solutions_search(
         if len(ranked) >= TOP_K:
             break
 
-    rank = _rank_in_slugs(row.expected_slug, ranked)
+    # New scoring rule: a cross-ref row whose exam-part references multiple
+    # tutorials is a hit if any of those tutorials lands at rank 1 (not just
+    # the arbitrarily-pinned ``expected_slug``). See eval/README.md for the
+    # rationale.
+    if valid_slugs_for_row:
+        rank = _best_rank_over_slugs(valid_slugs_for_row, ranked)
+    else:
+        rank = _rank_in_slugs(row.expected_slug, ranked)
 
     # Optional ambiguous-both fallback: try TUTOR_SEARCH and keep the better
     # rank for MRR/recall@5 calculation.
@@ -350,7 +408,10 @@ def _score_solutions_search(
             columns=["slug", "title"],
         )
         tut_slugs = [h.get("slug", "") for h in tut_hits]
-        tut_rank = _rank_in_slugs(row.expected_slug, tut_slugs)
+        if valid_slugs_for_row:
+            tut_rank = _best_rank_over_slugs(valid_slugs_for_row, tut_slugs)
+        else:
+            tut_rank = _rank_in_slugs(row.expected_slug, tut_slugs)
         # Take the better of the two ranks.
         if tut_rank is not None and (rank is None or tut_rank < rank):
             rank = tut_rank
@@ -554,6 +615,10 @@ def main(argv: list[str] | None = None) -> int:
             "snowflake-connector-python is required for scoring."
         ) from exc
 
+    # Precompute part_id -> {tutorials_referenced} so the cross-ref scorer
+    # can apply the recall@1-over-refs rule documented in eval/README.md.
+    part_id_to_refs = _build_part_id_to_referenced_slugs(rows)
+
     log.info("Opening Snowflake connection for SEARCH_PREVIEW")
     conn = snowflake.connector.connect(**_build_conn_kwargs())
     results: list[RowResult] = []
@@ -565,8 +630,14 @@ def main(argv: list[str] | None = None) -> int:
                     if row.source == "phrasings":
                         rr = _score_tutor_search(cs, row)
                     elif row.source == "solution_cross_ref":
+                        part_id = row.source_metadata.get("part_id")
+                        valid_for_row = (
+                            part_id_to_refs.get(part_id) if part_id else None
+                        )
                         rr = _score_solutions_search(
-                            cs, row, also_try_tutor=args.ambiguous_both,
+                            cs, row,
+                            also_try_tutor=args.ambiguous_both,
+                            valid_slugs_for_row=valid_for_row,
                         )
                     else:
                         # Unknown source — score against TUTOR_SEARCH as a

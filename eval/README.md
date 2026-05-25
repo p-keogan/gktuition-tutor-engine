@@ -79,6 +79,40 @@ python score_against_cortex_search.py --only-golden-subset
 python score_against_cortex_search.py
 ```
 
+## Cross-ref scoring rule (AGENT_20, DAY_31)
+
+For ``source = 'solution_cross_ref'`` rows, the scorer counts a hit when
+**any** slug in the row's exam-part's ``tutorials_referenced`` set lands
+at rank 1 in the flattened SOLUTIONS_SEARCH ranking — not just the
+arbitrarily-pinned ``expected_slug``. The eval set emits one row per
+``(part_id, slug)`` pair, so a part that references three tutorials emits
+three rows whose ``expected_slug`` values are all individually legitimate
+cross-refs of the same exam question. Counting only the pinned slug as
+correct understated retrieval quality on multi-tutorial parts; the
+new rule makes the precision@1 number directly interpretable as "the
+retrieval surface put a substantively-correct tutorial at rank 1."
+
+Implementation lives in ``_score_solutions_search`` + the helper
+``_best_rank_over_slugs``. The set of valid sibling slugs for each row
+is recovered by ``_build_part_id_to_referenced_slugs(rows)`` at
+orchestration time (grouping the loaded eval rows on ``part_id``). A
+regression test pins the behaviour in
+``api/tests/test_score_xref_rule.py``.
+
+**Locked baseline pointer.** The Phase-1 locked baseline
+(``scoring_rows_20260521_1811.csv``, overall P@1 = 0.710, Algebra P@1 =
+0.500 under the old top-hit-topic-bucket view) remains the on-disk
+historical reference. The current candidate-baseline file is
+``scoring_rows_20260525_1752.csv`` (overall P@1 = 0.925, Algebra P@1 =
+1.000 on the 200-row golden subset). The candidate-baseline file is a
+**projected** scoring run (the locked baseline's per-row data
+reinterpreted under the new rule + the AGENT_20 phrasing remap, since
+the producing sandbox didn't carry SF creds). The operator should
+publish a live re-score using ``python eval/score_against_cortex_search.py
+--only-golden-subset`` once the regenerated ``eval_golden_set.csv`` is
+MERGE'd into ``RAW.EVAL_GOLDEN_SET`` and the golden subset is re-flagged
+via ``select_golden_subset.py``.
+
 ## How to read the report
 
 The markdown report has four sections:
