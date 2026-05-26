@@ -39,6 +39,14 @@ widget/
 scripts/*
 !scripts/always_warm.py
 
+# corpus/ — explicitly NOT ignored. The runtime image's voice anchor reads
+# from /app/corpus, populated by `COPY corpus /app/corpus` in the Dockerfile
+# (AGENT_DAY_31, voice-anchor production activation). Without an explicit
+# include line the bundled corpus would still ship (none of the patterns
+# above exclude it), but stating the inclusion intent is the documentation
+# the next agent will look for.
+!corpus/
+
 # Repo-level docs & READMEs
 README.md
 AGENT_*.md

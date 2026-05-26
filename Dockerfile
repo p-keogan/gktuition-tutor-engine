@@ -99,6 +99,17 @@ COPY --chown=gktuition:gktuition api/ ./api/
 # import surface of the app remains a single package.
 COPY --chown=gktuition:gktuition scripts/ ./scripts/
 
+# Corpus directory — strand cram summaries + `_voice.md` voice rules read at
+# request-time by `api/orchestrator/voice_anchor.py` to build the
+# Phase-2 voice-anchored system-prompt prefix. The corpus is a snapshot of
+# the `career-transition-2026/tutorials/` sibling repo (the 20 strand
+# `_SUMMARY-exam-cram.md` files + the single `_voice.md`) kept in this repo
+# so the Docker build context is self-contained (no cross-repo build dance,
+# no Fly volume operational overhead). Kept in sync via
+# `scripts/sync_corpus.sh` whenever a strand summary or the voice rules are
+# edited in ctr-2026. `CORPUS_ROOT=/app/corpus` is set in `fly.toml`.
+COPY --chown=gktuition:gktuition corpus/ ./corpus/
+
 # GIT_SHA is baked at build time so /healthz can report it. CI passes it via
 # --build-arg; locally it stays "unknown" which is fine.
 ARG GIT_SHA=unknown

@@ -7,14 +7,23 @@ fails the bar even when the maths is correct. This module is the prompt-side
 of that bet — for every successful retrieval, we look up
 
 1. The **strand cram summary** (one of the 20 ``_SUMMARY-exam-cram.md``
-   files in ``career-transition-2026/tutorials/LCHL_*/``) whose strand
-   matches the top retrieved slug. Injected verbatim (up to a char cap).
-2. The **voice rules** from ``tutorials/_voice.md``. Injected verbatim.
+   files for ``LCHL_*`` strands) whose strand matches the top retrieved
+   slug. Injected verbatim (up to a char cap).
+2. The **voice rules** from ``_voice.md``. Injected verbatim.
 
-Both blocks live in the *sibling* repo, not in this engine repo. The path is
-resolved from the ``CORPUS_ROOT`` env var (default
-``/Users/paul/code/career-transition-2026``) so the same code runs locally
-and on Fly.io once the secret is plumbed through.
+The canonical authoring location of both blocks is the sibling repo
+``career-transition-2026/tutorials/``. As of AGENT_DAY_31 (Phase-2A
+activation) a snapshot of the 21 relevant files is **bundled into this
+engine repo** at ``corpus/tutorials/`` so the Docker build context is
+self-contained and Fly's runtime image can read them at ``/app/corpus``
+without any cross-repo build dance. The bundle is kept in step with
+ctr-2026 by ``scripts/sync_corpus.sh`` whenever a strand summary or the
+voice rules are edited there.
+
+The path is resolved from the ``CORPUS_ROOT`` env var (default = the
+bundled ``corpus/`` directory at the engine repo root, so local dev works
+out of the box without env-var setup; production sets
+``CORPUS_ROOT=/app/corpus`` via ``fly.toml``).
 
 Everything is pure and side-effect-free except the in-process file cache; if
 ``CORPUS_ROOT`` is unset, missing, or points to a directory without the
@@ -45,11 +54,25 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-# Default location of the voice + strand-summary corpus on Paul's laptop.
-# Fly.io overrides via the ``CORPUS_ROOT`` env var (set in ``fly.toml`` /
-# ``scripts/setup_fly_secrets.sh``). Tests override via monkeypatch.
+# Default location of the voice + strand-summary corpus.
+#
+# Resolution order:
+#
+# 1. The ``CORPUS_ROOT`` env var, if set. Production (Fly) sets this to
+#    ``/app/corpus`` via ``fly.toml``; tests override per-case via
+#    ``monkeypatch.setenv``.
+# 2. The bundled ``corpus/`` directory at the engine repo root. This is the
+#    snapshot AGENT_DAY_31 committed so the runtime image is self-contained;
+#    locally it also means ``pytest`` / ``uvicorn`` work out of the box
+#    without env-var setup.
+#
+# ``DEFAULT_CORPUS_ROOT`` is computed from this file's location
+# (``api/orchestrator/voice_anchor.py`` → engine repo root = parent³) so it
+# tracks the repo regardless of where the process is launched from.
 CORPUS_ROOT_ENV = "CORPUS_ROOT"
-DEFAULT_CORPUS_ROOT = "/Users/paul/code/career-transition-2026"
+DEFAULT_CORPUS_ROOT = str(
+    Path(__file__).resolve().parent.parent.parent / "corpus"
+)
 
 # Maximum characters of strand summary + voice rules to inject. ~12,000 chars
 # is roughly 3,000 tokens at the 4-chars-per-token rule of thumb, matching
