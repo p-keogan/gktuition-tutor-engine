@@ -38,6 +38,7 @@ from ..orchestrator.synthesizer import (
     select_citations,
     synthesize,
 )
+from ..orchestrator.voice_anchor import infer_strand_from_retrieval
 from ..services import query_log
 from . import L1_turnstile, L2_rate_limit, L3_semantic_cache, L4_router
 from . import L5_kill_switch as L5
@@ -175,6 +176,20 @@ async def run_with_firewall(
             sp_s.output["answer_chars"] = len(synthesis.answer or "")
 
         citations = select_citations(retrieval)
+        # Mirror the non-firewall ``_run_query`` route in ``routes/query.py``:
+        # the synthesiser injects the voice anchor into the prompt; we surface
+        # the strand decision on the wire so the eval harness can score
+        # voice-match per strand and so manual QA can see at a glance whether
+        # the anchor fired. Pure function — no second filesystem read.
+        # AGENT_DAY_31 hot-fix: AGENT_15 wired this through the non-firewall
+        # path but missed the firewall response builder, so live queries (all
+        # of which take the firewall path in prod) were returning
+        # ``voice_anchor_strand: null`` even after the corpus landed in /app.
+        voice_anchor_strand = (
+            infer_strand_from_retrieval(retrieval)
+            if synthesis.answer != GUARDRAIL_ANSWER
+            else None
+        )
         elapsed_ms = int((time.perf_counter() - started) * 1000)
         response = QueryResponse(
             query=q,
@@ -186,6 +201,7 @@ async def run_with_firewall(
             related_learning_work=retrieval.related_learning_work,
             model_used=synthesis.model_used,
             from_cache=False,
+            voice_anchor_strand=voice_anchor_strand,
             elapsed_ms=elapsed_ms,
             debug_info=_debug_info(retrieval, cls_result.matched_phrases) if debug else None,
         )
