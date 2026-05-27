@@ -93,6 +93,13 @@ kill_timeout = "10s"
   # bare SYSTEM_PROMPT (degraded but valid) — see voice_anchor.py.
   CORPUS_ROOT = "/app/corpus"
 
+  # Query rewriting (Phase 2, AGENT_21) — translates conceptual "explain
+  # X" framings into the corpus's domain language so the reranker doesn't
+  # sub-floor on them. Ships dark; flip via
+  # `flyctl secrets set QUERY_REWRITE_ENABLED=true` once the eval-gate
+  # passes. Read on every call so the flip takes effect without restart.
+  QUERY_REWRITE_ENABLED = "false"
+
 # -----------------------------------------------------------------------------
 # HTTP service — one TCP port, two health probes (an HTTP probe at /healthz
 # every 10s + a TCP probe so Fly knows the machine accepted a connection).

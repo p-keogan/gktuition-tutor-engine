@@ -31,11 +31,13 @@ from fastapi import HTTPException, Request
 
 from ..orchestrator.classifier import classify, classify_image_extracted
 from ..orchestrator.contract import QueryClass, QueryResponse
+from ..orchestrator.query_rewrite import maybe_rewrite
 from ..orchestrator.retriever import retrieve
 from ..orchestrator.synthesizer import (
     GUARDRAIL_ANSWER,
     estimate_cost_cents,
     select_citations,
+    slug_anchor_override,
     synthesize,
 )
 from ..orchestrator.voice_anchor import infer_strand_from_retrieval
@@ -110,9 +112,24 @@ async def run_with_firewall(
             sp_c.output["query_class"] = query_class.value
             sp_c.output["matched"] = list(cls_result.matched_phrases)
 
+        # ---- Query rewrite (AGENT_21) ----------------------------------
+        # Translate conceptual "explain X" framings into the corpus's
+        # domain language so the reranker doesn't sub-floor on them. The
+        # response's ``query`` field stays the student's input below; only
+        # retrieval and synthesis see the rewritten string. Cache key
+        # likewise stays the student's input — two students asking the
+        # same conceptual question still share a cache slot.
+        q_retrieval = maybe_rewrite(q, query_class)
+        if q_retrieval != q:
+            logger.info(
+                "firewall query rewrite fired: original=%r rewritten=%r",
+                q,
+                q_retrieval,
+            )
+
         # ---- Retrieve --------------------------------------------------
         with L6.span(trace, "retrieve", query_class=query_class.value) as sp_r:
-            retrieval = await retrieve(q, query_class)
+            retrieval = await retrieve(q_retrieval, query_class)
             sp_r.output["chunks"] = len(retrieval.chunks)
             sp_r.output["top_score"] = retrieval.top_reranker_score
             sp_r.output["services_called"] = retrieval.services_called
@@ -170,8 +187,13 @@ async def run_with_firewall(
             return _attach_state(request, response)
 
         # ---- Synthesise (cache miss) ---------------------------------
+        # Pass the rewritten query into the synthesiser so its prompt is
+        # consistent with what retrieval saw — same reasoning as the
+        # non-firewall ``_run_query`` route.
         with L6.span(trace, "synthesize", intended_model=intended_model) as sp_s:
-            synthesis = await asyncio.to_thread(_synthesize_with_breaker, q, retrieval)
+            synthesis = await asyncio.to_thread(
+                _synthesize_with_breaker, q_retrieval, retrieval
+            )
             sp_s.output["model_used"] = synthesis.model_used
             sp_s.output["answer_chars"] = len(synthesis.answer or "")
 
@@ -203,7 +225,13 @@ async def run_with_firewall(
             from_cache=False,
             voice_anchor_strand=voice_anchor_strand,
             elapsed_ms=elapsed_ms,
-            debug_info=_debug_info(retrieval, cls_result.matched_phrases) if debug else None,
+            debug_info=_debug_info(
+                retrieval,
+                cls_result.matched_phrases,
+                query_rewritten=(q_retrieval if q_retrieval != q else None),
+            )
+            if debug
+            else None,
         )
 
         # ---- L5 record spend (post-call, so we know the realised model)
@@ -332,14 +360,25 @@ def _subnet_24(ip: str) -> str:
     return ".".join(parts[:3]) + ".0/24"
 
 
-def _debug_info(retrieval: Any, matched_phrases: tuple[str, ...]) -> dict[str, Any]:
-    return {
+def _debug_info(
+    retrieval: Any,
+    matched_phrases: tuple[str, ...],
+    *,
+    query_rewritten: str | None = None,
+) -> dict[str, Any]:
+    info: dict[str, Any] = {
         "classifier_matches": list(matched_phrases),
         "services_called": retrieval.services_called,
         "top_reranker_score": retrieval.top_reranker_score,
         "analyst_sql": retrieval.analyst_sql,
         "n_chunks": len(retrieval.chunks),
     }
+    # AGENT_21 — present only when the rewrite actually fired so callers
+    # can tell "rewrite was disabled / not triggered" from "rewrite ran but
+    # returned the input unchanged" if that ever matters in debugging.
+    if query_rewritten is not None:
+        info["query_rewritten"] = query_rewritten
+    return info
 
 
 async def _write_log_safely(

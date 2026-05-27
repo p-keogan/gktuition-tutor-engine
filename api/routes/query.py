@@ -43,6 +43,7 @@ from ..orchestrator.contract import (
     QueryRequest,
     QueryResponse,
 )
+from ..orchestrator.query_rewrite import maybe_rewrite
 from ..orchestrator.retriever import retrieve
 from ..orchestrator.synthesizer import (
     GUARDRAIL_ANSWER,
@@ -51,6 +52,7 @@ from ..orchestrator.synthesizer import (
     augment_with_graphs,
     estimate_cost_cents,
     select_citations,
+    slug_anchor_override,
     synthesize,
     synthesize_stream,
 )
@@ -299,15 +301,26 @@ async def _stream_pipeline(
     cls_result = classify(q, return_matches=debug)
     query_class = cls_result.query_class
 
+    # 1b. Query rewrite (AGENT_21) — same hook as ``_run_query``. The
+    # ``done`` event's ``query`` field still carries the student's input;
+    # only retrieval + synthesis see the rewritten form.
+    q_retrieval = maybe_rewrite(q, query_class)
+    if q_retrieval != q:
+        logger.info(
+            "stream query rewrite fired: original=%r rewritten=%r",
+            q,
+            q_retrieval,
+        )
+
     # 2. Retrieve
-    retrieval = await retrieve(q, query_class)
+    retrieval = await retrieve(q_retrieval, query_class)
 
     # 3. Synthesize — streaming. The synthesiser generator is sync (calls
     # the blocking Cortex/Anthropic clients); we drain it on a thread so
     # the event loop stays responsive. Each StreamEvent is converted to
     # SSE bytes here.
     model_used = NO_MODEL
-    stream_iter = synthesize_stream(q, retrieval)
+    stream_iter = synthesize_stream(q_retrieval, retrieval)
 
     # We need to peek the final ``done`` event so the route can augment it
     # with elapsed_ms/voice_anchor_strand before serialising. Strategy:
@@ -447,19 +460,34 @@ async def _run_query(
         cls_result = classify(q, return_matches=debug)
         query_class = cls_result.query_class
 
+    # 1b. Query rewrite (AGENT_21) — translates conceptual "explain X" framings
+    # into the corpus's domain language. No-op (returns ``q`` unchanged) when
+    # the feature flag is off, when the deterministic pre-check rejects, or
+    # for any non-concept route. The response's ``query`` field is still
+    # bound from the original ``q`` below — the wire contract stays "echo the
+    # student's input"; only retrieval and synthesis see the rewritten form.
+    q_retrieval = maybe_rewrite(q, query_class)
+    if q_retrieval != q:
+        logger.info(
+            "query rewrite fired: original=%r rewritten=%r", q, q_retrieval
+        )
+
     # 2. Retrieve
-    retrieval = await retrieve(q, query_class)
+    retrieval = await retrieve(q_retrieval, query_class)
 
     # 3. Synthesize — runs in a thread because the underlying clients
     # (Snowflake connector / anthropic SDK) are sync. Keeps the event loop
-    # free for other concurrent requests.
-    synthesis = await asyncio.to_thread(synthesize, q, retrieval)
+    # free for other concurrent requests. We pass the rewritten string so
+    # the synthesiser's evidence-bound prompt is consistent with what
+    # retrieval saw; the response's ``query`` field still echoes the
+    # student's input.
+    synthesis = await asyncio.to_thread(synthesize, q_retrieval, retrieval)
 
     # 3b. Visualisation layer (Agent 13 / ADR-005) — independent of the
     # answer text, so a failure here never affects the answer. Also runs
     # in a thread because the deterministic check is cheap but the optional
     # Haiku call is a blocking HTTP request.
-    graphs = await asyncio.to_thread(augment_with_graphs, q, retrieval)
+    graphs = await asyncio.to_thread(augment_with_graphs, q_retrieval, retrieval)
 
     # 4. Assemble response
     citations = select_citations(retrieval)
@@ -472,6 +500,15 @@ async def _run_query(
         else None
     )
     elapsed_ms = int((time.perf_counter() - started) * 1000)
+    # AGENT_22: mirror the synthesiser's slug-anchor decision into debug_info
+    # so the paper trail surfaces on ``debug=True`` requests. Recomputed
+    # rather than threaded out of the synth — the helper is a pure function
+    # of ``(retrieval, query)`` and the recompute is microseconds.
+    slug_anchor_fired = (
+        slug_anchor_override(retrieval, q_retrieval)
+        if synthesis.answer != GUARDRAIL_ANSWER
+        else False
+    )
     response = QueryResponse(
         query=q,
         answer=synthesis.answer,
@@ -485,7 +522,14 @@ async def _run_query(
         from_cache=False,
         voice_anchor_strand=voice_anchor_strand,
         elapsed_ms=elapsed_ms,
-        debug_info=_debug_info(retrieval, cls_result.matched_phrases) if debug else None,
+        debug_info=_debug_info(
+            retrieval,
+            cls_result.matched_phrases,
+            query_rewritten=(q_retrieval if q_retrieval != q else None),
+            slug_anchor_override_fired=slug_anchor_fired,
+        )
+        if debug
+        else None,
     )
 
     # 5. Log — fire-and-await, don't let log failures fail the request.
@@ -552,11 +596,26 @@ def _extract_bearer(request: Request) -> str | None:
     return parts[1].strip() or None
 
 
-def _debug_info(retrieval: Any, matched_phrases: tuple[str, ...]) -> dict[str, Any]:
-    return {
+def _debug_info(
+    retrieval: Any,
+    matched_phrases: tuple[str, ...],
+    *,
+    query_rewritten: str | None = None,
+    slug_anchor_override_fired: bool = False,
+) -> dict[str, Any]:
+    info: dict[str, Any] = {
         "classifier_matches": list(matched_phrases),
         "services_called": retrieval.services_called,
         "top_reranker_score": retrieval.top_reranker_score,
         "analyst_sql": retrieval.analyst_sql,
         "n_chunks": len(retrieval.chunks),
+        # AGENT_22 — present unconditionally so a caller can grep for the
+        # field across a run of queries to see how often the override fired.
+        "slug_anchor_override_fired": slug_anchor_override_fired,
     }
+    # Only present when AGENT_21's rewrite actually fired — None / absent
+    # is the "no rewrite" signal. Mirrors the matched_phrases pattern: the
+    # field exists in debug_info only when there's content to attach.
+    if query_rewritten is not None:
+        info["query_rewritten"] = query_rewritten
+    return info
