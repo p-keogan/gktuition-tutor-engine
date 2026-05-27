@@ -213,6 +213,14 @@ async def run_with_firewall(
             else None
         )
         elapsed_ms = int((time.perf_counter() - started) * 1000)
+        # AGENT_22 — mirror the synth's slug-anchor decision into debug_info
+        # on the firewall path too. DAY_31 lesson: every response builder
+        # needs the same fields surfaced; prod traffic takes this path.
+        slug_anchor_fired = (
+            slug_anchor_override(retrieval, q_retrieval)
+            if synthesis.answer != GUARDRAIL_ANSWER
+            else False
+        )
         response = QueryResponse(
             query=q,
             answer=synthesis.answer,
@@ -229,6 +237,7 @@ async def run_with_firewall(
                 retrieval,
                 cls_result.matched_phrases,
                 query_rewritten=(q_retrieval if q_retrieval != q else None),
+                slug_anchor_override_fired=slug_anchor_fired,
             )
             if debug
             else None,
@@ -365,6 +374,7 @@ def _debug_info(
     matched_phrases: tuple[str, ...],
     *,
     query_rewritten: str | None = None,
+    slug_anchor_override_fired: bool = False,
 ) -> dict[str, Any]:
     info: dict[str, Any] = {
         "classifier_matches": list(matched_phrases),
@@ -372,6 +382,10 @@ def _debug_info(
         "top_reranker_score": retrieval.top_reranker_score,
         "analyst_sql": retrieval.analyst_sql,
         "n_chunks": len(retrieval.chunks),
+        # AGENT_22 — present unconditionally so a caller running ``debug=true``
+        # across a batch can grep for fire-rate without per-row presence
+        # checks. False is the no-fire signal.
+        "slug_anchor_override_fired": slug_anchor_override_fired,
     }
     # AGENT_21 — present only when the rewrite actually fired so callers
     # can tell "rewrite was disabled / not triggered" from "rewrite ran but

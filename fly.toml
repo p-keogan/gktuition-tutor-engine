@@ -100,6 +100,17 @@ kill_timeout = "10s"
   # passes. Read on every call so the flip takes effect without restart.
   QUERY_REWRITE_ENABLED = "false"
 
+  # Slug-anchor override (Phase 2, AGENT_22) — downstream sibling to
+  # AGENT_21. Narrow exception to RETRIEVAL_FLOOR: when the top-1
+  # retrieved slug lexically anchors the query (canonical case:
+  # "explain pensions" → financial-maths-8-pensions at reranker score
+  # ~0.030, below the 0.30 floor), admit the hit instead of firing the
+  # guardrail. Ships dark; flip via
+  # `flyctl secrets set SLUG_ANCHOR_OVERRIDE_ENABLED=true` after live
+  # verification. Read on every call so the flip takes effect without
+  # restart. See synthesizer.py::slug_anchor_override.
+  SLUG_ANCHOR_OVERRIDE_ENABLED = "false"
+
 # -----------------------------------------------------------------------------
 # HTTP service — one TCP port, two health probes (an HTTP probe at /healthz
 # every 10s + a TCP probe so Fly knows the machine accepted a connection).

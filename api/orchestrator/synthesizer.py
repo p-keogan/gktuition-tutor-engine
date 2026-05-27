@@ -60,6 +60,133 @@ GUARDRAIL_ANSWER = (
     "I'm not sure — try one of these related tutorials"
 )
 
+
+# ---------------------------------------------------------------------------
+# Slug-anchor override (AGENT_22)
+# ---------------------------------------------------------------------------
+#
+# Narrow exception to the ``RETRIEVAL_FLOOR`` guardrail: when the top-1
+# retrieved chunk's slug lexically anchors the student's intent — a
+# non-trivial keyword from the query appears as a substring of the slug, or
+# vice-versa — we admit the hit even if the reranker score sits below
+# ``RETRIEVAL_FLOOR`` (0.30). Canonical motivating case: *"explain pensions"*
+# returns the correct slug ``financial-maths-8-pensions`` at reranker score
+# ~0.030, far below the floor; the guardrail fires "I'm not sure" even though
+# rank-1 is the right tutorial. See DAY_31 notes in
+# ``career-transition-2026/gktuition/notes.md``.
+#
+# Floor itself stays at 0.30 — this is a narrow override, not a re-calibration.
+#
+# Ships dark behind ``SLUG_ANCHOR_OVERRIDE_ENABLED``; flag is read on every
+# call so a ``flyctl secrets set`` flip takes effect without redeploy.
+SLUG_ANCHOR_OVERRIDE_FLAG_ENV = "SLUG_ANCHOR_OVERRIDE_ENABLED"
+
+# Sub-floor below which the override will NOT fire even with a slug-anchor
+# match. Calibrated against the DAY_31 canonical scores (0.030 for the
+# pensions case, 0.040 for the pin-codes case) — picked to admit those
+# cleanly with a 3x margin below the lower of the two, while rejecting
+# essentially-zero reranker scores (e.g. 0.001) that indicate the retriever
+# returned nothing relevant. Never raised above ``RETRIEVAL_FLOOR``.
+SLUG_ANCHOR_SOFT_FLOOR = 0.01
+
+# Stopwords stripped from the query before the substring check. Tiny by
+# design — we only want to filter out connector words that would otherwise
+# match common slug fragments. Anything domain-specific (e.g. "pension",
+# "calculus", "integral") must pass through.
+_SLUG_ANCHOR_STOPWORDS = frozenset(
+    {
+        "explain", "describe", "tell", "about", "what", "are",
+        "the", "with", "from", "this", "that", "have", "does",
+        "where", "when", "which", "give", "list",
+    }
+)
+
+# Minimum content-word length. "the" / "of" / "in" are stopword-filtered,
+# but length ≥ 4 also rules out residual short tokens (e.g. a single digit
+# "3" in the query, or two-letter abbreviations) that would substring-match
+# almost any slug.
+_SLUG_ANCHOR_MIN_WORD_LEN = 4
+
+# Token splitter for slugs — slugs are dash-separated by convention
+# (``financial-maths-8-pensions``). Splitting lets us run the slug→query
+# direction of the bidirectional substring check.
+_SLUG_TOKEN_RE = re.compile(r"[a-z0-9]+")
+
+
+def _slug_anchor_flag_enabled() -> bool:
+    """Read ``SLUG_ANCHOR_OVERRIDE_ENABLED`` on every call.
+
+    Reading at call-time rather than import-time means a ``flyctl secrets
+    set`` flip takes effect on the next request without a redeploy. Truthy
+    values: ``"1"``, ``"true"``, ``"yes"``, ``"on"`` (case-insensitive).
+    """
+    raw = os.environ.get(SLUG_ANCHOR_OVERRIDE_FLAG_ENV, "")
+    return raw.strip().lower() in ("1", "true", "yes", "on")
+
+
+def slug_anchor_override(retrieval: RetrievalResult, query: str) -> bool:
+    """Return True when the top-1 slug lexically anchors the query.
+
+    Conditions, ALL of which must hold:
+
+    * ``SLUG_ANCHOR_OVERRIDE_ENABLED`` is truthy in the environment.
+    * ``retrieval.chunks`` is non-empty.
+    * ``retrieval.top_reranker_score >= SLUG_ANCHOR_SOFT_FLOOR`` — the
+      reranker isn't returning literal noise.
+    * At least one content word from the query (lowercased, length
+      ≥ ``_SLUG_ANCHOR_MIN_WORD_LEN``, not in ``_SLUG_ANCHOR_STOPWORDS``)
+      appears as a substring of the top-1 slug **OR** at least one
+      slug-token (same length / stopword filter) appears as a substring of
+      the lowercased query. The bidirectional substring check handles
+      morphology (e.g. ``pension`` ⊂ ``financial-maths-8-pensions`` and
+      ``pension`` ⊂ query ``what are pensions``) without needing a stemmer.
+
+    Always returns ``False`` on internal exception — the override is
+    additive UX and must never break the request path. Logs at INFO when it
+    fires so the paper trail exists even without debug mode.
+    """
+    try:
+        if not _slug_anchor_flag_enabled():
+            return False
+        if not retrieval.chunks:
+            return False
+        if retrieval.top_reranker_score < SLUG_ANCHOR_SOFT_FLOOR:
+            return False
+
+        top_slug = retrieval.chunks[0].slug.lower()
+        query_lower = (query or "").lower()
+
+        query_content_words = {
+            w for w in re.findall(r"[a-z0-9]+", query_lower)
+            if len(w) >= _SLUG_ANCHOR_MIN_WORD_LEN
+            and w not in _SLUG_ANCHOR_STOPWORDS
+        }
+        slug_tokens = {
+            t for t in _SLUG_TOKEN_RE.findall(top_slug)
+            if len(t) >= _SLUG_ANCHOR_MIN_WORD_LEN
+            and t not in _SLUG_ANCHOR_STOPWORDS
+        }
+
+        matched_words = [w for w in query_content_words if w in top_slug]
+        matched_words += [
+            t for t in slug_tokens
+            if t in query_lower and t not in matched_words
+        ]
+
+        if matched_words:
+            logger.info(
+                "slug_anchor_override fired: query=%r top_slug=%r "
+                "score=%.4f matched_words=%s",
+                query, retrieval.chunks[0].slug,
+                retrieval.top_reranker_score, sorted(matched_words),
+            )
+            return True
+        return False
+    except Exception:
+        logger.exception("slug_anchor_override raised; treating as no-override")
+        return False
+
+
 SYSTEM_PROMPT = (
     "You are GKTuition's AI maths tutor. You answer questions about the "
     "Leaving Certificate Higher Level mathematics curriculum, grounding "
@@ -194,9 +321,13 @@ def _call_anthropic(system_prompt: str, user_prompt: str) -> str:
 def synthesize(query: str, retrieval: RetrievalResult) -> SynthesisResult:
     """Build a prompt, call the right model, return an answer string."""
     # --- Guardrail: no usable retrieval ----------------------------------
+    # AGENT_22: the slug-anchor override is a narrow exception — when the
+    # top-1 slug lexically anchors the query, admit the hit even at
+    # sub-floor reranker score. Feature-flagged via
+    # ``SLUG_ANCHOR_OVERRIDE_ENABLED``; default off, ships dark.
     if retrieval.query_class != QueryClass.ANALYTICAL and (
         not retrieval.chunks or retrieval.top_reranker_score < RETRIEVAL_FLOOR
-    ):
+    ) and not slug_anchor_override(retrieval, query):
         # The retrieved chunks (if any) still get surfaced by the route; we
         # just refuse to invent an answer.
         return SynthesisResult(answer=GUARDRAIL_ANSWER, model_used=NO_MODEL)
@@ -404,9 +535,12 @@ def synthesize_stream(
       via ``client.messages.stream``.
     """
     # --- Guardrail: no usable retrieval ----------------------------------
+    # AGENT_22: same slug-anchor override applies on the streaming path —
+    # both code paths must be patched (DAY_31 firewall hot-fix lesson). The
+    # override is feature-flagged via ``SLUG_ANCHOR_OVERRIDE_ENABLED``.
     if retrieval.query_class != QueryClass.ANALYTICAL and (
         not retrieval.chunks or retrieval.top_reranker_score < RETRIEVAL_FLOOR
-    ):
+    ) and not slug_anchor_override(retrieval, query):
         yield StreamEvent("token", {"text": GUARDRAIL_ANSWER})
         yield StreamEvent("done", {"model_used": NO_MODEL})
         return
