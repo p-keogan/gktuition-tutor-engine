@@ -27,7 +27,6 @@ from fastapi.testclient import TestClient
 from api.orchestrator import query_rewrite
 from api.orchestrator.contract import QueryClass
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
