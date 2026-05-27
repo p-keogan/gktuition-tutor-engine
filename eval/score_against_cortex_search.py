@@ -338,13 +338,41 @@ def _build_part_id_to_referenced_slugs(
     return mapping
 
 
+# ───────────────────────────────────────────────────────────────────────────
+# Optional blended-score re-rank (Phase 2B iter 1)
+# ───────────────────────────────────────────────────────────────────────────
+#
+# When ``--blended-score`` is passed, we re-rank the Cortex SEARCH_PREVIEW
+# hit list by the same ``_blended_score`` formula the orchestrator's
+# ``retriever._normalise_score`` uses behind the ``BLENDED_SCORING_ENABLED``
+# flag — sigmoid-normalised reranker (w_r=0.6) + cosine_similarity (w_c=0.3)
+# + text_match (w_t=0.1), reading from each hit's ``@scores`` block.
+# Importing the helper directly (rather than re-implementing it) keeps the
+# eval honest: when the production weights or formula change, the eval
+# automatically reflects them.
+#
+# This is a re-scoring, not a re-retrieval — Cortex still chooses the top-K
+# candidates; we only re-order them before extracting the ranked slug list.
+def _apply_blended_rerank(hits: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Re-sort ``hits`` by the orchestrator's ``_blended_score`` desc.
+
+    Imported lazily so the eval script doesn't pay the import cost (or carry
+    the ``api`` transitive deps) when ``--blended-score`` is off.
+    """
+    from api.orchestrator.retriever import _blended_score  # noqa: PLC0415
+
+    return sorted(hits, key=_blended_score, reverse=True)
+
+
 def _score_tutor_search(
-    cursor, row: EvalInput,
+    cursor, row: EvalInput, apply_blended: bool = False,
 ) -> RowResult:
     hits = _search_preview(
         cursor, TUTOR_SEARCH, row.question_text,
         columns=["slug", "title", "topic"],
     )
+    if apply_blended:
+        hits = _apply_blended_rerank(hits)
     slugs = [h.get("slug", "") for h in hits]
     topics_seen = next((h.get("topic") for h in hits if h.get("topic")), None)
     rank = _rank_in_slugs(row.expected_slug, slugs)
@@ -356,6 +384,7 @@ def _score_solutions_search(
     row: EvalInput,
     also_try_tutor: bool,
     valid_slugs_for_row: set[str] | None = None,
+    apply_blended: bool = False,
 ) -> RowResult:
     """Score a cross-ref row against SOLUTIONS_SEARCH.
 
@@ -370,6 +399,8 @@ def _score_solutions_search(
         cursor, SOLUTIONS_SEARCH, row.question_text,
         columns=["part_id", "topic", "tutorials_referenced"],
     )
+    if apply_blended:
+        hits = _apply_blended_rerank(hits)
     # Flatten tutorials_referenced in result order to build a slug ranking.
     ranked: list[str] = []
     topic_for_report: str | None = None
@@ -407,6 +438,8 @@ def _score_solutions_search(
             cursor, TUTOR_SEARCH, row.question_text,
             columns=["slug", "title"],
         )
+        if apply_blended:
+            tut_hits = _apply_blended_rerank(tut_hits)
         tut_slugs = [h.get("slug", "") for h in tut_hits]
         if valid_slugs_for_row:
             tut_rank = _best_rank_over_slugs(valid_slugs_for_row, tut_slugs)
@@ -460,7 +493,9 @@ def _emit_markdown_report(
                  f"(errors during query: {overall.errors})")
     lines.append(f"**Source filter:** "
                  f"{'golden subset only' if args.only_golden_subset else 'full eval set'}"
-                 f"  ·  top-K = {TOP_K}")
+                 f"  ·  top-K = {TOP_K}"
+                 f"  ·  blended-score rerank: "
+                 f"{'ON' if args.blended_score else 'off'}")
     lines.append("")
     lines.append("## Overall")
     lines.append("")
@@ -583,6 +618,15 @@ def main(argv: list[str] | None = None) -> int:
         "--seed", type=int, default=20260521,
         help="RNG seed for --sample-per-source (deterministic by default).",
     )
+    ap.add_argument(
+        "--blended-score", action="store_true",
+        help="Re-rank each Cortex SEARCH_PREVIEW hit list by the orchestrator's "
+             "_blended_score formula (sigmoid-normalised reranker + cosine + "
+             "text_match, weights from the BLENDED_WEIGHT_* env vars or the "
+             "0.6 / 0.3 / 0.1 defaults). Eval-gate for Phase 2B item 1: flip "
+             "on and compare to the 0.911 full-eval baseline before enabling "
+             "BLENDED_SCORING_ENABLED in production.",
+    )
     args = ap.parse_args(argv)
 
     if args.from_csv:
@@ -628,7 +672,7 @@ def main(argv: list[str] | None = None) -> int:
             for i, row in enumerate(rows, 1):
                 try:
                     if row.source == "phrasings":
-                        rr = _score_tutor_search(cs, row)
+                        rr = _score_tutor_search(cs, row, apply_blended=args.blended_score)
                     elif row.source == "solution_cross_ref":
                         part_id = row.source_metadata.get("part_id")
                         valid_for_row = (
@@ -638,11 +682,12 @@ def main(argv: list[str] | None = None) -> int:
                             cs, row,
                             also_try_tutor=args.ambiguous_both,
                             valid_slugs_for_row=valid_for_row,
+                            apply_blended=args.blended_score,
                         )
                     else:
                         # Unknown source — score against TUTOR_SEARCH as a
                         # safe default; flag in the report.
-                        rr = _score_tutor_search(cs, row)
+                        rr = _score_tutor_search(cs, row, apply_blended=args.blended_score)
                         rr.error = f"unknown source: {row.source}"
                 except Exception as exc:  # noqa: BLE001
                     rr = RowResult(
