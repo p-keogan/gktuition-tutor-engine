@@ -42,6 +42,28 @@ Both sources are deterministic and idempotent — re-running emits the same
 row dicts with the same `eval_id` values, and the MERGE is keyed on
 `eval_id` so no row is duplicated on re-runs.
 
+## Locked baselines
+
+The canonical numbers every subsequent improvement is measured against.
+
+| Phase | Date | Sample | Overall P@1 | Recall@5 | MRR | Phrasings P@1 | Cross-ref P@1 |
+|---|---|---|---:|---:|---:|---:|---:|
+| **Phase 1 (DAY_26)** | 2026-05-21 | 200-row golden subset | **0.710** | 0.985 | 0.835 | 0.811 | 0.651 |
+| **Phase 2A (DAY_31)** | 2026-05-26 | full 3,194-row eval | **0.911** | 0.984 | 0.942 | 0.822 | **0.990** |
+
+The Phase-2A locked baseline is measured on the full eval set, not the 200-row golden subset. **Same-sample re-score of the 200-row golden subset on DAY_31 lands at 0.720** (i.e. Phase-1 → Phase-2A on the same subset moved +0.010, within noise). The subset under-samples the cross-ref rows where AGENT_20's scorer-xref rule (rank-1 hit on ANY `tutorials_referenced` slug = correct) drives the bulk of the lift — the subset's phrasings/cross-ref split is 74/126 versus the full eval's 1,511/1,683. **The golden subset needs re-stratification in Phase 2B** so it becomes a useful proxy for full-eval performance again; until then, the nightly `scheduled_eval.yml` workflow that runs against the subset is a regression-detector on phrasings only, not a Phase-2A baseline tracker.
+
+## Algebra bucketing convention (reconciliation)
+
+AGENT_16 (DAY_30) flagged that the same underlying data appears as two different Algebra P@1 numbers depending on bucketing:
+
+- **Topic-bucket view** (the `by_topic` table in the scoring report) buckets eval rows by their `EXAM_PARTS.topic` string. Algebra here reads **0.500** at Phase-1 baseline and **0.758** at Phase-2A on the full eval.
+- **Strand-prefix view** (an analytical breakdown that buckets rows by the strand-directory prefix on the expected slug — e.g. anything matching `algebra-*` lands in the Algebra bucket regardless of `EXAM_PARTS.topic` value) reads **0.588** at Phase-1 baseline.
+
+The two views disagree because the `EXAM_PARTS.topic` field on the solutions side contains some descriptive sentences instead of clean topic labels (a corpus contamination item logged for Phase-2B cleanup), so the topic-bucket view either drops or mis-buckets some Algebra-strand rows that the strand-prefix view correctly captures.
+
+**Going-forward convention: the strand-prefix view is canonical for per-strand P@1 reporting.** It's deterministic given the `STRAND_PREFIX_MAP` in `api/orchestrator/voice_anchor.py` and unaffected by free-text contamination in the topic field. The scoring report's existing topic-bucket section stays for back-compat + topic-level drill-down, but per-strand baselines (the kind we cite in CV / closeout docs) are the strand-prefix view. The cleanest fix is to populate a `strand` column on the per-row CSV emitted by `score_against_cortex_search.py`, derived from `infer_strand_from_slug(expected_slug)`, and add a `by_strand` table to the scoring report next to `by_topic`. Tracked as a Phase-2B chore.
+
 ## How to run
 
 ```bash
