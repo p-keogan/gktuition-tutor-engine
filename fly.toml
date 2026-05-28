@@ -100,6 +100,20 @@ kill_timeout = "10s"
   # passes. Read on every call so the flip takes effect without restart.
   QUERY_REWRITE_ENABLED = "false"
 
+  # Retrieve-then-rewrite fallback (Phase 2, AGENT_24) — orthogonal
+  # second pass to AGENT_21. When the first retrieval scores below
+  # RETRIEVAL_FLOOR AND iter-1 didn't already rewrite, call the LLM with
+  # a looser pre-check (no conceptual-prefix gate; wider token cap) and
+  # retry retrieval once. Closes the failure mode where single-word /
+  # synonym-mismatch queries ("circumcentre" vs slug "circumcircle")
+  # tripped the guardrail even though iter-1 would have translated them
+  # correctly — but iter-1's prefix gate filtered them out. Ships dark;
+  # flip via `flyctl secrets set QUERY_REWRITE_FALLBACK_ENABLED=true`
+  # after the full-eval P@1 gate (≥ 0.911) passes. Independent of the
+  # AGENT_21 flag — either can be rolled forward / back without
+  # affecting the other.
+  QUERY_REWRITE_FALLBACK_ENABLED = "false"
+
   # Slug-anchor override (Phase 2, AGENT_22) — downstream sibling to
   # AGENT_21. Narrow exception to RETRIEVAL_FLOOR: when the top-1
   # retrieved slug lexically anchors the query (canonical case:

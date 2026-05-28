@@ -43,8 +43,8 @@ from ..orchestrator.contract import (
     QueryRequest,
     QueryResponse,
 )
-from ..orchestrator.query_rewrite import maybe_rewrite
-from ..orchestrator.retriever import retrieve
+from ..orchestrator.query_rewrite import maybe_rewrite, maybe_rewrite_fallback
+from ..orchestrator.retriever import RETRIEVAL_FLOOR, retrieve
 from ..orchestrator.synthesizer import (
     GUARDRAIL_ANSWER,
     NO_MODEL,
@@ -315,6 +315,27 @@ async def _stream_pipeline(
     # 2. Retrieve
     retrieval = await retrieve(q_retrieval, query_class)
 
+    # 2b. AGENT_24 retrieve-then-rewrite fallback — same hook as
+    # ``_run_query`` so the streaming-direct path stays behaviourally
+    # equivalent to the non-streaming path on a retrieval miss. Hard
+    # cap of one fallback per query; the ``q_retrieval == q`` guard
+    # avoids firing back-to-back LLM calls when iter-1 already
+    # rewrote.
+    if retrieval.top_reranker_score < RETRIEVAL_FLOOR and q_retrieval == q:
+        first_top = retrieval.top_reranker_score
+        q_fallback_candidate = maybe_rewrite_fallback(q, query_class)
+        if q_fallback_candidate != q:
+            retrieval = await retrieve(q_fallback_candidate, query_class)
+            q_retrieval = q_fallback_candidate
+            logger.info(
+                "stream query rewrite fallback fired: original=%r "
+                "fallback=%r first_top=%.3f second_top=%.3f",
+                q,
+                q_fallback_candidate,
+                first_top,
+                retrieval.top_reranker_score,
+            )
+
     # 3. Synthesize — streaming. The synthesiser generator is sync (calls
     # the blocking Cortex/Anthropic clients); we drain it on a thread so
     # the event loop stays responsive. Each StreamEvent is converted to
@@ -467,6 +488,10 @@ async def _run_query(
     # bound from the original ``q`` below — the wire contract stays "echo the
     # student's input"; only retrieval and synthesis see the rewritten form.
     q_retrieval = maybe_rewrite(q, query_class)
+    # Capture iter-1's outcome BEFORE the AGENT_24 fallback below can mutate
+    # ``q_retrieval``, so the debug surfacing in step 4 can attribute each
+    # rewrite to the right path without conflating them.
+    q_rewritten_iter1: str | None = q_retrieval if q_retrieval != q else None
     if q_retrieval != q:
         logger.info(
             "query rewrite fired: original=%r rewritten=%r", q, q_retrieval
@@ -474,6 +499,33 @@ async def _run_query(
 
     # 2. Retrieve
     retrieval = await retrieve(q_retrieval, query_class)
+
+    # 2b. Retrieve-then-rewrite fallback (AGENT_24) — when the first
+    # attempt missed the floor AND iter-1 hadn't already rewritten the
+    # query, give the LLM a shot at translating into corpus domain
+    # language and retry retrieval once. The ``q_retrieval == q`` guard
+    # prevents firing back-to-back LLM calls on the same query when
+    # AGENT_21's iter-1 path already ran. Hard cap of one fallback per
+    # query — if the second retrieval still misses, the guardrail fires
+    # downstream exactly as before.
+    fallback_triggered = False
+    q_fallback: str | None = None
+    if retrieval.top_reranker_score < RETRIEVAL_FLOOR and q_retrieval == q:
+        first_top = retrieval.top_reranker_score
+        q_fallback_candidate = maybe_rewrite_fallback(q, query_class)
+        if q_fallback_candidate != q:
+            retrieval = await retrieve(q_fallback_candidate, query_class)
+            q_retrieval = q_fallback_candidate
+            q_fallback = q_fallback_candidate
+            fallback_triggered = True
+            logger.info(
+                "query rewrite fallback fired: original=%r fallback=%r "
+                "first_top=%.3f second_top=%.3f",
+                q,
+                q_fallback_candidate,
+                first_top,
+                retrieval.top_reranker_score,
+            )
 
     # 3. Synthesize — runs in a thread because the underlying clients
     # (Snowflake connector / anthropic SDK) are sync. Keeps the event loop
@@ -525,7 +577,9 @@ async def _run_query(
         debug_info=_debug_info(
             retrieval,
             cls_result.matched_phrases,
-            query_rewritten=(q_retrieval if q_retrieval != q else None),
+            query_rewritten=q_rewritten_iter1,
+            query_rewritten_fallback=q_fallback,
+            fallback_triggered=fallback_triggered,
             slug_anchor_override_fired=slug_anchor_fired,
         )
         if debug
@@ -601,6 +655,8 @@ def _debug_info(
     matched_phrases: tuple[str, ...],
     *,
     query_rewritten: str | None = None,
+    query_rewritten_fallback: str | None = None,
+    fallback_triggered: bool = False,
     slug_anchor_override_fired: bool = False,
 ) -> dict[str, Any]:
     info: dict[str, Any] = {
@@ -612,10 +668,18 @@ def _debug_info(
         # AGENT_22 — present unconditionally so a caller can grep for the
         # field across a run of queries to see how often the override fired.
         "slug_anchor_override_fired": slug_anchor_override_fired,
+        # AGENT_24 — present unconditionally for the same reason; False is
+        # the no-fire signal. Pair this with ``query_rewritten_fallback`` to
+        # see what the LLM produced.
+        "fallback_triggered": fallback_triggered,
     }
     # Only present when AGENT_21's rewrite actually fired — None / absent
     # is the "no rewrite" signal. Mirrors the matched_phrases pattern: the
     # field exists in debug_info only when there's content to attach.
     if query_rewritten is not None:
         info["query_rewritten"] = query_rewritten
+    # AGENT_24 — same presence convention as ``query_rewritten``: only
+    # surfaced when the fallback actually rewrote.
+    if query_rewritten_fallback is not None:
+        info["query_rewritten_fallback"] = query_rewritten_fallback
     return info

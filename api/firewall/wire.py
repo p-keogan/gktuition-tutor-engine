@@ -31,8 +31,8 @@ from fastapi import HTTPException, Request
 
 from ..orchestrator.classifier import classify, classify_image_extracted
 from ..orchestrator.contract import QueryClass, QueryResponse
-from ..orchestrator.query_rewrite import maybe_rewrite
-from ..orchestrator.retriever import retrieve
+from ..orchestrator.query_rewrite import maybe_rewrite, maybe_rewrite_fallback
+from ..orchestrator.retriever import RETRIEVAL_FLOOR, retrieve
 from ..orchestrator.synthesizer import (
     GUARDRAIL_ANSWER,
     estimate_cost_cents,
@@ -120,6 +120,10 @@ async def run_with_firewall(
         # likewise stays the student's input — two students asking the
         # same conceptual question still share a cache slot.
         q_retrieval = maybe_rewrite(q, query_class)
+        # Capture iter-1's outcome BEFORE the AGENT_24 fallback below can
+        # mutate ``q_retrieval``, so debug surfacing attributes each
+        # rewrite to the right path without conflation.
+        q_rewritten_iter1: str | None = q_retrieval if q_retrieval != q else None
         if q_retrieval != q:
             logger.info(
                 "firewall query rewrite fired: original=%r rewritten=%r",
@@ -133,6 +137,40 @@ async def run_with_firewall(
             sp_r.output["chunks"] = len(retrieval.chunks)
             sp_r.output["top_score"] = retrieval.top_reranker_score
             sp_r.output["services_called"] = retrieval.services_called
+
+        # ---- Retrieve-then-rewrite fallback (AGENT_24) -----------------
+        # When the first retrieval missed the floor AND iter-1 didn't
+        # already rewrite, give the LLM one shot at translating into
+        # corpus domain language and retry retrieval once. Cap of one
+        # fallback per query; if the second attempt also misses, the
+        # guardrail fires downstream as before. The cache key below
+        # still uses the student's input ``q``, so two students asking
+        # the same conceptual question — fallback or not — share a
+        # cache slot.
+        fallback_triggered = False
+        q_fallback: str | None = None
+        if retrieval.top_reranker_score < RETRIEVAL_FLOOR and q_retrieval == q:
+            first_top = retrieval.top_reranker_score
+            q_fallback_candidate = maybe_rewrite_fallback(q, query_class)
+            if q_fallback_candidate != q:
+                with L6.span(
+                    trace, "retrieve_fallback", query_class=query_class.value
+                ) as sp_rf:
+                    retrieval = await retrieve(q_fallback_candidate, query_class)
+                    sp_rf.output["chunks"] = len(retrieval.chunks)
+                    sp_rf.output["top_score"] = retrieval.top_reranker_score
+                    sp_rf.output["first_top"] = first_top
+                q_retrieval = q_fallback_candidate
+                q_fallback = q_fallback_candidate
+                fallback_triggered = True
+                logger.info(
+                    "firewall query rewrite fallback fired: original=%r "
+                    "fallback=%r first_top=%.3f second_top=%.3f",
+                    q,
+                    q_fallback_candidate,
+                    first_top,
+                    retrieval.top_reranker_score,
+                )
 
         # ---- Decide intended model up-front (cache key needs it) -------
         # We can't perfectly know which model the synthesiser will pick (the
@@ -236,7 +274,9 @@ async def run_with_firewall(
             debug_info=_debug_info(
                 retrieval,
                 cls_result.matched_phrases,
-                query_rewritten=(q_retrieval if q_retrieval != q else None),
+                query_rewritten=q_rewritten_iter1,
+                query_rewritten_fallback=q_fallback,
+                fallback_triggered=fallback_triggered,
                 slug_anchor_override_fired=slug_anchor_fired,
             )
             if debug
@@ -374,6 +414,8 @@ def _debug_info(
     matched_phrases: tuple[str, ...],
     *,
     query_rewritten: str | None = None,
+    query_rewritten_fallback: str | None = None,
+    fallback_triggered: bool = False,
     slug_anchor_override_fired: bool = False,
 ) -> dict[str, Any]:
     info: dict[str, Any] = {
@@ -386,12 +428,19 @@ def _debug_info(
         # across a batch can grep for fire-rate without per-row presence
         # checks. False is the no-fire signal.
         "slug_anchor_override_fired": slug_anchor_override_fired,
+        # AGENT_24 — same unconditional-presence convention as
+        # ``slug_anchor_override_fired``; False is the no-fire signal.
+        "fallback_triggered": fallback_triggered,
     }
     # AGENT_21 — present only when the rewrite actually fired so callers
     # can tell "rewrite was disabled / not triggered" from "rewrite ran but
     # returned the input unchanged" if that ever matters in debugging.
     if query_rewritten is not None:
         info["query_rewritten"] = query_rewritten
+    # AGENT_24 — same presence convention as ``query_rewritten``: only
+    # surfaced when the fallback actually rewrote.
+    if query_rewritten_fallback is not None:
+        info["query_rewritten_fallback"] = query_rewritten_fallback
     return info
 
 

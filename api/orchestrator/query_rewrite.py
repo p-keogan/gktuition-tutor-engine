@@ -21,9 +21,12 @@ Pairs with AGENT_22's slug-anchor post-filter (the orthogonal lever).
 Contract
 ========
 
-The single public entry-point is :func:`maybe_rewrite`. It returns the
-rewritten query when *all* of the following hold, and the original query
-otherwise:
+There are two public entry-points: :func:`maybe_rewrite` (the iter-1
+pre-retrieval path) and :func:`maybe_rewrite_fallback` (the iter-2
+post-retrieval fallback path added by AGENT_24).
+
+:func:`maybe_rewrite` returns the rewritten query when *all* of the
+following hold, and the original query otherwise:
 
 * ``QUERY_REWRITE_ENABLED`` is truthy in the environment (read every
   call, so flipping the Fly secret takes effect without a restart),
@@ -32,7 +35,15 @@ otherwise:
   framing,
 * the LLM call succeeds and returns a non-empty string.
 
-The function never raises. On any exception the original query is
+:func:`maybe_rewrite_fallback` is a separate, looser-gated path the
+route layer calls *only* after a first retrieve has come back below
+``RETRIEVAL_FLOOR``. Drops AGENT_21's conceptual-prefix gate so
+single-word queries like ``"circumcentre"`` (which scored sub-floor on
+the first try because the slug uses ``"circumcircle"``) get a second
+chance. Gated by ``QUERY_REWRITE_FALLBACK_ENABLED``, orthogonal to the
+iter-1 flag.
+
+Both functions never raise. On any exception the original query is
 returned and the failure is logged.
 
 Test seam
@@ -89,6 +100,16 @@ _STOPWORDS: frozenset[str] = frozenset(
 #: language on their own.
 _MAX_CONTENT_TOKENS = 4
 
+#: Maximum non-stopword content tokens for the AGENT_24 *fallback*
+#: pre-check. Wider than ``_MAX_CONTENT_TOKENS`` (4) because the fallback
+#: drops AGENT_21's conceptual-prefix gate — a bare ``"circumcentre"`` has
+#: 1 content token, and ``"explain the circumcentre"`` has 2 — but a full
+#: sentence in domain language ("derive the present value of a four-year
+#: annuity") would still trip the cap and be skipped. The looser bound is
+#: safe here because the fallback only fires when retrieval already
+#: missed: there is no first-attempt cost to widening the gate.
+_MAX_FALLBACK_CONTENT_TOKENS = 6
+
 #: Domain-language signals — if any of these appear the query is already
 #: in tutorial vocabulary and the rewrite would be a no-op (or worse,
 #: drift the intent). Lower-cased substrings unless noted otherwise.
@@ -141,6 +162,12 @@ _REWRITE_MAX_TOKENS = 50
 #: Env var that gates the whole layer. Read on every call so a Fly
 #: secret flip takes effect without restart.
 _FEATURE_FLAG_ENV = "QUERY_REWRITE_ENABLED"
+
+#: Env var that gates the AGENT_24 fallback path independently of the
+#: iter-1 pre-retrieval rewrite. Kept orthogonal so iter-1 and iter-2 can
+#: be flipped (or rolled back) in isolation. Read on every call for the
+#: same reason as :data:`_FEATURE_FLAG_ENV`.
+_FALLBACK_FEATURE_FLAG_ENV = "QUERY_REWRITE_FALLBACK_ENABLED"
 
 
 # ---------------------------------------------------------------------------
@@ -355,3 +382,130 @@ def _clean_llm_output(raw: str) -> str:
     if len(s) >= 2 and s[0] == s[-1] and s[0] in ("'", '"', "“", "”"):
         s = s[1:-1].strip()
     return s
+
+
+# ---------------------------------------------------------------------------
+# AGENT_24 — fallback rewrite path
+# ---------------------------------------------------------------------------
+#
+# DAY_32 evening surfaced a residual failure mode in iter-1: queries that
+# don't begin with one of ``_CONCEPTUAL_PREFIXES`` (e.g. the single-word
+# ``"circumcentre"``) skip the rewriter entirely, and on the first
+# retrieval the reranker scores them sub-floor — so the guardrail fires
+# even though the corpus *does* contain the right material (just under a
+# lexically-different slug, in this case ``circumcircle``). The right
+# response is to retrieve *first*, and only call the LLM when the first
+# attempt actually misses. That keeps the per-query cost at zero on the
+# ~99% of queries that retrieve cleanly on the first try, while letting a
+# wider class of queries benefit from a rewrite when they need it.
+#
+# This sibling path is purely additive — :func:`maybe_rewrite` is
+# unchanged. The two functions are gated by independent env flags so
+# iter-1 and iter-2 can be rolled out and rolled back independently.
+
+
+def _is_fallback_feature_enabled() -> bool:
+    """Truthy-string check on ``QUERY_REWRITE_FALLBACK_ENABLED``.
+
+    Same recognised values as :func:`_is_feature_enabled` (``"1"``,
+    ``"true"``, ``"yes"``, ``"on"``; case-insensitive). Anything else —
+    including unset — disables the fallback layer.
+    """
+    raw = os.environ.get(_FALLBACK_FEATURE_FLAG_ENV, "")
+    return raw.strip().lower() in ("1", "true", "yes", "on")
+
+
+def _should_rewrite_fallback(query: str, query_class: QueryClass) -> bool:
+    """Deterministic pre-check for the fallback path.
+
+    Looser than :func:`_should_rewrite` in two specific ways:
+
+    1. **No conceptual-prefix gate.** Single-word queries like
+       ``"circumcentre"`` and bare-noun framings like
+       ``"orthocentre"`` pass — which is the whole point of the
+       fallback. AGENT_21's tighter pre-check filters those out
+       because firing the LLM on every concept query upfront would be
+       wasteful; the fallback only fires after a retrieval miss, so the
+       cost calculus is different.
+    2. **Wider content-token cap** (``_MAX_FALLBACK_CONTENT_TOKENS = 6``
+       vs iter-1's ``4``). A 5-6 token bare-noun fragment is still
+       plausibly a rewriteable target; a longer query is almost
+       certainly already in domain language.
+
+    The same domain-language exclusions as iter-1 still apply (no ``=``
+    / ``²`` / ``√`` / LaTeX / "prove" / "derive" etc.) — if the query
+    already carries domain signals, rewriting it would risk drifting
+    intent without addressing the actual retrieval miss.
+    """
+    if query_class != QueryClass.CONCEPT:
+        return False
+    stripped = query.strip()
+    if not stripped:
+        return False
+    # No prefix strip — the whole point of the fallback path is to admit
+    # queries that AGENT_21's prefix gate filtered out. Count tokens on
+    # the lower-cased query directly.
+    if _content_token_count(stripped.lower()) > _MAX_FALLBACK_CONTENT_TOKENS:
+        return False
+    if _has_domain_language_signal(stripped):
+        return False
+    return True
+
+
+def maybe_rewrite_fallback(query: str, query_class: QueryClass) -> str:
+    """Sibling of :func:`maybe_rewrite` for the post-retrieval fallback path.
+
+    Same total contract as :func:`maybe_rewrite` — never raises, always
+    returns a string. Differences from the iter-1 entrypoint:
+
+    * Gated by ``QUERY_REWRITE_FALLBACK_ENABLED`` (NOT
+      ``QUERY_REWRITE_ENABLED``) so the two paths can be flipped
+      independently.
+    * Uses :func:`_should_rewrite_fallback` (looser pre-check; no prefix
+      gate; wider content-token cap).
+    * Reuses the same system prompt, LLM caller, and output-cleaner as
+      iter-1 — once the gate is passed, the actual translation step is
+      identical work.
+
+    Intended caller: the orchestrator route (both
+    ``routes/query.py:_run_query`` and ``firewall/wire.py:run_with_firewall``)
+    invokes this *only* after the first ``retrieve`` call has come back
+    with ``top_reranker_score < RETRIEVAL_FLOOR`` AND the first attempt
+    was the un-rewritten query (i.e. AGENT_21's iter-1 path did not
+    already rewrite). The route layer is responsible for that gate; this
+    function is total over its inputs.
+
+    Order of short-circuits (cheapest first):
+
+    1. Fallback flag off → return ``query``.
+    2. Query empty / whitespace → return ``query`` unchanged.
+    3. Fallback pre-check rejects → return ``query``.
+    4. LLM call raises or returns empty → log, return ``query``.
+    5. Otherwise → return the rewritten string (whitespace + wrapping
+       quote marks stripped).
+    """
+    if not _is_fallback_feature_enabled():
+        return query
+    if not query or not query.strip():
+        return query
+    if not _should_rewrite_fallback(query, query_class):
+        return query
+
+    try:
+        rewritten = _call_rewrite_llm(REWRITE_SYSTEM_PROMPT, query)
+    except Exception:
+        logger.exception(
+            "fallback query rewrite failed; passing original through: q=%r",
+            query,
+        )
+        return query
+
+    cleaned = _clean_llm_output(rewritten)
+    if not cleaned:
+        logger.info(
+            "fallback query rewrite returned empty string; "
+            "passing original through: q=%r",
+            query,
+        )
+        return query
+    return cleaned
