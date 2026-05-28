@@ -47,6 +47,11 @@ scripts/*
 # the next agent will look for.
 !corpus/
 
+# Per-agent delivery scratch (transcripts, prompt-pair JSON, etc.) — same
+# rationale as the AGENT_*.md exclusion below: useful on disk for the author,
+# not part of the runtime image. Mirrors the .gitignore entry.
+.agent_deliveries/
+
 # Repo-level docs & READMEs
 README.md
 AGENT_*.md

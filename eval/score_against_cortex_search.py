@@ -170,7 +170,7 @@ def _build_conn_kwargs() -> dict[str, Any]:
     kw: dict[str, Any] = {
         "account": account,
         "user": user,
-        "role": os.environ.get("SNOWFLAKE_ROLE", "ACCOUNTADMIN"),
+        "role": os.environ.get("SNOWFLAKE_ROLE"),
         "warehouse": os.environ.get("SNOWFLAKE_WAREHOUSE", "WH_TUTOR"),
         "database": os.environ.get("SNOWFLAKE_DATABASE", "GKTUITION_TUTOR"),
         "schema": os.environ.get("SNOWFLAKE_SCHEMA", "RAW"),

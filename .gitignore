@@ -245,3 +245,9 @@ __marimo__/
 pipelines/spike/audio/
 pipelines/spike/transcripts/
 *.mp3
+
+# Widget — Node toolchain output. The widget app is its own Vite/TS project;
+# we only commit its source. node_modules pollutes `git status` with thousands
+# of untracked entries and must never be tracked.
+widget/node_modules/
+widget/dist/
