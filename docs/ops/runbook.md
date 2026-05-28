@@ -172,6 +172,84 @@ the most common causes are:
 3. Snowflake account is suspended — check the account status before
    blaming the workflow.
 
+## Smoke regression issue triage
+
+The workflow `.github/workflows/smoke_canonical_queries.yml` runs daily
+at 06:00 UTC. It POSTs a small set of canonical "explain X" /
+single-word queries at live production and asserts each one returns a
+real Paul-voiced answer (not the guardrail, voice anchor populated).
+On failure it opens — or comments on the existing — `smoke/regression`
+issue with the failing-query JSON in the body.
+
+The exit code in the issue tells you which path to take first:
+
+- **Exit 1 — API unreachable** (`[smoke-unreachable]`). The script
+  couldn't reach `/query` at all. Check Fly status first:
+
+  ```bash
+  curl -sS https://gktuition-tutor-api.fly.dev/healthz | jq .status
+  fly status --app gktuition-tutor-api
+  ```
+
+  If `/healthz` is green but the smoke probe timed out, the most
+  likely cause is `WP_JWT_SECRET` rotated on Fly without being
+  re-mirrored to GitHub Actions secrets — the JWT will mint OK but
+  the API rejects it with 401, which the script reports as
+  `http_status=401`.
+
+- **Exit 2 — strict-assertion failure** (`[smoke-regression]`). The
+  API answered, but at least one canonical query came back wrong.
+  Common causes in order of frequency:
+
+  1. A feature flag drifted. Check whether `QUERY_REWRITE_ENABLED` and
+     `SLUG_ANCHOR_OVERRIDE_ENABLED` are still `true` on the Fly app:
+
+     ```bash
+     fly secrets list --app gktuition-tutor-api | grep -E "(QUERY_REWRITE|SLUG_ANCHOR)"
+     ```
+
+     Flip them back on with `fly secrets set ...=true` if either has
+     fallen off.
+
+  2. A response builder lost the voice-anchor mirror (the original
+     DAY_31 failure mode). The firewall path is the one prod traffic
+     takes; check
+     `api/firewall/wire.py::run_with_firewall` is still threading
+     `voice_anchor_strand = infer_strand_from_retrieval(...)` into
+     the `QueryResponse(...)` constructor.
+
+  3. The corpus subset bundled into the engine image at
+     `corpus/` drifted from the sibling repo. Re-run
+     `scripts/sync_corpus.sh` and redeploy.
+
+  4. The guardrail copy in
+     `api/orchestrator/synthesizer.py::GUARDRAIL_ANSWER` changed and
+     the smoke script's `GUARDRAIL_PREFIX_RE` didn't track. The smoke
+     test starts firing every morning until both are updated — that
+     coupling is intentional.
+
+Manual verification of a failing query (copy the `q` field out of the
+issue body into this curl):
+
+```bash
+curl -sS -X POST https://gktuition-tutor-api.fly.dev/query \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $(WP_JWT_SECRET=... python3 -c '...')" \
+  -d '{"q":"<the failing query>","debug":true}' | jq '.voice_anchor_strand, .model_used, .answer[:200]'
+```
+
+(Easier: run the script locally — `python scripts/smoke_canonical_queries.py
+--base-url https://gktuition-tutor-api.fly.dev` — with the same
+`WP_JWT_SECRET` exported. The structured failure JSON it prints is
+the same one the workflow pasted into the issue.)
+
+A known-floor-miss query (currently `circumcentre` on its own) is
+reported softly by default and won't open an issue. To probe a fix
+candidate before flipping `known_floor_miss=False`, run the script
+with `--include-known-floor-misses` locally — the workflow itself
+never sets that flag, to avoid the issue inbox flapping while a
+follow-up agent is still landing the fix.
+
 ## 7. Eval regression PR — triage
 
 When the nightly workflow opens an `[eval-regression]` PR:

@@ -1,0 +1,159 @@
+# Canonical-query nightly smoke test against production.
+#
+# Every morning at 06:00 UTC (07:00 Dublin in summer, well before
+# students arrive), POST a small set of canonical "explain X" /
+# single-word queries at the live API and assert each one returns a
+# real Paul-voiced answer — not the guardrail and not a voice-anchor-
+# null degraded response.
+#
+# Why this exists
+# ---------------
+# DAY_31 (2026-05-26): voice anchoring shipped via AGENT_15, but the
+# firewall response builder missed the strand mirror. ``explain pensions``
+# silently returned the guardrail for two days before a manual curl
+# caught it. A daily smoke run would have surfaced the regression
+# within 24 hours of the deploy. The shape mirrors ``scheduled_eval.yml``
+# (cron + workflow_dispatch + concurrency + Python 3.12).
+#
+# Secrets required
+# ----------------
+#   WP_JWT_SECRET — same HS256 secret the FastAPI app reads. Lets the
+#                   script mint a paying-tier JWT so the firewall's L1
+#                   Turnstile gate lets the probe through. In Fly this
+#                   is already a deployed secret; in CI it must be set
+#                   as a repo secret with the identical value.
+#
+# Failure path
+# ------------
+# On exit code 2 (= "API regressed", at least one strict assertion
+# failed), the workflow opens an issue with the structured failure
+# JSON in the body and the canonical triage link. Issues are deduped
+# by label: if an open ``smoke/regression`` issue already exists, a
+# comment is appended rather than a new issue created — that keeps the
+# inbox clean during a multi-day outage. Exit 1 (= "API down") follows
+# the same path but tags the title with ``[smoke-unreachable]`` so the
+# operator routes to Fly status first.
+
+name: smoke_canonical_queries
+
+on:
+  schedule:
+    # 06:00 UTC = 07:00 Dublin in summer (BST), well before students.
+    - cron: '0 6 * * *'
+  workflow_dispatch:  # manual trigger for spot checks and post-deploy verify
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: smoke-canonical
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: probe canonical queries against prod
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # No pip install — the script is stdlib-only by design so it can
+      # run on a stock image without paying for a venv warm-up.
+
+      - name: Run smoke probe
+        id: smoke
+        env:
+          WP_JWT_SECRET: ${{ secrets.WP_JWT_SECRET }}
+        run: |
+          set +e
+          python scripts/smoke_canonical_queries.py \
+            --base-url https://gktuition-tutor-api.fly.dev \
+            | tee smoke_output.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          # Always succeed in this step — the conditional issue steps
+          # below branch on the captured exit code. set +e + ``tee``
+          # together let us split "did the assertion pass" from "did
+          # the python script crash".
+
+      - name: Open / append regression issue
+        if: ${{ steps.smoke.outputs.exit_code == '2' || steps.smoke.outputs.exit_code == '1' }}
+        uses: actions/github-script@v7
+        with:
+          # Lifts the look-up-existing-or-create pattern from ci.yml's
+          # rollback notifier but adds dedup-by-label-on-open. The body
+          # is the script's stdout verbatim (one summary line + JSON
+          # blocks); the workflow doesn't re-parse it.
+          script: |
+            const fs = require('fs');
+            const exitCode = '${{ steps.smoke.outputs.exit_code }}';
+            const isUnreachable = exitCode === '1';
+            const today = new Date().toISOString().slice(0, 10);
+
+            let body = '';
+            try {
+              body = fs.readFileSync('smoke_output.txt', 'utf8');
+            } catch (e) {
+              body = `(smoke_output.txt unreadable: ${e.message})`;
+            }
+            const issueBody = [
+              `**Date (UTC):** ${today}`,
+              `**Workflow run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`,
+              `**Exit code:** ${exitCode}` +
+                (isUnreachable ? '  — API unreachable (check Fly status first)' : '  — strict-assertion failure'),
+              '',
+              'Triage: see `docs/ops/runbook.md` → **Smoke regression issue triage**.',
+              '',
+              '```',
+              body.slice(0, 60000),  // GitHub issue body cap is 64KB.
+              '```',
+            ].join('\n');
+
+            // Dedup by label: any open issue tagged smoke/regression gets
+            // a comment, not a new issue. This collapses a multi-day
+            // outage into one thread.
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'smoke/regression',
+              per_page: 5,
+            });
+            if (existing.data.length > 0) {
+              const issueNumber = existing.data[0].number;
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: issueBody,
+              });
+              core.info(`Appended comment to existing issue #${issueNumber}`);
+            } else {
+              const titleTag = isUnreachable ? '[smoke-unreachable]' : '[smoke-regression]';
+              // Count failure JSON blocks in the body for an N/M summary.
+              const failCount = (body.match(/"failure_reason":/g) || []).length;
+              const total = 6;  // strict total — keep in sync with the script's CANONICAL_QUERIES.
+              const created = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `${titleTag} ${failCount}/${total} canonical queries failed on ${today}`,
+                body: issueBody,
+                labels: ['smoke/regression', 'priority/high'],
+              });
+              core.info(`Opened issue #${created.data.number}`);
+            }
+
+      - name: Fail the job if smoke regressed
+        # Surface the failure on the Actions tab so the cron history
+        # shows the red mark even though the issue-open step succeeded.
+        # Done after the issue step so the issue is opened even if a
+        # later step errors.
+        if: ${{ steps.smoke.outputs.exit_code != '0' }}
+        run: |
+          echo "Smoke test exit code: ${{ steps.smoke.outputs.exit_code }}"
+          exit 1
