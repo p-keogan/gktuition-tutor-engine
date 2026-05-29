@@ -41,6 +41,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+from local_retrieval.bm25_index import build_bm25_index  # noqa: E402
 from local_retrieval.corpus import DEFAULT_CORPUS_ROOT, load_tutorial_rows  # noqa: E402
 from local_retrieval.embedding import DEFAULT_MODEL, embed_texts  # noqa: E402
 from local_retrieval.store import TUTOR_TABLE, write_tutor_table  # noqa: E402
@@ -64,6 +65,7 @@ def build(
     out_dir: Path,
     model_name: str,
     limit: int | None,
+    with_bm25: bool = False,
 ) -> dict:
     """Walk → embed → write. Returns a summary dict for the caller / delivery note."""
     t0 = time.perf_counter()
@@ -120,6 +122,12 @@ def build(
     print(f"[3/3] Writing LanceDB table '{TUTOR_TABLE}' under {out_dir} (overwrite)…")
     write_tutor_table(out_dir, records)
 
+    bm25_summary: dict | None = None
+    if with_bm25:
+        print(f"[+]   Building BM25 lexical index under {out_dir}/bm25 (offline)…")
+        bm25_summary = build_bm25_index(out_dir, rows)
+        print(f"      BM25 indexed {bm25_summary['bm25_docs']} doc(s)")
+
     elapsed = time.perf_counter() - t0
     size_bytes = _dir_size_bytes(Path(out_dir))
     summary = {
@@ -130,6 +138,7 @@ def build(
         "index_bytes": size_bytes,
         "index_human": _human_bytes(size_bytes),
         "walk": walk_summary,
+        "bm25": bm25_summary,
     }
     print(
         f"\nDONE: {summary['chunks']} chunks → {summary['out_dir']}/{TUTOR_TABLE} "
@@ -164,6 +173,12 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Index only the first N chunks (fast smoke build).",
     )
+    ap.add_argument(
+        "--with-bm25",
+        action="store_true",
+        help="Also build a BM25 lexical index under <out>/bm25 over the same "
+             "chunks (for the hybrid retriever).",
+    )
     args = ap.parse_args(argv)
 
     build(
@@ -171,6 +186,7 @@ def main(argv: list[str] | None = None) -> int:
         out_dir=args.out.resolve(),
         model_name=args.model,
         limit=args.limit,
+        with_bm25=args.with_bm25,
     )
     return 0
 

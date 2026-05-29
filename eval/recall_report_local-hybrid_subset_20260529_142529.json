@@ -1,0 +1,25 @@
+{
+  "backend": "local-hybrid",
+  "scope": "subset",
+  "n": 200,
+  "overall": {
+    "recall@1": 0.49,
+    "recall@5": 0.705,
+    "recall@20": 0.86
+  },
+  "by_source": {
+    "phrasings": {
+      "recall@1": 0.7671232876712328,
+      "recall@5": 0.9452054794520548,
+      "recall@20": 0.9726027397260274,
+      "n": 73
+    },
+    "solution_cross_ref": {
+      "recall@1": 0.33070866141732286,
+      "recall@5": 0.5669291338582677,
+      "recall@20": 0.7952755905511811,
+      "n": 127
+    }
+  },
+  "timestamp": "2026-05-29T14:25:29"
+}

@@ -1,0 +1,25 @@
+{
+  "backend": "local-arctic-cosine",
+  "scope": "subset",
+  "n": 200,
+  "overall": {
+    "recall@1": 0.435,
+    "recall@5": 0.665,
+    "recall@20": 0.84
+  },
+  "by_source": {
+    "phrasings": {
+      "recall@1": 0.6575342465753424,
+      "recall@5": 0.8493150684931506,
+      "recall@20": 0.9178082191780822,
+      "n": 73
+    },
+    "solution_cross_ref": {
+      "recall@1": 0.30708661417322836,
+      "recall@5": 0.5590551181102362,
+      "recall@20": 0.7952755905511811,
+      "n": 127
+    }
+  },
+  "timestamp": "2026-05-29T14:25:27"
+}

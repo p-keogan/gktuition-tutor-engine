@@ -1,0 +1,25 @@
+{
+  "backend": "local-bge-cosine",
+  "scope": "subset",
+  "n": 200,
+  "overall": {
+    "recall@1": 0.385,
+    "recall@5": 0.635,
+    "recall@20": 0.775
+  },
+  "by_source": {
+    "phrasings": {
+      "recall@1": 0.6301369863013698,
+      "recall@5": 0.8493150684931506,
+      "recall@20": 0.9315068493150684,
+      "n": 73
+    },
+    "solution_cross_ref": {
+      "recall@1": 0.2440944881889764,
+      "recall@5": 0.5118110236220472,
+      "recall@20": 0.6850393700787402,
+      "n": 127
+    }
+  },
+  "timestamp": "2026-05-29T14:25:27"
+}

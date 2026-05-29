@@ -1,0 +1,25 @@
+{
+  "backend": "local-bm25",
+  "scope": "subset",
+  "n": 200,
+  "overall": {
+    "recall@1": 0.41,
+    "recall@5": 0.655,
+    "recall@20": 0.79
+  },
+  "by_source": {
+    "phrasings": {
+      "recall@1": 0.7671232876712328,
+      "recall@5": 0.9315068493150684,
+      "recall@20": 0.9863013698630136,
+      "n": 73
+    },
+    "solution_cross_ref": {
+      "recall@1": 0.2047244094488189,
+      "recall@5": 0.49606299212598426,
+      "recall@20": 0.6771653543307087,
+      "n": 127
+    }
+  },
+  "timestamp": "2026-05-29T14:25:28"
+}

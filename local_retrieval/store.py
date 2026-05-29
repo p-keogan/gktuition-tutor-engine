@@ -23,6 +23,7 @@ returned ``_distance`` is ``1 - cosine_similarity``, so
 """
 from __future__ import annotations
 
+import functools
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +33,19 @@ import pyarrow as pa
 from .embedding import EMBED_DIM
 
 TUTOR_TABLE = "tutor"
+
+
+def _infer_dim(records: list[dict[str, Any]], fallback: int = EMBED_DIM) -> int:
+    """Infer the vector dimension from the first record's ``vec_phrasings``.
+
+    Lets the same writer build a 384-dim (bge) or 768-dim (arctic) table from
+    the same code path — the schema follows the embedding model, not a constant.
+    """
+    for r in records:
+        vp = r.get("vec_phrasings")
+        if vp is not None:
+            return len(vp)
+    return fallback
 
 
 def _arrow_schema(dim: int = EMBED_DIM) -> pa.Schema:
@@ -68,18 +82,28 @@ def write_tutor_table(index_dir: Path | str, records: list[dict[str, Any]]):
     tbl = db.create_table(
         TUTOR_TABLE,
         data=records,
-        schema=_arrow_schema(),
+        schema=_arrow_schema(_infer_dim(records)),
         mode="overwrite",
     )
     return tbl
 
 
-def open_tutor_table(index_dir: Path | str):
-    """Open the tutor table for reading. Raises if the index hasn't been built."""
-    db = connect(index_dir)
+@functools.lru_cache(maxsize=4)
+def _open_cached(index_dir_str: str):
+    db = connect(index_dir_str)
     if TUTOR_TABLE not in db.table_names():
         raise FileNotFoundError(
-            f"No '{TUTOR_TABLE}' table under {index_dir}. "
+            f"No '{TUTOR_TABLE}' table under {index_dir_str}. "
             "Build it first: python scripts/build_local_index.py"
         )
     return db.open_table(TUTOR_TABLE)
+
+
+def open_tutor_table(index_dir: Path | str):
+    """Open the tutor table for reading. Raises if the index hasn't been built.
+
+    Cached per index dir: the parity harness issues thousands of queries, and
+    re-opening the LanceDB connection per call dominates query latency. The
+    cache is read-only and process-local — a rebuild starts a fresh process.
+    """
+    return _open_cached(str(index_dir))

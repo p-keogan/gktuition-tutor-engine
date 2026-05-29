@@ -36,3 +36,17 @@ numpy>=1.26,<2           # vector math; pinned <2 to match the engine's env
 #     pip install --index-url https://download.pytorch.org/whl/cpu torch
 sentence-transformers==5.5.1   # CrossEncoder API for the local reranker
 torch>=2.2                      # CPU build; sentence-transformers backend
+
+# ── AGENT_31: hybrid (BM25 + arctic-embed) re-spike (Snowflake-exit Phase-0 v2)─
+# v1 (bge-small, vector-only) NO-GO'd on embedding recall. v2 tests the
+# architecture Cortex actually uses: a stronger query/document-asymmetric dense
+# model from the arctic-embed family + a lexical BM25 index, fused with RRF.
+# Both are local, offline, key-free. arctic-embed-m is served via the SAME
+# fastembed pin above (no new dep — fastembed 0.3.6 ships the ONNX weights):
+#     snowflake/snowflake-arctic-embed-m   (768-dim, one-time download)
+# selectable with: build_local_index.py --model snowflake/snowflake-arctic-embed-m
+#
+# BM25: bm25s — pure-python/numpy BM25, no API key, no network at query time.
+# (0.2.7 is yanked upstream; pin a clean release.)
+bm25s==0.2.13            # lexical BM25 index for the hybrid retriever
+PyStemmer==2.2.0.3       # Snowball English stemmer for BM25 tokenisation

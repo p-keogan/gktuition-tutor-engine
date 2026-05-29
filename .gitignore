@@ -257,5 +257,6 @@ widget/dist/
 # scripts/build_local_index.py — it must never be committed. The per-agent
 # delivery note is a working artifact, not app code.
 local_index/
+local_index_*/
 AGENT_29_DELIVERY.md
 .venv-local/
