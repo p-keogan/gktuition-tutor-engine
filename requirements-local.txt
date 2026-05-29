@@ -23,3 +23,16 @@ lancedb==0.13.0          # embedded vector store; metadata + flat/ANN search
 fastembed==0.3.6         # local ONNX embeddings, no API key (bge-small-en-v1.5)
 pyarrow>=14              # LanceDB storage backend
 numpy>=1.26,<2           # vector math; pinned <2 to match the engine's env
+
+# ── AGENT_30: local cross-encoder reranker (Snowflake-exit Phase-0 spike) ────
+# The load-bearing component of the parity spike: reranks the wide cosine
+# candidate set to recover Cortex-level P@1. Local, CPU-only, no API key — one
+# more one-time model download (~80MB), zero network egress at query time.
+#
+# Spike reranker model (pinned, swappable via LOCAL_RERANKER_MODEL):
+#     cross-encoder/ms-marco-MiniLM-L-6-v2   (MS-MARCO-tuned, ~80MB)
+# The PRODUCTION reranker (hosted vs local) is a separate Phase-3 decision —
+# see docs/SNOWFLAKE_EXIT_PLAN.md §3. Install torch from the CPU wheel index:
+#     pip install --index-url https://download.pytorch.org/whl/cpu torch
+sentence-transformers==5.5.1   # CrossEncoder API for the local reranker
+torch>=2.2                      # CPU build; sentence-transformers backend

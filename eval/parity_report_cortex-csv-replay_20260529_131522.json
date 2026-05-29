@@ -1,0 +1,217 @@
+{
+  "backend": "cortex-csv-replay",
+  "timestamp": "2026-05-29T13:15:22",
+  "subset": false,
+  "top_k": 5,
+  "retrieval_floor": 0.3,
+  "locked_baseline_p_at_1": 0.911,
+  "rows_scored": 3193,
+  "errors": 0,
+  "overall": {
+    "precision@1": 0.9107422486689634,
+    "precision@3": 0.9727528969621047,
+    "mrr": 0.9417423530639941,
+    "mean_top1_score": 0.9499999999999625,
+    "pct_top1_above_floor": 1.0
+  },
+  "gate": {
+    "baseline_p_at_1": 0.911,
+    "p_at_1": 0.9107422486689634,
+    "delta": -0.0002577513310366708,
+    "pass": true
+  },
+  "by_strand": {
+    "algebra": {
+      "precision@1": 0.9224806201550387,
+      "precision@3": 0.9715762273901809,
+      "mrr": 0.9486218776916452,
+      "mean_top1_score": 0.9499999999999933,
+      "pct_top1_above_floor": 1.0,
+      "n": 387,
+      "errors": 0
+    },
+    "avm": {
+      "precision@1": 0.9636363636363636,
+      "precision@3": 0.9636363636363636,
+      "mrr": 0.9636363636363636,
+      "mean_top1_score": 0.9500000000000007,
+      "pct_top1_above_floor": 1.0,
+      "n": 55,
+      "errors": 0
+    },
+    "complex-numbers": {
+      "precision@1": 0.9194630872483222,
+      "precision@3": 0.9530201342281879,
+      "mrr": 0.9411633109619688,
+      "mean_top1_score": 0.9500000000000006,
+      "pct_top1_above_floor": 1.0,
+      "n": 149,
+      "errors": 0
+    },
+    "differentiation": {
+      "precision@1": 0.9581005586592178,
+      "precision@3": 0.9888268156424581,
+      "mrr": 0.9716945996275606,
+      "mean_top1_score": 0.9499999999999937,
+      "pct_top1_above_floor": 1.0,
+      "n": 358,
+      "errors": 0
+    },
+    "financial-maths": {
+      "precision@1": 0.9428571428571428,
+      "precision@3": 0.9904761904761905,
+      "mrr": 0.965079365079365,
+      "mean_top1_score": 0.9500000000000017,
+      "pct_top1_above_floor": 1.0,
+      "n": 105,
+      "errors": 0
+    },
+    "functions-graphs": {
+      "precision@1": 0.9375,
+      "precision@3": 0.9791666666666666,
+      "mrr": 0.9583333333333334,
+      "mean_top1_score": 0.9500000000000011,
+      "pct_top1_above_floor": 1.0,
+      "n": 144,
+      "errors": 0
+    },
+    "geometry": {
+      "precision@1": 0.7641921397379913,
+      "precision@3": 0.9650655021834061,
+      "mrr": 0.8620087336244541,
+      "mean_top1_score": 0.9499999999999964,
+      "pct_top1_above_floor": 1.0,
+      "n": 229,
+      "errors": 0
+    },
+    "indices-logs": {
+      "precision@1": 0.9028571428571428,
+      "precision@3": 0.9771428571428571,
+      "mrr": 0.9390476190476189,
+      "mean_top1_score": 0.9499999999999988,
+      "pct_top1_above_floor": 1.0,
+      "n": 175,
+      "errors": 0
+    },
+    "induction": {
+      "precision@1": 0.9473684210526315,
+      "precision@3": 0.9473684210526315,
+      "mrr": 0.9605263157894737,
+      "mean_top1_score": 0.9499999999999996,
+      "pct_top1_above_floor": 1.0,
+      "n": 19,
+      "errors": 0
+    },
+    "integration": {
+      "precision@1": 0.958041958041958,
+      "precision@3": 0.986013986013986,
+      "mrr": 0.9708624708624707,
+      "mean_top1_score": 0.9500000000000012,
+      "pct_top1_above_floor": 1.0,
+      "n": 143,
+      "errors": 0
+    },
+    "number-theory": {
+      "precision@1": 0.855072463768116,
+      "precision@3": 0.9420289855072463,
+      "mrr": 0.9079710144927537,
+      "mean_top1_score": 0.9500000000000012,
+      "pct_top1_above_floor": 1.0,
+      "n": 69,
+      "errors": 0
+    },
+    "probability": {
+      "precision@1": 0.9836956521739131,
+      "precision@3": 1.0,
+      "mrr": 0.9909420289855073,
+      "mean_top1_score": 0.9499999999999984,
+      "pct_top1_above_floor": 1.0,
+      "n": 184,
+      "errors": 0
+    },
+    "sequences-series": {
+      "precision@1": 0.9006211180124224,
+      "precision@3": 0.968944099378882,
+      "mrr": 0.9344720496894411,
+      "mean_top1_score": 0.9499999999999997,
+      "pct_top1_above_floor": 1.0,
+      "n": 161,
+      "errors": 0
+    },
+    "sequences-series-introduction": {
+      "precision@1": 1.0,
+      "precision@3": 1.0,
+      "mrr": 1.0,
+      "mean_top1_score": 0.9499999999999998,
+      "pct_top1_above_floor": 1.0,
+      "n": 12,
+      "errors": 0
+    },
+    "sequences-series-patterns": {
+      "precision@1": 0.7692307692307693,
+      "precision@3": 0.9230769230769231,
+      "mrr": 0.8205128205128206,
+      "mean_top1_score": 0.9499999999999998,
+      "pct_top1_above_floor": 1.0,
+      "n": 13,
+      "errors": 0
+    },
+    "statistics": {
+      "precision@1": 0.98,
+      "precision@3": 0.9933333333333333,
+      "mrr": 0.9883333333333333,
+      "mean_top1_score": 0.9500000000000006,
+      "pct_top1_above_floor": 1.0,
+      "n": 150,
+      "errors": 0
+    },
+    "the-circle": {
+      "precision@1": 0.927007299270073,
+      "precision@3": 0.9562043795620438,
+      "mrr": 0.943552311435523,
+      "mean_top1_score": 0.9500000000000017,
+      "pct_top1_above_floor": 1.0,
+      "n": 137,
+      "errors": 0
+    },
+    "the-line": {
+      "precision@1": 0.9407894736842105,
+      "precision@3": 0.9802631578947368,
+      "mrr": 0.9599780701754386,
+      "mean_top1_score": 0.9500000000000004,
+      "pct_top1_above_floor": 1.0,
+      "n": 152,
+      "errors": 0
+    },
+    "trigonometry": {
+      "precision@1": 0.8566243194192378,
+      "precision@3": 0.956442831215971,
+      "mrr": 0.9057773744706594,
+      "mean_top1_score": 0.9499999999999933,
+      "pct_top1_above_floor": 1.0,
+      "n": 551,
+      "errors": 0
+    }
+  },
+  "by_source": {
+    "phrasings": {
+      "precision@1": 0.8218543046357616,
+      "precision@3": 0.9463576158940398,
+      "mrr": 0.8835761589403971,
+      "mean_top1_score": 0.9500000000000264,
+      "pct_top1_above_floor": 1.0,
+      "n": 1510,
+      "errors": 0
+    },
+    "solution_cross_ref": {
+      "precision@1": 0.9904931669637552,
+      "precision@3": 0.9964349376114082,
+      "mrr": 0.9939294909883145,
+      "mean_top1_score": 0.9500000000000283,
+      "pct_top1_above_floor": 1.0,
+      "n": 1683,
+      "errors": 0
+    }
+  },
+  "strand_regressions": []
+}

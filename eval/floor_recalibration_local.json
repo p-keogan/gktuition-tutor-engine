@@ -1,0 +1,118 @@
+{
+  "local-cosine": {
+    "backend": "local-cosine",
+    "n_rows": 3430,
+    "n_true_pos": 1400,
+    "n_false_pos": 2030,
+    "mean_top1_correct": 0.765,
+    "mean_top1_wrong": 0.723,
+    "cortex_floor": 0.3,
+    "recommended_floor": 0.6741,
+    "recommended_floor_basis": "5th pctl of correct top-1 scores",
+    "precision_at_recommended_floor": 0.4384,
+    "tp_admit_at_cortex_floor": 1.0,
+    "fp_admit_at_cortex_floor": 1.0,
+    "threshold_curve": [
+      {
+        "threshold": 0.1,
+        "tp_admit_rate": 1.0,
+        "fp_admit_rate": 1.0,
+        "precision_admitted": 0.408
+      },
+      {
+        "threshold": 0.2,
+        "tp_admit_rate": 1.0,
+        "fp_admit_rate": 1.0,
+        "precision_admitted": 0.408
+      },
+      {
+        "threshold": 0.3,
+        "tp_admit_rate": 1.0,
+        "fp_admit_rate": 1.0,
+        "precision_admitted": 0.408
+      },
+      {
+        "threshold": 0.4,
+        "tp_admit_rate": 1.0,
+        "fp_admit_rate": 1.0,
+        "precision_admitted": 0.408
+      },
+      {
+        "threshold": 0.5,
+        "tp_admit_rate": 1.0,
+        "fp_admit_rate": 0.999,
+        "precision_admitted": 0.408
+      },
+      {
+        "threshold": 0.6,
+        "tp_admit_rate": 0.996,
+        "fp_admit_rate": 0.986,
+        "precision_admitted": 0.411
+      },
+      {
+        "threshold": 0.7,
+        "tp_admit_rate": 0.889,
+        "fp_admit_rate": 0.69,
+        "precision_admitted": 0.471
+      }
+    ]
+  },
+  "local-reranked": {
+    "backend": "local-reranked",
+    "n_rows": 460,
+    "n_true_pos": 175,
+    "n_false_pos": 285,
+    "mean_top1_correct": 0.6243,
+    "mean_top1_wrong": 0.2451,
+    "cortex_floor": 0.3,
+    "recommended_floor": 0.0001,
+    "recommended_floor_basis": "5th pctl of correct top-1 scores",
+    "precision_at_recommended_floor": 0.3915,
+    "tp_admit_at_cortex_floor": 0.714,
+    "fp_admit_at_cortex_floor": 0.295,
+    "threshold_curve": [
+      {
+        "threshold": 0.1,
+        "tp_admit_rate": 0.766,
+        "fp_admit_rate": 0.418,
+        "precision_admitted": 0.53
+      },
+      {
+        "threshold": 0.2,
+        "tp_admit_rate": 0.726,
+        "fp_admit_rate": 0.347,
+        "precision_admitted": 0.562
+      },
+      {
+        "threshold": 0.3,
+        "tp_admit_rate": 0.714,
+        "fp_admit_rate": 0.295,
+        "precision_admitted": 0.598
+      },
+      {
+        "threshold": 0.4,
+        "tp_admit_rate": 0.68,
+        "fp_admit_rate": 0.27,
+        "precision_admitted": 0.607
+      },
+      {
+        "threshold": 0.5,
+        "tp_admit_rate": 0.611,
+        "fp_admit_rate": 0.225,
+        "precision_admitted": 0.626
+      },
+      {
+        "threshold": 0.6,
+        "tp_admit_rate": 0.6,
+        "fp_admit_rate": 0.211,
+        "precision_admitted": 0.636
+      },
+      {
+        "threshold": 0.7,
+        "tp_admit_rate": 0.577,
+        "fp_admit_rate": 0.154,
+        "precision_admitted": 0.697
+      }
+    ]
+  }
+}
