@@ -50,3 +50,20 @@ torch>=2.2                      # CPU build; sentence-transformers backend
 # (0.2.7 is yanked upstream; pin a clean release.)
 bm25s==0.2.13            # lexical BM25 index for the hybrid retriever
 PyStemmer==2.2.0.3       # Snowball English stemmer for BM25 tokenisation
+
+# ── AGENT_33: hosted-librarian decider (Snowflake-exit Phase-0 v4) ───────────
+# v1→v3 NO-GO'd the LOCAL-CPU stack (P@1 0.41→0.50→≤0.53 vs the 0.911 gate); the
+# failure localised to embedding recall on terse solution_cross_ref exam rows.
+# v4 tests the one untested lever: a STRONG HOSTED librarian — Voyage embeddings
+# + a hosted reranker — in the same RRF hybrid, mirroring Cortex's internal
+# pipeline. Unlike everything above this is KEY-GATED + BILLED, but bounded,
+# cached to disk, and ~$0 in practice (Voyage free tier = 200M tokens, which
+# comfortably covers this corpus + the 3,430-row golden set). After a single
+# bounded build-cache pass, ALL scoring replays offline + free.
+#   embeddings: voyage-3.5 (1024-dim, query/document input_type)
+#   reranker  : rerank-2.5 (32K context, instruction-following)
+voyageai==0.3.6          # Voyage embeddings + reranker client (default vendor)
+
+# OPTIONAL secondary reranker comparison only (opt-in; used iff COHERE_API_KEY
+# is set). Voyage rerank-2.5 is the default and the headline number.
+# cohere==5.13.6         # Cohere rerank-v3.5 (uncomment to enable the A/B leg)

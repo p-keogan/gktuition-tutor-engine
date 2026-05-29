@@ -98,13 +98,27 @@ def _get_model(model_name: str):
 _EMBED_BATCH = 16
 
 
+def _is_voyage(model_name: str) -> bool:
+    """True for hosted Voyage models — routed to ``voyage_embed`` (API + cache)
+    instead of fastembed. Kept as a thin local predicate so importing this
+    module never forces the voyage_embed import for the local-model paths."""
+    return model_name.lower().startswith("voyage")
+
+
 def embed_texts(texts: Sequence[str], model_name: str = DEFAULT_MODEL) -> np.ndarray:
     """Embed a batch of **documents** → ``(n, dim)`` float32, L2-normalised.
 
     Empty / whitespace-only strings are embedded as a single space so the
     model never sees an empty input (fastembed tolerates it, but a space keeps
     the output deterministic across versions).
+
+    Hosted Voyage models (``model_name`` starting ``voyage``) are delegated to
+    :mod:`local_retrieval.voyage_embed` (cache-served; ``input_type="document"``).
     """
+    if _is_voyage(model_name):
+        from .voyage_embed import embed_documents  # noqa: PLC0415 (lazy)
+
+        return embed_documents(texts, model_name=model_name)
     cleaned = [t if (t and t.strip()) else " " for t in texts]
     model = _get_model(model_name)
     vecs = np.asarray(
@@ -121,7 +135,14 @@ def embed_queries(texts: Sequence[str], model_name: str = DEFAULT_MODEL) -> np.n
     ``query_embed`` does *not* do this, so we apply it explicitly via the normal
     document encoder. For symmetric models (bge-small) the prefix is empty, so
     this is equivalent to embedding the raw query — safe across the board.
+
+    Hosted Voyage models are delegated to :mod:`local_retrieval.voyage_embed`
+    (cache-served; ``input_type="query"`` — the asymmetry that bit AGENT_31).
     """
+    if _is_voyage(model_name):
+        from .voyage_embed import embed_queries as _voyage_eq  # noqa: PLC0415
+
+        return _voyage_eq(texts, model_name=model_name)
     prefix = _query_prefix(model_name)
     cleaned = [
         prefix + (t if (t and t.strip()) else " ") for t in texts
