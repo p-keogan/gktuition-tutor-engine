@@ -251,3 +251,11 @@ pipelines/spike/transcripts/
 # of untracked entries and must never be tracked.
 widget/node_modules/
 widget/dist/
+
+# Snowflake-exit Phase 1 spike (AGENT_29). The local LanceDB vector store is a
+# build artifact, fully rebuildable from the corpus via
+# scripts/build_local_index.py — it must never be committed. The per-agent
+# delivery note is a working artifact, not app code.
+local_index/
+AGENT_29_DELIVERY.md
+.venv-local/

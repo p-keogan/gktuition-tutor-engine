@@ -1,0 +1,25 @@
+# requirements-local.txt — Snowflake-exit Phase 1 spike (AGENT_29)
+# ----------------------------------------------------------------------------
+# Pinned, OFFLINE, FREE dependencies for the local index builder +
+# `local_retrieval.retrieve()` spike. These are deliberately kept OUT of
+# `api/pyproject.toml`: the live serving path must not gain a dependency on
+# this spike code during the exam-week freeze (Phase 1 is additive-only and
+# non-importable by `api/`).
+#
+# Install into a throwaway venv:
+#     python -m venv .venv-local && . .venv-local/bin/activate
+#     pip install -r requirements-local.txt
+#
+# Everything runs with ZERO network egress after the one-time model +
+# package download. No API keys, no Anthropic, no Snowflake.
+#
+# Spike embedding model: BAAI/bge-small-en-v1.5 (384-dim, L2-normalised),
+# served locally via fastembed (ONNX, CPU, ~130MB on disk, no API key).
+# NOTE: the *production* embedding choice (hosted vs local) is a separate
+# Phase-3 decision — see docs/SNOWFLAKE_EXIT_PLAN.md §3. This pin is the
+# spike model only and is intentionally swappable via --model.
+
+lancedb==0.13.0          # embedded vector store; metadata + flat/ANN search
+fastembed==0.3.6         # local ONNX embeddings, no API key (bge-small-en-v1.5)
+pyarrow>=14              # LanceDB storage backend
+numpy>=1.26,<2           # vector math; pinned <2 to match the engine's env
