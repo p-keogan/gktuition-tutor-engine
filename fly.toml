@@ -48,7 +48,11 @@ kill_timeout = "10s"
 # -----------------------------------------------------------------------------
 [processes]
   app  = "sh -c 'exec uvicorn api.main:app --host 0.0.0.0 --port ${PORT}'"
-  warm = "python /app/scripts/always_warm.py --loop"
+  # DEV (2026-05-29): warm worker disabled to cut Snowflake/Anthropic spend
+  # while in development — no students yet, so we don't need the sub-5s
+  # warm window. RE-ENABLE AT PUBLIC LAUNCH by uncommenting the line below
+  # AND the matching warm [[vm]] block further down, then `flyctl deploy`.
+  # warm = "python /app/scripts/always_warm.py --loop"
 
 # -----------------------------------------------------------------------------
 # Build — produce the image from our multi-stage Dockerfile. GitHub Actions
@@ -67,6 +71,15 @@ kill_timeout = "10s"
 [env]
   PORT = "8000"
   GKTUITION_ENV = "prod"
+
+  # DEV (2026-05-29): cost control while in development. "false" makes the
+  # /healthz probe SKIP its `SELECT 1` warehouse touch, so WH_TUTOR is no
+  # longer kept warm 24/7 by the 10s Fly probe and can auto-suspend after
+  # 60s (was ~$3/day idle, the DAY_31 cost-control item). The cache-table
+  # metadata check in /healthz stays on. SET TO "true" (or remove this
+  # line) AT PUBLIC LAUNCH to restore warehouse-warm liveness checking.
+  # See api/routes/health.py::_check_snowflake.
+  HEALTHZ_SNOWFLAKE_CHECK_ENABLED = "false"
 
   # Firewall layers — every layer toggled ON in production. Tuning happens
   # via secrets or via `fly machines update` for short-lived experiments.
@@ -162,11 +175,13 @@ kill_timeout = "10s"
   cpus = 1
   memory_mb = 256
 
-[[vm]]
-  processes = ["warm"]
-  cpu_kind = "shared"
-  cpus = 1
-  memory_mb = 256
+# DEV (2026-05-29): warm worker VM disabled alongside the [processes] entry
+# above. RE-ENABLE AT PUBLIC LAUNCH by uncommenting this block.
+# [[vm]]
+#   processes = ["warm"]
+#   cpu_kind = "shared"
+#   cpus = 1
+#   memory_mb = 256
 
 # -----------------------------------------------------------------------------
 # Secrets declaration — these are referenced by name only. Setting them is

@@ -158,7 +158,21 @@ async def _check_with_timeout(
 
 
 async def _check_snowflake() -> str:
-    """``SELECT 1`` against the orchestrator's pooled connection."""
+    """``SELECT 1`` against the orchestrator's pooled connection.
+
+    The ``SELECT 1`` requires a *running* warehouse, so every probe resets
+    ``WH_TUTOR``'s 60s auto-suspend timer. At a 10s Fly probe interval that
+    keeps the warehouse warm ~24/7 (~$3/day idle). During development —
+    when sub-5s latency doesn't matter — set
+    ``HEALTHZ_SNOWFLAKE_CHECK_ENABLED=false`` to skip this sub-check so the
+    warehouse can auto-suspend. Re-enable (default ``true``, or unset the
+    flag) at public launch. The ``cache_table`` check below uses only
+    metadata (``DESCRIBE TABLE``) and never resumes a warehouse, so it
+    stays on as a connectivity signal.
+    """
+    if os.environ.get("HEALTHZ_SNOWFLAKE_CHECK_ENABLED", "true").lower() != "true":
+        return "skipped (warehouse-warm disabled for dev)"
+
     # Skip in dev when no SF credentials are wired — the route would
     # otherwise always return "degraded" for local development.
     if not os.environ.get("SNOWFLAKE_ACCOUNT") and not os.environ.get("SF_ACCOUNT"):
