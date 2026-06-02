@@ -1,0 +1,19 @@
+{
+  "backend": "voyage-hybrid",
+  "scope": "full",
+  "n": 99,
+  "overall": {
+    "recall@1": 0.7878787878787878,
+    "recall@5": 0.9595959595959596,
+    "recall@20": 1.0
+  },
+  "by_source": {
+    "phrasings": {
+      "recall@1": 0.7878787878787878,
+      "recall@5": 0.9595959595959596,
+      "recall@20": 1.0,
+      "n": 99
+    }
+  },
+  "timestamp": "2026-06-02T16:38:33"
+}

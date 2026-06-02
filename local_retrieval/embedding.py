@@ -25,6 +25,7 @@ scale the live ``retriever.RETRIEVAL_FLOOR = 0.30`` gate expects. See
 from __future__ import annotations
 
 import functools
+import os
 from collections.abc import Sequence
 
 import numpy as np
@@ -118,7 +119,13 @@ def embed_texts(texts: Sequence[str], model_name: str = DEFAULT_MODEL) -> np.nda
     if _is_voyage(model_name):
         from .voyage_embed import embed_documents  # noqa: PLC0415 (lazy)
 
-        return embed_documents(texts, model_name=model_name)
+        # One-time corpus embed (build_local_index). Live API spend is allowed
+        # only when a Voyage key is present — the operator's explicit opt-in.
+        # No key → strict cache-only (a miss raises; never fabricates).
+        _allow = bool(
+            os.environ.get("VOYAGE_API_KEY") or os.environ.get("VOYAGEAI_API_KEY")
+        )
+        return embed_documents(texts, model_name=model_name, allow_api=_allow)
     cleaned = [t if (t and t.strip()) else " " for t in texts]
     model = _get_model(model_name)
     vecs = np.asarray(
@@ -142,7 +149,12 @@ def embed_queries(texts: Sequence[str], model_name: str = DEFAULT_MODEL) -> np.n
     if _is_voyage(model_name):
         from .voyage_embed import embed_queries as _voyage_eq  # noqa: PLC0415
 
-        return _voyage_eq(texts, model_name=model_name)
+        # Live query embedding allowed only when a Voyage key is present (the
+        # build-cache pass exports it); no key → strict cache-only replay.
+        _allow = bool(
+            os.environ.get("VOYAGE_API_KEY") or os.environ.get("VOYAGEAI_API_KEY")
+        )
+        return _voyage_eq(texts, model_name=model_name, allow_api=_allow)
     prefix = _query_prefix(model_name)
     cleaned = [
         prefix + (t if (t and t.strip()) else " ") for t in texts

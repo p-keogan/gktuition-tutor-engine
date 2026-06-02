@@ -1,0 +1,19 @@
+{
+  "backend": "voyage-hybrid-rerank",
+  "scope": "full",
+  "n": 42,
+  "overall": {
+    "recall@1": 0.9523809523809523,
+    "recall@5": 1.0,
+    "recall@20": 1.0
+  },
+  "by_source": {
+    "phrasings": {
+      "recall@1": 0.9523809523809523,
+      "recall@5": 1.0,
+      "recall@20": 1.0,
+      "n": 42
+    }
+  },
+  "timestamp": "2026-06-02T16:39:11"
+}

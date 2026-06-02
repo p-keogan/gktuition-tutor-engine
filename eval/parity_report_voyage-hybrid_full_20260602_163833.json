@@ -1,0 +1,47 @@
+{
+  "backend": "voyage-hybrid",
+  "timestamp": "2026-06-02T16:38:33",
+  "subset": false,
+  "top_k": 5,
+  "retrieval_floor": 0.3,
+  "locked_baseline_p_at_1": 0.911,
+  "rows_scored": 99,
+  "errors": 0,
+  "overall": {
+    "precision@1": 0.7878787878787878,
+    "precision@3": 0.9292929292929293,
+    "mrr": 0.8651515151515152,
+    "mean_top1_score": 1.0,
+    "pct_top1_above_floor": 1.0
+  },
+  "gate": {
+    "baseline_p_at_1": 0.911,
+    "p_at_1": 0.7878787878787878,
+    "delta": -0.12312121212121219,
+    "pass": false
+  },
+  "by_strand": {
+    "algebra": {
+      "precision@1": 0.7878787878787878,
+      "precision@3": 0.9292929292929293,
+      "mrr": 0.8651515151515152,
+      "mean_top1_score": 1.0,
+      "pct_top1_above_floor": 1.0,
+      "n": 99,
+      "errors": 0
+    }
+  },
+  "by_source": {
+    "phrasings": {
+      "precision@1": 0.7878787878787878,
+      "precision@3": 0.9292929292929293,
+      "mrr": 0.8651515151515152,
+      "mean_top1_score": 1.0,
+      "pct_top1_above_floor": 1.0,
+      "n": 99,
+      "errors": 0
+    }
+  },
+  "strand_regressions": [],
+  "scope": "full"
+}

@@ -1,0 +1,25 @@
+{
+  "backend": "voyage-hybrid-rerank",
+  "scope": "subset",
+  "n": 196,
+  "overall": {
+    "recall@1": 0.6275510204081632,
+    "recall@5": 0.8571428571428571,
+    "recall@20": 0.9030612244897959
+  },
+  "by_source": {
+    "phrasings": {
+      "recall@1": 0.9178082191780822,
+      "recall@5": 1.0,
+      "recall@20": 1.0,
+      "n": 73
+    },
+    "solution_cross_ref": {
+      "recall@1": 0.45528455284552843,
+      "recall@5": 0.7723577235772358,
+      "recall@20": 0.8455284552845529,
+      "n": 123
+    }
+  },
+  "timestamp": "2026-06-02T16:54:05"
+}

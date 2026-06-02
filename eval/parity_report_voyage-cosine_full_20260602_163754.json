@@ -1,0 +1,47 @@
+{
+  "backend": "voyage-cosine",
+  "timestamp": "2026-06-02T16:37:54",
+  "subset": false,
+  "top_k": 5,
+  "retrieval_floor": 0.3,
+  "locked_baseline_p_at_1": 0.911,
+  "rows_scored": 94,
+  "errors": 0,
+  "overall": {
+    "precision@1": 0.6808510638297872,
+    "precision@3": 0.8723404255319149,
+    "mrr": 0.777482269503546,
+    "mean_top1_score": 0.5149694574468084,
+    "pct_top1_above_floor": 1.0
+  },
+  "gate": {
+    "baseline_p_at_1": 0.911,
+    "p_at_1": 0.6808510638297872,
+    "delta": -0.23014893617021281,
+    "pass": false
+  },
+  "by_strand": {
+    "algebra": {
+      "precision@1": 0.6808510638297872,
+      "precision@3": 0.8723404255319149,
+      "mrr": 0.777482269503546,
+      "mean_top1_score": 0.5149694574468084,
+      "pct_top1_above_floor": 1.0,
+      "n": 94,
+      "errors": 0
+    }
+  },
+  "by_source": {
+    "phrasings": {
+      "precision@1": 0.6808510638297872,
+      "precision@3": 0.8723404255319149,
+      "mrr": 0.777482269503546,
+      "mean_top1_score": 0.5149694574468084,
+      "pct_top1_above_floor": 1.0,
+      "n": 94,
+      "errors": 0
+    }
+  },
+  "strand_regressions": [],
+  "scope": "full"
+}
