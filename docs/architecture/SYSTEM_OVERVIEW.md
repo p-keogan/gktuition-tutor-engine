@@ -51,7 +51,9 @@ Three layers, each with a single job:
 
 - **WordPress widget** ([`/widget`](../../widget))  — a static React build
   embedded on every tutorial page. JWT-gated for tier; renders streaming
-  responses, inline citations, and Plotly graphs.
+  responses, inline citations, and Plotly graphs. (The widget's *source*
+  lives here; the WordPress plugin that mounts it lives in a separate
+  private repo — see "Where the code lives" below.)
 - **FastAPI orchestrator** ([`/api`](../../api)) — classifies the query,
   fans out to the right retrieval surface, calls the right LLM, applies
   the six-layer cost firewall, returns a typed contract response.
@@ -62,6 +64,20 @@ Three layers, each with a single job:
 The full layer rationale (including why Fly.io for Phase 1.5–3 and AWS
 Lambda for Phase 4+) is in
 [`ADR-003-system-architecture.md`](ADR-003-system-architecture.md).
+
+## Where the code lives — three repos
+
+The product is deliberately split across three repositories with strict
+public/private boundaries:
+
+| Repo | Visibility | Holds |
+|---|---|---|
+| `gktuition-tutor-engine` (this repo) | **Public** | The engine: FastAPI orchestrator + cost firewall, Snowflake definitions, content-pipeline tooling, eval framework, and the **React widget source** (`/widget`). No corpus content, no secrets — ever. |
+| `gktuition-prod` | Private | The commercial corpus (tutorial transcripts) and the **WordPress mounting plugin** (`wordpress-plugin/gktuition-ai-tutor/`): JWT mint, tier resolver, REST endpoint, PHPUnit tests. This plugin is what embeds the widget on gktuition.ie. |
+| `gktuition-website` | Private | The gktuition.ie WordPress site itself — themes (incl. `salient-child`) and site plugins. Theme/site code only; it does **not** contain the tutor plugin. |
+
+Decision on record (Option A): the mounting plugin stays in
+`gktuition-prod`; the website repo holds theme code only.
 
 ## Query lifecycle
 
@@ -121,10 +137,13 @@ trend question that's already targeting the by-tutorial grain. The same
 disjointness is what lets the classifier's routing be cheap — no need
 to reconcile overlapping result sets.
 
-The retrieval design and the multimodal extension live in
-[`ADR-004-retrieval-architecture-and-multimodal.md`](../../gktuition/ADR-004-retrieval-architecture-and-multimodal.md)
-in the planning vault (referenced from this repo's history; mirror copy
-forthcoming).
+The retrieval design and the multimodal extension are recorded in
+**ADR-004 (retrieval architecture and multimodal)**, which lives in the
+private planning vault and is not mirrored in this repo. The image-path
+section is excerpted publicly in
+[`api/adr/ADR-004-section-image-path.md`](../../api/adr/ADR-004-section-image-path.md);
+the routing decisions it pins are restated in
+[`snowflake/cortex_analyst/routing_contract.md`](../../snowflake/cortex_analyst/routing_contract.md).
 
 ## Two-tier LLM routing
 
@@ -301,7 +320,7 @@ secrets list, and rollback procedure are in
 | [`api/`](../../api) | FastAPI app — orchestrator, classifier, retriever, synthesiser, auth, routes, cost firewall, observability sink. |
 | [`snowflake/`](../../snowflake) | Bootstrap SQL, three loader scripts, four search-service definitions, Cortex Analyst semantic model + canonical queries. |
 | [`content-pipeline/`](../../content-pipeline) | Frontmatter validator, change-detector, sync runners, GitHub Action, runbook. |
-| [`widget/`](../../widget) | React (Vite) chat widget, JWT-decoded tier handling, Plotly graph component. |
+| [`widget/`](../../widget) | React (Vite) chat widget source, JWT-decoded tier handling, Plotly graph component. (Mounted on gktuition.ie by the WordPress plugin in the private `gktuition-prod` repo.) |
 | [`eval/`](../../eval) | Eval golden set (CSV-committed for portability), scoring scripts, methodology, baseline history. |
 | [`docs/architecture/`](.) | ADRs 001–003 (vector store, product model, system architecture); this overview. |
 | [`docs/ops/`](../ops) | Live runbook for the deployed app — health, spend, log queries, rollback. |

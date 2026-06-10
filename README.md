@@ -40,9 +40,11 @@ Eight recurring ops procedures (health check, spend dashboard, kill switch, roll
 | [`api/`](api) | FastAPI orchestrator — classifier, retriever, synthesiser, auth, routes, cost firewall, observability sink. |
 | [`snowflake/`](snowflake) | Bootstrap SQL, loader scripts, three Cortex Search services, Cortex Analyst semantic model. |
 | [`content-pipeline/`](content-pipeline) | Frontmatter validator, change-detector, sync runners, content-edit GitHub Action. |
-| [`widget/`](widget) | React (Vite) chat widget, JWT-decoded tier handling, Plotly graph component. |
+| [`widget/`](widget) | React (Vite) chat widget source, JWT-decoded tier handling, Plotly graph component. |
 | [`eval/`](eval) | Eval golden set, scoring scripts, baseline history. |
 | [`docs/`](docs) | Architecture (ADRs + system overview), ops runbook, design docs. |
+
+This is one of three repos: the engine (this repo, public — API + widget source), a private companion holding the commercial corpus and the WordPress plugin that mounts the widget on gktuition.ie, and a private repo for the gktuition.ie site's theme code. See [`docs/architecture/SYSTEM_OVERVIEW.md#where-the-code-lives--three-repos`](docs/architecture/SYSTEM_OVERVIEW.md#where-the-code-lives--three-repos).
 
 ## Contact
 
