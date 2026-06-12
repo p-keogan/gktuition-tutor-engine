@@ -1,6 +1,6 @@
 # Snowflake Exit Plan — migrating gktuition retrieval off Snowflake
 
-**Status:** Draft for review · authored DAY_34 (2026-05-29)
+**Status:** CLOSED — NO-GO, 2026-06-12. Retained as a methodology artifact; see SNOWFLAKE_EXIT_PHASE0_REPORT_V4.md §8 and ADR-004. Not for execution.
 **Goal:** Eliminate Snowflake from the gktuition-tutor-engine entirely, replacing it with an embedded vector store + a small local SQL/state store, with **no degradation in student experience**, proven by the existing eval harness before cutover.
 
 ---

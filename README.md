@@ -17,6 +17,7 @@ Significant design choices are captured as ADRs in [`docs/architecture/`](docs/a
 - [ADR-001](docs/architecture/ADR-001-vector-store.md) — Vector store: Snowflake Cortex Search.
 - [ADR-002](docs/architecture/ADR-002-product-model.md) — Access model & cost controls: free-for-all with six-layer defence.
 - [ADR-003](docs/architecture/ADR-003-system-architecture.md) — System architecture: 3-layer (WordPress widget · FastAPI on Fly.io · Snowflake), two-tier LLM routing.
+- [ADR-004](docs/architecture/ADR-004-retrieval-stays-on-cortex.md) — Retrieval stays on Cortex: the Snowflake-exit investigation, four eval-gated spikes, closed NO-GO (2026-06-12).
 
 ## Phase-1 baseline (locked 2026-05-21)
 

@@ -1,7 +1,11 @@
 # Snowflake-Exit Phase-0 Decision Report **v4** — Hosted Librarian (Voyage embeddings + hosted reranker), the decider
 
-**Verdict: PENDING-MEASUREMENT — infrastructure complete and verified; the one
-decisive number is one bounded API pass away.** This spike builds and ships the
+**Verdict: NO-GO — measured 2026-06-12. `voyage-hybrid-rerank` full-set
+P@1 = 0.645 vs the locked Cortex gate 0.911 (Δ = −0.266); cross_ref recall@20 =
+0.834 vs the ~0.92 precondition. Per §1's pre-committed rule: keep Cortex, close
+the Snowflake-exit investigation for good. See ADR-004.**
+
+*(Original pre-measurement framing follows, kept for the methodology record.)* This spike builds and ships the
 full hosted-librarian pipeline (Voyage `voyage-3.5` embeddings + BM25 hybrid +
 Voyage `rerank-2.5`), wires it through AGENT_28's **unchanged** gate, and proves
 the gate still reproduces Cortex's **P@1 = 0.911**. The spike environment had
@@ -93,9 +97,9 @@ two levers cleanly against the v1–v3 numbers.
 | `bm25` (v2 lexical lever) | 0.437 | 0.827 | 0.991 | 0.698 | −0.474 |
 | **`hybrid`** (v2, AGENT_31) | 0.497 | 0.872 | 0.984 | 0.783 | −0.414 |
 | `hybrid + rewrite` (v3, ceiling) | ≤ 0.534 | 0.872 | — | 0.783 | ≥ −0.377 |
-| **`voyage-cosine`** (v4, embedding lever) | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| **`voyage-hybrid`** (v4, hosted analogue of v2) | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| **`voyage-hybrid-rerank`** (v4, the candidate) | _pending_ | _pending_ | _pending_ | **_pending_** | _pending_ |
+| **`voyage-cosine`** (v4, embedding lever) | 0.492 | 0.895 | 0.979 | 0.829 | −0.419 |
+| **`voyage-hybrid`** (v4, hosted analogue of v2) | 0.515 | 0.881 | 0.995 | 0.792 | −0.396 |
+| **`voyage-hybrid-rerank`** (v4, the candidate) | 0.645 | 0.907 | 0.999 | **0.834** | −0.266 |
 
 The v4 rows are intentionally blank: they are **measurements**, not estimates,
 and no API key was present to take them (rule 4(d)). Unlike v3 — where the
@@ -242,3 +246,23 @@ What is **not** in question after this dispatch: the local-CPU stack is retired
 0.911 here). v4 isolates the final empirical question to a single number behind a
 single bounded command. Nothing is wired into `api/`; this remains Phase-0 offline
 analysis under the exam-week freeze.
+
+
+---
+
+## 8. Measured verdict (2026-06-12, operator pass)
+
+The §5 bounded pass ran to completion (3,430/3,430 rows cached per backend,
+0 scoring errors, gate unchanged). Result: **NO-GO** at every threshold of the
+§1 decision rule. The ablation, against v2's `arctic` baseline (0.441):
+
+* embedding lever (`voyage-cosine` − `arctic`): **+0.051**
+* lexical/RRF lever (`voyage-hybrid` − `voyage-cosine`): **+0.023**
+* hosted reranker (`voyage-hybrid-rerank` − `voyage-hybrid`): **+0.130** — the
+  largest single lever found in the entire investigation, and still 0.266 short.
+
+`solution_cross_ref` remains the binding constraint (r@1 = 0.452, r@20 = 0.834):
+the corpus's terse exam-style prompts are where Cortex's query understanding
+earns its keep. Four spikes, monotonically improving (0.408 → 0.497 → ≤0.534 →
+0.645), all NO-GO. Decision recorded in **ADR-004**; the exit plan is closed and
+retained as a methodology artifact.

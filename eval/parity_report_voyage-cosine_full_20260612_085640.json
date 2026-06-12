@@ -1,0 +1,218 @@
+{
+  "backend": "voyage-cosine",
+  "timestamp": "2026-06-12T08:56:40",
+  "subset": false,
+  "top_k": 5,
+  "retrieval_floor": 0.3,
+  "locked_baseline_p_at_1": 0.911,
+  "rows_scored": 3430,
+  "errors": 0,
+  "overall": {
+    "precision@1": 0.4915451895043732,
+    "precision@3": 0.7037900874635569,
+    "mrr": 0.5997376093294434,
+    "mean_top1_score": 0.49872224373177787,
+    "pct_top1_above_floor": 0.9959183673469387
+  },
+  "gate": {
+    "baseline_p_at_1": 0.911,
+    "p_at_1": 0.4915451895043732,
+    "delta": -0.41945481049562683,
+    "pass": false
+  },
+  "by_strand": {
+    "algebra": {
+      "precision@1": 0.45161290322580644,
+      "precision@3": 0.6550868486352357,
+      "mrr": 0.557899090157155,
+      "mean_top1_score": 0.479290434243176,
+      "pct_top1_above_floor": 0.9975186104218362,
+      "n": 403,
+      "errors": 0
+    },
+    "avm": {
+      "precision@1": 0.6271186440677966,
+      "precision@3": 0.8135593220338984,
+      "mrr": 0.7096045197740113,
+      "mean_top1_score": 0.4918335423728812,
+      "pct_top1_above_floor": 0.9830508474576272,
+      "n": 59,
+      "errors": 0
+    },
+    "complex-numbers": {
+      "precision@1": 0.58,
+      "precision@3": 0.8533333333333334,
+      "mrr": 0.7123333333333334,
+      "mean_top1_score": 0.5595574600000006,
+      "pct_top1_above_floor": 1.0,
+      "n": 150,
+      "errors": 0
+    },
+    "differentiation": {
+      "precision@1": 0.4609375,
+      "precision@3": 0.6692708333333334,
+      "mrr": 0.5656684027777777,
+      "mean_top1_score": 0.48383724999999944,
+      "pct_top1_above_floor": 1.0,
+      "n": 384,
+      "errors": 0
+    },
+    "financial-maths": {
+      "precision@1": 0.5862068965517241,
+      "precision@3": 0.8879310344827587,
+      "mrr": 0.7272988505747122,
+      "mean_top1_score": 0.5073935258620689,
+      "pct_top1_above_floor": 1.0,
+      "n": 116,
+      "errors": 0
+    },
+    "functions-graphs": {
+      "precision@1": 0.512987012987013,
+      "precision@3": 0.7077922077922078,
+      "mrr": 0.6080086580086579,
+      "mean_top1_score": 0.4814637792207791,
+      "pct_top1_above_floor": 1.0,
+      "n": 154,
+      "errors": 0
+    },
+    "geometry": {
+      "precision@1": 0.5306122448979592,
+      "precision@3": 0.7224489795918367,
+      "mrr": 0.6350340136054421,
+      "mean_top1_score": 0.5288524857142859,
+      "pct_top1_above_floor": 1.0,
+      "n": 245,
+      "errors": 0
+    },
+    "indices-logs": {
+      "precision@1": 0.40106951871657753,
+      "precision@3": 0.6096256684491979,
+      "mrr": 0.5076648841354723,
+      "mean_top1_score": 0.4707875240641714,
+      "pct_top1_above_floor": 0.9946524064171123,
+      "n": 187,
+      "errors": 0
+    },
+    "induction": {
+      "precision@1": 0.7894736842105263,
+      "precision@3": 0.9473684210526315,
+      "mrr": 0.881578947368421,
+      "mean_top1_score": 0.5402455789473685,
+      "pct_top1_above_floor": 1.0,
+      "n": 19,
+      "errors": 0
+    },
+    "integration": {
+      "precision@1": 0.6180555555555556,
+      "precision@3": 0.8263888888888888,
+      "mrr": 0.7292824074074074,
+      "mean_top1_score": 0.507389111111111,
+      "pct_top1_above_floor": 0.9930555555555556,
+      "n": 144,
+      "errors": 0
+    },
+    "number-theory": {
+      "precision@1": 0.6521739130434783,
+      "precision@3": 0.8260869565217391,
+      "mrr": 0.7405797101449275,
+      "mean_top1_score": 0.5014732753623189,
+      "pct_top1_above_floor": 1.0,
+      "n": 69,
+      "errors": 0
+    },
+    "probability": {
+      "precision@1": 0.5391705069124424,
+      "precision@3": 0.7419354838709677,
+      "mrr": 0.6489247311827957,
+      "mean_top1_score": 0.46664679723502317,
+      "pct_top1_above_floor": 0.9953917050691244,
+      "n": 217,
+      "errors": 0
+    },
+    "sequences-series": {
+      "precision@1": 0.34523809523809523,
+      "precision@3": 0.5119047619047619,
+      "mrr": 0.4340277777777779,
+      "mean_top1_score": 0.4717734642857144,
+      "pct_top1_above_floor": 0.9880952380952381,
+      "n": 168,
+      "errors": 0
+    },
+    "sequences-series-introduction": {
+      "precision@1": 0.25,
+      "precision@3": 0.4166666666666667,
+      "mrr": 0.3194444444444445,
+      "mean_top1_score": 0.44241866666666674,
+      "pct_top1_above_floor": 1.0,
+      "n": 12,
+      "errors": 0
+    },
+    "sequences-series-patterns": {
+      "precision@1": 0.5384615384615384,
+      "precision@3": 0.7692307692307693,
+      "mrr": 0.6730769230769231,
+      "mean_top1_score": 0.492926,
+      "pct_top1_above_floor": 1.0,
+      "n": 13,
+      "errors": 0
+    },
+    "statistics": {
+      "precision@1": 0.4742857142857143,
+      "precision@3": 0.6857142857142857,
+      "mrr": 0.5773333333333333,
+      "mean_top1_score": 0.4745895314285714,
+      "pct_top1_above_floor": 0.9942857142857143,
+      "n": 175,
+      "errors": 0
+    },
+    "the-circle": {
+      "precision@1": 0.58,
+      "precision@3": 0.76,
+      "mrr": 0.6688888888888888,
+      "mean_top1_score": 0.5477070066666663,
+      "pct_top1_above_floor": 1.0,
+      "n": 150,
+      "errors": 0
+    },
+    "the-line": {
+      "precision@1": 0.5584415584415584,
+      "precision@3": 0.7597402597402597,
+      "mrr": 0.6685064935064935,
+      "mean_top1_score": 0.5245473506493504,
+      "pct_top1_above_floor": 0.9935064935064936,
+      "n": 154,
+      "errors": 0
+    },
+    "trigonometry": {
+      "precision@1": 0.42716857610474634,
+      "precision@3": 0.6661211129296236,
+      "mrr": 0.5471631205673751,
+      "mean_top1_score": 0.5105589656301154,
+      "pct_top1_above_floor": 0.9918166939443536,
+      "n": 611,
+      "errors": 0
+    }
+  },
+  "by_source": {
+    "phrasings": {
+      "precision@1": 0.6867549668874172,
+      "precision@3": 0.876158940397351,
+      "mrr": 0.7822626931567335,
+      "mean_top1_score": 0.5356848788079478,
+      "pct_top1_above_floor": 0.9973509933774835,
+      "n": 1510,
+      "errors": 0
+    },
+    "solution_cross_ref": {
+      "precision@1": 0.3380208333333333,
+      "precision@3": 0.5682291666666667,
+      "mrr": 0.4561892361111124,
+      "mean_top1_score": 0.4696526713541657,
+      "pct_top1_above_floor": 0.9947916666666666,
+      "n": 1920,
+      "errors": 0
+    }
+  },
+  "strand_regressions": [],
+  "scope": "full"
+}
