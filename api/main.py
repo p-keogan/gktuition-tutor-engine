@@ -192,7 +192,15 @@ def _allowed_origins() -> list[str]:
             "http://localhost:5173",  # vite default
             "http://127.0.0.1:3000",
         ]
-    return ["https://gktuition.ie", "https://www.gktuition.ie"]
+    origins = ["https://gktuition.ie", "https://www.gktuition.ie"]
+    # Additive, env-driven extras - e.g. the WP Engine staging origin during
+    # the widget-integration phase. Comma-separated, https only.
+    extra = os.environ.get("GKTUITION_EXTRA_ORIGINS", "")
+    for o in extra.split(","):
+        o = o.strip().rstrip("/")
+        if o.startswith("https://") and o not in origins:
+            origins.append(o)
+    return origins
 
 
 app = build_app()
