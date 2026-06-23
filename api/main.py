@@ -196,10 +196,10 @@ def _allowed_origins() -> list[str]:
     # Additive, env-driven extras - e.g. the WP Engine staging origin during
     # the widget-integration phase. Comma-separated, https only.
     extra = os.environ.get("GKTUITION_EXTRA_ORIGINS", "")
-    for o in extra.split(","):
-        o = o.strip().rstrip("/")
-        if o.startswith("https://") and o not in origins:
-            origins.append(o)
+    for raw in extra.split(","):
+        origin = raw.strip().rstrip("/")
+        if origin.startswith("https://") and origin not in origins:
+            origins.append(origin)
     return origins
 
 
