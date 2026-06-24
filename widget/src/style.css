@@ -271,6 +271,35 @@
 }
 .gktuition-tutor__attach:hover { background: #e5e7eb; }
 .gktuition-tutor__attach:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Pending photo attachment chip, shown above the composer before sending. */
+.gktuition-tutor__attachment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 12px 8px;
+  padding: 6px 10px;
+  background: #eef2f7;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #1f4068;
+}
+.gktuition-tutor__attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gktuition-tutor__attachment-remove {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.gktuition-tutor__attachment-remove:hover { color: #1f2937; }
 .gktuition-tutor__input {
   flex: 1;
   border: 1px solid #d1d5db;

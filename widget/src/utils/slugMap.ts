@@ -2,10 +2,7 @@
  * Corpus-slug -> WordPress-topic-slug map.
  *
  * AUTO-GENERATED from citation-slug-map.csv (do not hand-edit; regenerate).
- * The engine cites tutorials by descriptive corpus slugs (e.g.
- * "algebra-11-solving-cubic-equations"); WordPress topic pages use short
- * slugs (e.g. "algebra-11"). This table bridges the two. Slugs with no
- * WordPress equivalent are omitted -> the widget renders them as plain text.
+ * Geometry entries are matched by theorem/construction content, not number.
  */
 export const CORPUS_TO_WP_SLUG: Record<string, string> = {
   "algebra-1-revision-of-jc-factorising": "algebra-1",
@@ -98,8 +95,8 @@ export const CORPUS_TO_WP_SLUG: Record<string, string> = {
   "geometry-1-1-axioms-theorems-corollaries": "geometry-1",
   "geometry-1-10-proof-of-theorem-14": "geometry-10",
   "geometry-1-11-proof-of-theorem-19": "geometry-11",
-  "geometry-1-11-questions-on-theorem-19-circle-questions": "geometry-11",
-  "geometry-1-13-congruent-triangles": "geometry-13",
+  "geometry-1-11-questions-on-theorem-19-circle-questions": "geometry-15",
+  "geometry-1-13-congruent-triangles": "geometry-17",
   "geometry-1-13-proof-of-theorem-12": "geometry-13",
   "geometry-1-14-proof-of-theorem-13": "geometry-14",
   "geometry-1-16-similar-triangles": "geometry-16",
@@ -107,12 +104,12 @@ export const CORPUS_TO_WP_SLUG: Record<string, string> = {
   "geometry-1-19-enlargements": "geometry-18-2",
   "geometry-1-2-constructions-overview": "geometry-2",
   "geometry-1-3-construction-16-circumcircle": "geometry-3",
-  "geometry-1-4-construction-21-centroid": "geometry-4",
-  "geometry-1-4-proof-of-theorem-6": "geometry-4",
-  "geometry-1-5-construction-22-orthocentre": "geometry-5",
-  "geometry-1-5-proof-of-theorem-9": "geometry-5",
+  "geometry-1-4-construction-21-centroid": "geometry-5",
+  "geometry-1-4-proof-of-theorem-6": "geometry-8",
+  "geometry-1-5-construction-22-orthocentre": "geometry-6",
+  "geometry-1-5-proof-of-theorem-9": "geometry-9",
   "geometry-1-7-proof-of-theorem-4": "geometry-7",
-  "geometry-1-8-proof-of-theorem-11": "geometry-8",
+  "geometry-1-8-proof-of-theorem-11": "geometry-12",
   "indices-logs-1-jc-revision": "indices-and-logs-1",
   "indices-logs-2-rules-of-logs-1": "indices-and-logs-2",
   "indices-logs-3-rules-of-logs-2": "indices-and-logs-3",

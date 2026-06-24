@@ -297,7 +297,7 @@ def _default_anthropic_caller(system_prompt: str, user_prompt: str) -> str:
     client = anthropic.Anthropic(api_key=api_key)
     resp = client.messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=600,
+        max_tokens=2000,
         system=system_prompt,
         messages=[{"role": "user", "content": user_prompt}],
     )
@@ -454,7 +454,7 @@ def _default_anthropic_stream_caller(
     client = anthropic.Anthropic(api_key=api_key)
     with client.messages.stream(
         model="claude-haiku-4-5-20251001",
-        max_tokens=600,
+        max_tokens=2000,
         system=system_prompt,
         messages=[{"role": "user", "content": user_prompt}],
     ) as stream:

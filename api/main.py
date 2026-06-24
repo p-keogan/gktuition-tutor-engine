@@ -91,6 +91,19 @@ def _wire_seams() -> None:
     from .firewall.wire import install_firewall_at_startup
     install_firewall_at_startup()
 
+    # 6. Graph-routing LLM client (ADR-005 visualisation). Reuse the same
+    # Anthropic Haiku caller the synthesiser uses (already wrapped by L4's
+    # breaker via install_firewall_at_startup). Without this seam wired,
+    # augment_with_graphs always returns no graph, so answers never carry a
+    # figure. Only wire when a real caller/key is available (dev stays off).
+    from .orchestrator import synthesizer as _synth
+    if os.environ.get("ANTHROPIC_API_KEY") or _synth._anthropic_caller is not None:
+        _synth.set_graph_llm_client(
+            lambda system, user: (
+                _synth._anthropic_caller or _synth._default_anthropic_caller
+            )(system, user)
+        )
+
 
 def _maybe_wire_production_query_log() -> None:
     """Install the batched Snowflake log sink, if SF creds are set.

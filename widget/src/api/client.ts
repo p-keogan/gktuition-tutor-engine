@@ -20,8 +20,8 @@ import type {
 export interface ApiClient {
   fetchTier(): Promise<TierResponse>;
   postQuery(req: QueryRequest, signal?: AbortSignal): Promise<QueryResponse>;
-  /** Upload a photo of a question to /image_query (paying tier only). */
-  postImageQuery(file: Blob, signal?: AbortSignal): Promise<ImageQueryResult>;
+  /** Upload a photo of a question (+ optional caption) to /image_query (paying tier only). */
+  postImageQuery(file: Blob, caption: string, signal?: AbortSignal): Promise<ImageQueryResult>;
   /** Test-only — get the current in-memory token. */
   _currentToken(): { jwt: string; exp: number; fastapiUrl: string } | null;
 }
@@ -124,12 +124,17 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     return (await res.json()) as QueryResponse;
   }
 
-  async function postImageQuery(file: Blob, signal?: AbortSignal): Promise<ImageQueryResult> {
+  async function postImageQuery(
+    file: Blob,
+    caption: string,
+    signal?: AbortSignal,
+  ): Promise<ImageQueryResult> {
     const auth = await ensureToken();
     const base = auth.fastapiUrl.replace(/\/$/, '');
     const fd = new FormData();
     // Field name must match the FastAPI param: image: UploadFile = File(...).
     fd.append('image', file, (file as File).name || 'question.jpg');
+    if (caption && caption.trim()) fd.append('caption', caption.trim());
     const res = await fetchImpl(`${base}/image_query`, {
       method: 'POST',
       signal,

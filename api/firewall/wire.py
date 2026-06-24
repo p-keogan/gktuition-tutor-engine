@@ -35,6 +35,7 @@ from ..orchestrator.query_rewrite import maybe_rewrite, maybe_rewrite_fallback
 from ..orchestrator.retriever import RETRIEVAL_FLOOR, retrieve
 from ..orchestrator.synthesizer import (
     GUARDRAIL_ANSWER,
+    augment_with_graphs,
     estimate_cost_cents,
     select_citations,
     slug_anchor_override,
@@ -236,6 +237,14 @@ async def run_with_firewall(
             sp_s.output["answer_chars"] = len(synthesis.answer or "")
 
         citations = select_citations(retrieval)
+        # Visualisation layer (ADR-005). The non-firewall route does this; the
+        # firewall response builder previously didn't, so live queries never
+        # got graphs. Skip on the guardrail (no answer to illustrate).
+        graphs = (
+            await asyncio.to_thread(augment_with_graphs, q_retrieval, retrieval)
+            if synthesis.answer != GUARDRAIL_ANSWER
+            else []
+        )
         # Mirror the non-firewall ``_run_query`` route in ``routes/query.py``:
         # the synthesiser injects the voice anchor into the prompt; we surface
         # the strand decision on the wire so the eval harness can score
@@ -267,6 +276,7 @@ async def run_with_firewall(
             retrieved=retrieval.chunks,
             exam_appearances=retrieval.exam_appearances,
             related_learning_work=retrieval.related_learning_work,
+            graphs=graphs,
             model_used=synthesis.model_used,
             from_cache=False,
             voice_anchor_strand=voice_anchor_strand,

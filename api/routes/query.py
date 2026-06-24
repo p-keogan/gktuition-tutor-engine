@@ -429,6 +429,9 @@ async def _wrap_full_response_as_sse(resp: QueryResponse) -> AsyncIterator[bytes
     if resp.answer:
         yield _format_sse("token", {"text": resp.answer})
 
+    for g in resp.graphs or []:
+        yield _format_sse("graph", {"kind": g.kind, "figure": g.figure})
+
     for c in resp.citations:
         yield _format_sse(
             "citation",

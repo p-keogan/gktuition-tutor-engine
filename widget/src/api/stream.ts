@@ -21,7 +21,7 @@
  * ``postQuery`` path.
  */
 
-import type { Citation, ExamAppearance, QueryClass, QueryRequest } from './types';
+import type { Citation, ExamAppearance, GraphSpec, QueryClass, QueryRequest } from './types';
 
 /** Payload of ``event: token`` per ``contract.py::StreamTokenData``. */
 export interface StreamTokenEvent {
@@ -45,6 +45,7 @@ export interface StreamDoneEvent {
 export interface StreamHandlers {
   onToken?(ev: StreamTokenEvent): void;
   onCitation?(ev: StreamCitationEvent): void;
+  onGraph?(ev: GraphSpec): void;
   onDone?(ev: StreamDoneEvent): void;
   onError?(err: Error): void;
 }
@@ -186,6 +187,9 @@ function dispatchRecord(record: string, handlers: StreamHandlers): void {
       return;
     case 'citation':
       handlers.onCitation?.(payload as StreamCitationEvent);
+      return;
+    case 'graph':
+      handlers.onGraph?.(payload as GraphSpec);
       return;
     case 'done':
       handlers.onDone?.(payload as StreamDoneEvent);

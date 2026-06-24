@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, type ChangeEvent, type FormEvent } from 'react';
 import type { ApiClient } from '../api/client';
 import { streamQuery, streamSupported } from '../api/stream';
-import type { Citation, ExamAppearance, QueryClass, Tier, WidgetOptions } from '../api/types';
+import type { Citation, ExamAppearance, GraphSpec, QueryClass, Tier, WidgetOptions } from '../api/types';
 import { MessageBubble, type ChatMessage } from './MessageBubble';
 import { EmailCaptureWall } from './EmailCaptureWall';
 
@@ -60,6 +60,9 @@ export function ChatPanel({
   const [wallDismissed, setWallDismissed] = useState(false);
   // Larger panel toggle — students on bigger screens can expand the window.
   const [expanded, setExpanded] = useState(false);
+  // A photo the student has attached but not yet sent (so they can add a
+  // question to go with it). Sent together on Send.
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +87,19 @@ export function ChatPanel({
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const q = input.trim();
-    if (!q || busy) return;
+    if (busy) return;
+
+    // Photo attached → send the image (with the typed text as its caption).
+    if (pendingImage) {
+      const file = pendingImage;
+      setPendingImage(null);
+      setInput('');
+      setError(null);
+      await sendImageQuery(file, q);
+      return;
+    }
+
+    if (!q) return;
 
     if (shouldShowWall()) {
       setWallShown(true);
@@ -145,16 +160,21 @@ export function ChatPanel({
     }
   }
 
-  async function handleImageSelected(e: ChangeEvent<HTMLInputElement>) {
+  function handleImageSelected(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     // Reset the input so selecting the same file again re-fires change.
     if (fileInputRef.current) fileInputRef.current.value = '';
-    if (!file || busy) return;
-
+    if (!file) return;
+    // Attach it; the student can now type a question and hit Send.
+    setPendingImage(file);
     setError(null);
+  }
+
+  async function sendImageQuery(file: File, caption: string) {
+    const label = caption ? caption : 'Can you help me with this question?';
     setMessages((prev) => [
       ...prev,
-      { id: makeId(), role: 'user', text: `📷 Uploaded a photo: ${file.name}` },
+      { id: makeId(), role: 'user', text: `📷 ${file.name}\n${label}` },
     ]);
     setBusy(true);
     setThinking(true);
@@ -162,7 +182,7 @@ export function ChatPanel({
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
-      const res = await client.postImageQuery(file, ctrl.signal);
+      const res = await client.postImageQuery(file, caption, ctrl.signal);
       if (res.questions && res.questions.length > 0) {
         const list = res.questions.map((q, i) => `${i + 1}. ${q}`).join('\n');
         setMessages((prev) => [
@@ -242,6 +262,7 @@ export function ChatPanel({
     let buffer = '';
     let citations: Citation[] = [];
     let examAppearances: ExamAppearance[] = [];
+    let graphs: GraphSpec[] = [];
     let firstTokenSeen = false;
     let done = false;
 
@@ -257,6 +278,7 @@ export function ChatPanel({
               text: buffer,
               citations: citations.length ? citations : undefined,
               examAppearances: examAppearances.length ? examAppearances : undefined,
+              graphs: graphs.length ? graphs : undefined,
             },
           ];
         }
@@ -268,6 +290,7 @@ export function ChatPanel({
           examAppearances: examAppearances.length
             ? examAppearances
             : next[idx].examAppearances,
+          graphs: graphs.length ? graphs : next[idx].graphs,
         };
         return next;
       });
@@ -287,6 +310,10 @@ export function ChatPanel({
           },
           onCitation: (c) => {
             citations.push(c);
+            flushDraft();
+          },
+          onGraph: (g) => {
+            graphs.push(g);
             flushDraft();
           },
           onDone: (ev) => {
@@ -419,6 +446,21 @@ export function ChatPanel({
           </div>
         ) : null}
       </div>
+      {pendingImage ? (
+        <div className="gktuition-tutor__attachment" data-testid="gktuition-attachment">
+          <span className="gktuition-tutor__attachment-name">📎 {pendingImage.name}</span>
+          <button
+            type="button"
+            className="gktuition-tutor__attachment-remove"
+            onClick={() => setPendingImage(null)}
+            disabled={busy}
+            aria-label="Remove photo"
+            title="Remove photo"
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
       <form className="gktuition-tutor__composer" onSubmit={handleSubmit}>
         {tier === 'paying' ? (
           <>
@@ -435,8 +477,8 @@ export function ChatPanel({
               className="gktuition-tutor__attach"
               onClick={() => fileInputRef.current?.click()}
               disabled={busy}
-              aria-label="Upload a photo of a question"
-              title="Upload a photo of a question"
+              aria-label="Attach a photo of a question"
+              title="Attach a photo of a question"
             >
               📷
             </button>
@@ -447,7 +489,7 @@ export function ChatPanel({
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask a question…"
+          placeholder={pendingImage ? 'Add a question about this photo… (optional)' : 'Ask a question…'}
           aria-label="Question"
           disabled={busy}
           data-testid="gktuition-input"
@@ -455,7 +497,7 @@ export function ChatPanel({
         <button
           type="submit"
           className="gktuition-tutor__send"
-          disabled={busy || !input.trim()}
+          disabled={busy || (!input.trim() && !pendingImage)}
           data-testid="gktuition-send"
         >
           Send

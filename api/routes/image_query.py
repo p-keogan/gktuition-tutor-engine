@@ -23,7 +23,7 @@ import logging
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import JSONResponse
 
 from ..models.image_query import (
@@ -121,6 +121,7 @@ async def _read_and_validate_upload(image: UploadFile) -> tuple[bytes, str]:
 async def image_query(
     request: Request,
     image: UploadFile = File(...),
+    caption: str = Form(""),
     auth: AuthContext = Depends(require_paying_tier),
     client: Any = Depends(get_anthropic_client),
 ):
@@ -206,10 +207,16 @@ async def image_query(
         )
         return MultipleQuestionsResponse(questions=extraction.questions)
 
-    # Single clean extraction — forward to the standard /query handler.
+    # Single clean extraction — forward to the standard /query handler. If the
+    # student typed a caption alongside the photo, append it so the answer
+    # addresses their specific ask (e.g. "I only need part (b)").
     assert extraction.extracted_question is not None  # narrowed by branches above
+    q_for_rag = extraction.extracted_question
+    cap = (caption or "").strip()
+    if cap:
+        q_for_rag = f"{extraction.extracted_question}\n\nThe student adds: {cap}"
     rag_response = await query_pipeline.run_text_query(
-        extraction.extracted_question,
+        q_for_rag,
         user_id=auth.user_id,
         request_id=request_id,
     )

@@ -23,6 +23,7 @@ import json
 import logging
 import math
 import os
+import re
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -55,6 +56,9 @@ ANALYST_SEMANTIC_MODEL_FILE = (
 )
 
 TOP_K = 5
+# A single exam question has many sub-parts (a, b(i), b(ii), c(i)…); keep more
+# of them for solution-lookup so the full worked solution reaches the model.
+SOLUTIONS_TOP_K = 12
 
 # Sub-floor below which retrieval is considered too weak to ground an answer.
 # Tuned per the eval set's auto-easy precision floor — eval reports below
@@ -353,6 +357,7 @@ def _search_preview(
     query: str,
     columns: list[str],
     limit: int = TOP_K,
+    filter_obj: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Wrap ``SNOWFLAKE.CORTEX.SEARCH_PREVIEW`` against ``service_fqn``.
 
@@ -361,7 +366,9 @@ def _search_preview(
     row from the scorer through this retriever and through the eval CSV
     independently should produce the same top-K slug list.
     """
-    payload = {"query": query, "columns": columns, "limit": limit}
+    payload: dict[str, Any] = {"query": query, "columns": columns, "limit": limit}
+    if filter_obj:
+        payload["filter"] = filter_obj
     with _cursor() as cs:
         cs.execute(
             """
@@ -409,51 +416,86 @@ def _from_tutor_search(query: str) -> tuple[list[RetrievedChunk], list[Citation]
     return chunks, citations
 
 
+def _parse_paper_ref(query: str) -> dict[str, int]:
+    """Extract {year, paper, question_number} from a paper-specific query.
+
+    e.g. "I'm stuck on 2024 P2 Q7(a)" → {year:2024, paper:2, question_number:7}.
+    Year/paper/question are stored as metadata on EXAM_PARTS (not in the
+    searchable solution text), so we turn them into a Cortex Search filter to
+    target the exact question rather than relying on weak topical similarity.
+    """
+    ql = query.lower()
+    ref: dict[str, object] = {}
+    m = re.search(r"\b(?:19|20)\d{2}\b", query)
+    if m:
+        ref["year"] = int(m.group(0))
+    m = re.search(r"\b(?:p|paper)\s*([12])\b", ql)
+    if m:
+        ref["paper"] = int(m.group(1))
+    m = re.search(r"\bq(?:uestion)?\s*0*(\d+)", ql)
+    if m:
+        ref["question_number"] = int(m.group(1))
+    # Default to the main sitting for a specific-paper query unless the student
+    # explicitly says deferred/DF (avoids mixing main + deferred Q7s).
+    if "year" in ref:
+        ref["sitting"] = "df" if re.search(r"\bdeferred\b|\bdf\b", ql) else "main"
+    return ref
+
+
 def _from_solutions_search(query: str) -> tuple[list[RetrievedChunk], list[Citation]]:
+    # When the student names a specific paper (year/paper/question), filter the
+    # index to exactly that question — the reference lives in metadata, not the
+    # searchable text, so an unfiltered semantic search ranks it poorly.
+    ref = _parse_paper_ref(query)
+    filter_obj: dict[str, Any] | None = None
+    if ref:
+        conds = [{"@eq": {k: v}} for k, v in ref.items()]
+        filter_obj = conds[0] if len(conds) == 1 else {"@and": conds}
+
     hits = _search_preview(
         SOLUTIONS_SEARCH,
         query,
         columns=["part_id", "topic", "question_text", "solution_text", "tutorials_referenced"],
+        filter_obj=filter_obj,
+        # Pull every sub-part of the question, not just the global top-5, so the
+        # complete worked solution is in the evidence.
+        limit=SOLUTIONS_TOP_K if filter_obj else TOP_K,
     )
+    # If the student gave a precise paper+question reference and we found the
+    # matching part(s), treat it as a confident hit so the retrieval floor
+    # doesn't guardrail the exact solution they asked for.
+    exact_match = bool(ref.get("question_number") and filter_obj and hits)
     chunks: list[RetrievedChunk] = []
     citations: list[Citation] = []
+    seen_tutorials: set[str] = set()
     for h in hits:
         part_id = str(h.get("part_id") or "")
         if not part_id:
             continue
+        # Keep most of the worked solution — truncating to 800 chars was losing
+        # whole sub-parts, forcing the model to improvise the question.
         snippet = _shorten(
             (h.get("question_text") or "") + "\n\n" + (h.get("solution_text") or ""),
-            800,
+            2200,
         )
-        score = _normalise_score(h)
+        score = 0.95 if exact_match else _normalise_score(h)
         chunks.append(RetrievedChunk(slug=part_id, snippet=snippet, score=score))
-        # Citations from SOLUTIONS_SEARCH point at the underlying tutorials,
-        # not the exam part — that's what the widget needs to deep-link to a
-        # video. The part_id itself becomes the first citation so the user
-        # can see which exam question they matched.
-        citations.append(
-            Citation(
-                slug=part_id,
-                title=str(h.get("topic") or part_id),
-                timestamp_seconds=None,
-                score=score,
-            )
-        )
+        # Cite the underlying TUTORIALS (they have pages the widget links to).
+        # We don't cite the exam-part id — it has no page, so it would render as
+        # a dead link and crowd out the useful tutorial links.
         refs = h.get("tutorials_referenced") or []
         if isinstance(refs, str):
             try:
                 refs = json.loads(refs)
             except json.JSONDecodeError:
                 refs = []
-        for tslug in refs[:3]:
-            citations.append(
-                Citation(
-                    slug=str(tslug),
-                    title=str(tslug),
-                    timestamp_seconds=None,
-                    score=score * 0.9,
+        for tslug in refs:
+            ts = str(tslug).strip()
+            if ts and ts not in seen_tutorials:
+                seen_tutorials.add(ts)
+                citations.append(
+                    Citation(slug=ts, title=ts, timestamp_seconds=None, score=score)
                 )
-            )
     return chunks, citations
 
 
@@ -547,8 +589,11 @@ async def retrieve(query: str, query_class: QueryClass) -> RetrievalResult:
         analyst_sql = analyst.sql
         analyst_rows = analyst.rows
 
-    # Sort chunks by score desc, keep top-K overall, and dedupe by slug.
-    chunks = _dedupe_by_slug(sorted(chunks, key=lambda c: -c.score))[:TOP_K]
+    # Sort chunks by score desc, keep top-K overall, and dedupe by slug. For
+    # solution-lookup we keep more chunks so a full multi-part exam question
+    # survives; citations stay capped at TOP_K (the widget shows 2 anyway).
+    chunk_cap = SOLUTIONS_TOP_K if query_class == QueryClass.SOLUTION_LOOKUP else TOP_K
+    chunks = _dedupe_by_slug(sorted(chunks, key=lambda c: -c.score))[:chunk_cap]
     citations = _dedupe_by_slug(sorted(citations, key=lambda c: -c.score))[:TOP_K]
     top_score = chunks[0].score if chunks else 0.0
 
