@@ -94,5 +94,39 @@ TUTOR_SEARCH call, rather than embedding the whole question. Validate with the
 eval harness so it doesn't regress currently-good answers. Test cases: this
 indices question (#6) and the integration question (#5).
 
+## 7. Venn diagram of number sets — content-coverage gap (2026-06-24)
+**Query (photo, 2025 P1 Q7(b)):** Venn diagram with A = multiples of 4 (4m),
+B = {4^r : r∈Q}, D = irrationals (R\Q); A∩D shaded as empty.
+**Got:** correct partial reasoning (A∩D=∅ since multiples of 4 are rational) but
+hedged and asked for the full sub-question; retrieved Number Theory 1 (right) +
+Sequences 2 (noise).
+**Diagnosis — mostly NOT a retrieval bug:**
+1. The uploaded photo cut off the actual (i)/(ii) ask — only the set
+   definitions were captured. (Input-completeness issue; tutor reasonably asked
+   for the full text.)
+2. Niche/sophisticated topic. The crux is that **4^r with r∈Q can be irrational**
+   (4^½=2 rational, but 4^⅓=∛4 irrational), so B straddles D. Corpus likely has
+   no tutorial drilling "rational exponents → can be irrational."
+**Fix to trial:** (a) corpus addition (playbook) — a tutorial or worked
+exam-solution covering number-set classification / rationality of powers;
+(b) the over-hedge prompt tweak (see #4). Not a topic-extraction failure — that
+worked (found Number Theory 1).
+
+## 8. ⭐ No conversation memory — multi-turn follow-ups break (2026-06-24)
+**Sequence:** "algebra test tomorrow, what to focus on?" (good summary answer) →
+"Algebra only, not complex numbers" → tutor answered about Complex Numbers 9
+(cubic equations with complex roots) — the OPPOSITE of the request.
+**Two root causes (architecture, not content):**
+1. **Stateless** — every message is answered standalone; the engine gets no
+   conversation history, so a refining follow-up has no context.
+2. **Negation in semantic search** — "no complex numbers" embeds toward complex
+   numbers (the words are present), so retrieval pulled exactly the excluded
+   topic.
+**Fix (feature build):** add conversation memory — widget sends the last N turns
+with each query; QueryRequest gains an optional `history` field; the synthesis
+(and ideally classification) prompt includes recent turns so follow-ups refine
+the prior answer and honour exclusions like "no complex numbers". Watch prompt-
+token cost (cap history length). High value: students chat in follow-ups.
+
 ---
 _Add new findings above this line with date, query, got vs. should, and a fix to trial._

@@ -31,7 +31,11 @@ from fastapi import HTTPException, Request
 
 from ..orchestrator.classifier import classify, classify_image_extracted
 from ..orchestrator.contract import QueryClass, QueryResponse
-from ..orchestrator.query_rewrite import maybe_rewrite, maybe_rewrite_fallback
+from ..orchestrator.query_rewrite import (
+    condense_query,
+    maybe_rewrite,
+    maybe_rewrite_fallback,
+)
 from ..orchestrator.retriever import RETRIEVAL_FLOOR, retrieve
 from ..orchestrator.synthesizer import (
     GUARDRAIL_ANSWER,
@@ -61,6 +65,7 @@ async def run_with_firewall(
     user_id: str,
     debug: bool,
     extracted_from_image: bool = False,
+    history: list[Any] | None = None,
     request_id: str | None = None,
 ) -> QueryResponse:
     """Firewall-wrapped pipeline.
@@ -102,6 +107,13 @@ async def run_with_firewall(
     )
 
     try:
+        # ---- Conversation memory ---------------------------------------
+        # Condense recent turns + the latest message into one standalone
+        # question so follow-ups keep context and stated constraints
+        # ("algebra only, no complex numbers"). No-op when there's no history.
+        if history and not extracted_from_image:
+            q = condense_query(history, q)
+
         # ---- Classify --------------------------------------------------
         with L6.span(trace, "classify", q_preview=L6._safe_query_preview(q)) as sp_c:
             if extracted_from_image:
@@ -241,7 +253,9 @@ async def run_with_firewall(
         # firewall response builder previously didn't, so live queries never
         # got graphs. Skip on the guardrail (no answer to illustrate).
         graphs = (
-            await asyncio.to_thread(augment_with_graphs, q_retrieval, retrieval)
+            await asyncio.to_thread(
+                augment_with_graphs, q_retrieval, retrieval, synthesis.answer
+            )
             if synthesis.answer != GUARDRAIL_ANSWER
             else []
         )

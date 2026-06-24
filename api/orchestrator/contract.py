@@ -159,6 +159,15 @@ class GraphSpec(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class ConversationTurn(BaseModel):
+    """One prior message in the conversation, sent by the widget for context."""
+
+    model_config = ConfigDict(frozen=True)
+
+    role: str = Field(..., description="'user' or 'assistant'.")
+    text: str = Field("", description="The message text.")
+
+
 class QueryRequest(BaseModel):
     """``POST /query`` body.
 
@@ -186,6 +195,14 @@ class QueryRequest(BaseModel):
         description=(
             "When true, the response includes diagnostic fields (raw retrieval "
             "scores, classifier match phrases). Off by default."
+        ),
+    )
+    history: list[ConversationTurn] = Field(
+        default_factory=list,
+        description=(
+            "Recent prior conversation turns (oldest first) for context. The "
+            "widget sends the last few; the engine condenses them with the "
+            "current question into a standalone query. Capped server-side."
         ),
     )
 

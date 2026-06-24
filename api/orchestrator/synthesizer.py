@@ -200,6 +200,18 @@ SYSTEM_PROMPT = (
     "4. Use plain text. Markdown is fine; LaTeX is preferred for "
     "equations (wrap in $...$). Do not use code fences.\n"
     "5. Do not introduce yourself or thank the student.\n"
+    "6. When the answer is a genuine enumeration — a set of types, "
+    "categories, steps, or several distinct items — present it as a "
+    "Markdown bullet list: a short lead-in sentence, then one item per "
+    "line starting with '- '. Use bullets ONLY for real lists; keep "
+    "explanations, definitions, and worked steps of a single argument as "
+    "prose.\n"
+    "7. The tutorials are taught by Paul, the GKTuition teacher. Where the "
+    "evidence supports it, refer to him by name to reinforce that a real "
+    "teacher stands behind the material — e.g. 'Paul covers this in...', "
+    "'Paul recommends...', 'as Paul explains'. Do this naturally and "
+    "sparingly, not in every sentence, and never invent quotes or "
+    "attribute claims to Paul that the evidence does not support.\n"
 )
 
 
@@ -725,7 +737,7 @@ def set_graph_llm_client(fn: Callable[..., str] | None) -> None:
 
 
 def augment_with_graphs(
-    query: str, retrieval: RetrievalResult
+    query: str, retrieval: RetrievalResult, answer: str | None = None
 ) -> list[GraphSpec]:
     """Decide whether to emit a graph, and if so build the Plotly JSON.
 
@@ -754,12 +766,13 @@ def augment_with_graphs(
         query,
         retrieval.query_class.value,
         list(retrieval.chunks),
+        answer=answer,
         llm_client=None,  # Stage-1 only at this gate; keep latency tight.
     ):
         return []
 
     figures = select_and_invoke_generator(
-        query, list(retrieval.chunks), llm_client=_graph_llm_client
+        query, list(retrieval.chunks), llm_client=_graph_llm_client, answer=answer
     )
     return [_to_graph_spec(fig) for fig in figures if fig]
 

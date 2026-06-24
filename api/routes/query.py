@@ -127,6 +127,7 @@ async def query_endpoint(request: Request, body: QueryRequest) -> QueryResponse:
             tier=decoded.tier,
             user_id=decoded.user_id,
             debug=body.debug,
+            history=body.history,
             extracted_from_image=False,
         )
 
@@ -231,6 +232,7 @@ async def query_stream_endpoint(request: Request, body: QueryRequest) -> Streami
             tier=tier,
             user_id=user_id,
             debug=debug,
+            history=body.history,
             extracted_from_image=False,
         )
         return StreamingResponse(
@@ -561,7 +563,9 @@ async def _run_query(
     # answer text, so a failure here never affects the answer. Also runs
     # in a thread because the deterministic check is cheap but the optional
     # Haiku call is a blocking HTTP request.
-    graphs = await asyncio.to_thread(augment_with_graphs, q_retrieval, retrieval)
+    graphs = await asyncio.to_thread(
+        augment_with_graphs, q_retrieval, retrieval, synthesis.answer
+    )
 
     # 4. Assemble response
     citations = select_citations(retrieval)

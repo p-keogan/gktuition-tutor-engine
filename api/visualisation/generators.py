@@ -322,6 +322,612 @@ def _polynomial_real_roots(
 
 
 # ---------------------------------------------------------------------------
+# 1b. plot_quadratic_inequality
+# ---------------------------------------------------------------------------
+#
+# Quadratic inequalities (Algebra strand) are taught as a sketch-and-shade
+# method: factorise → sketch the parabola → read off the region(s) of x where
+# the inequality holds. A bare parabola plot doesn't carry the answer; the
+# *shaded solution region* is the point. This generator draws the parabola and
+# shades the x-interval(s) that satisfy the inequality, marks the roots
+# open/closed for strict/non-strict, and annotates the solution set. The region
+# is computed deterministically from the coefficients + operator — the LLM
+# tool-router only supplies those two facts, never the region maths.
+
+# Operator spellings the router (or a tutorial snippet) might emit, normalised
+# to one of the four canonical forms.
+_INEQ_OPERATORS = {
+    "<": "<",
+    "<=": "<=",
+    "=<": "<=",
+    "≤": "<=",  # ≤
+    ">": ">",
+    ">=": ">=",
+    "=>": ">=",
+    "≥": ">=",  # ≥
+}
+
+
+def _normalise_operator(operator: str) -> str:
+    op = str(operator).strip().replace(" ", "")
+    if op not in _INEQ_OPERATORS:
+        raise ValueError(
+            f"operator must be one of <, <=, >, >= (or ≤/≥); got {operator!r}"
+        )
+    return _INEQ_OPERATORS[op]
+
+
+def _quadratic_expr(a: float, b: float, c: float) -> str:
+    """Render ``ax² + bx + c`` (drops zero/unit terms) for a title."""
+    sup = "²"
+    parts: list[str] = []
+    # a·x²
+    if a != 0:
+        lead = "x" + sup if a == 1 else ("-x" + sup if a == -1 else f"{a:g}x{sup}")
+        parts.append(lead)
+    # b·x
+    if b != 0:
+        sign = "+" if b > 0 else "−"
+        mag = abs(b)
+        term = "x" if mag == 1 else f"{mag:g}x"
+        parts.append(f" {sign} {term}" if parts else (f"-{term}" if b < 0 else term))
+    # c
+    if c != 0:
+        sign = "+" if c > 0 else "−"
+        parts.append(f" {sign} {abs(c):g}" if parts else f"{c:g}")
+    return "".join(parts) if parts else "0"
+
+
+def plot_quadratic_inequality(
+    coefficients: list[float],
+    operator: str,
+    x_range: tuple[float, float] | None = None,
+    *,
+    title: str = "",
+    samples: int = DEFAULT_SAMPLES,
+) -> dict[str, Any]:
+    """Plot a quadratic and shade where ``a x² + b x + c  [op]  0`` holds.
+
+    Args:
+        coefficients: ``[a, b, c]`` (highest-degree first). ``a`` must be
+                      non-zero — this is a *quadratic* inequality generator.
+        operator:     one of ``<``, ``<=``, ``>``, ``>=`` (``≤``/``≥`` accepted).
+        x_range:      optional plot bounds. When omitted, a sensible window is
+                      derived from the roots (or the vertex if there are none).
+
+    The satisfying x-region(s) are shaded as vertical bands, the roots are
+    marked (open circle for a strict inequality, filled for non-strict), and
+    the solution set is annotated on the figure.
+
+    Raises:
+        ValueError: if ``coefficients`` is not ``[a, b, c]`` with ``a != 0``,
+        or ``operator`` is unrecognised.
+    """
+    if not (isinstance(coefficients, list | tuple) and len(coefficients) == 3):
+        raise ValueError(
+            f"coefficients must be [a, b, c] for a quadratic; got {coefficients!r}"
+        )
+    if not all(isinstance(c, int | float) for c in coefficients):
+        raise ValueError(f"coefficients must be numeric; got {coefficients!r}")
+    a, b, c = (float(coefficients[0]), float(coefficients[1]), float(coefficients[2]))
+    if a == 0:
+        raise ValueError("a (the x² coefficient) must be non-zero for a quadratic.")
+
+    op = _normalise_operator(operator)
+    strict = op in ("<", ">")
+    want_negative = op in ("<", "<=")
+
+    # --- Roots ----------------------------------------------------------------
+    disc = b * b - 4.0 * a * c
+    if disc > 0:
+        sqrt_d = disc**0.5
+        r1, r2 = sorted(((-b - sqrt_d) / (2 * a), (-b + sqrt_d) / (2 * a)))
+        real_roots = [r1, r2]
+    elif disc == 0:
+        r1 = r2 = -b / (2 * a)
+        real_roots = [r1]
+    else:
+        r1 = r2 = None
+        real_roots = []
+
+    # --- Plot window ----------------------------------------------------------
+    if x_range is not None:
+        lo, hi = _validate_x_range(x_range)
+    elif r1 is not None and r2 is not None and r2 > r1:
+        pad = max(r2 - r1, 1.0) * 0.8
+        lo, hi = r1 - pad, r2 + pad
+    elif r1 is not None:
+        lo, hi = r1 - 3.0, r1 + 3.0
+    else:
+        vx = -b / (2 * a)
+        lo, hi = vx - 4.0, vx + 4.0
+
+    xs = _make_xs((lo, hi), samples)
+    ys = np.polyval(np.array([a, b, c], dtype=float), xs)
+
+    # --- Satisfying bands (sampled mask → contiguous intervals) ---------------
+    mask = (ys < 0) if want_negative else (ys > 0)
+    bands: list[tuple[float, float]] = []
+    band_start: float | None = None
+    for i, m in enumerate(mask):
+        if m and band_start is None:
+            band_start = float(xs[i])
+        elif not m and band_start is not None:
+            bands.append((band_start, float(xs[i - 1])))
+            band_start = None
+    if band_start is not None:
+        bands.append((band_start, float(xs[-1])))
+
+    shapes = [
+        {
+            "type": "rect",
+            "xref": "x",
+            "yref": "paper",
+            "x0": bl,
+            "x1": br,
+            "y0": 0,
+            "y1": 1,
+            "fillcolor": "rgba(39, 174, 96, 0.18)",
+            "line": {"width": 0},
+            "layer": "below",
+        }
+        for (bl, br) in bands
+    ]
+
+    # --- Traces: the parabola + the roots -------------------------------------
+    traces: list[dict[str, Any]] = [
+        {
+            "type": "scatter",
+            "mode": "lines",
+            "name": "f(x)",
+            "x": xs.tolist(),
+            "y": _nan_to_none(ys),
+            "line": {"color": PALETTE[0], "width": 2},
+            "hovertemplate": "x=%{x:.3f}<br>y=%{y:.3f}<extra></extra>",
+        }
+    ]
+    if real_roots:
+        traces.append(
+            {
+                "type": "scatter",
+                "mode": "markers",
+                "name": "roots",
+                "x": [float(r) for r in real_roots],
+                "y": [0.0] * len(real_roots),
+                "marker": {
+                    "color": PALETTE[1],
+                    "size": 10,
+                    # Open circle = boundary NOT included (strict); filled = included.
+                    "symbol": "circle-open" if strict else "circle",
+                    "line": {"width": 2, "color": PALETTE[1]},
+                },
+                "hovertemplate": "x=%{x:.3f}<extra></extra>",
+            }
+        )
+
+    # --- Solution-set string --------------------------------------------------
+    solution = _inequality_solution_text(a, op, strict, want_negative, r1, r2, disc)
+
+    expr = _quadratic_expr(a, b, c)
+    op_glyph = {"<": "<", "<=": "≤", ">": ">", ">=": "≥"}[op]
+    auto_title = title or f"{expr} {op_glyph} 0"
+
+    layout = _base_layout(
+        auto_title,
+        summary=f"Parabola y = {expr} with the region where {expr} {op_glyph} 0 shaded. Solution: {solution}.",
+    )
+    layout["shapes"] = shapes
+    layout["annotations"] = [
+        {
+            "xref": "paper",
+            "yref": "paper",
+            "x": 0.5,
+            "y": 1.0,
+            "yanchor": "bottom",
+            "showarrow": False,
+            "text": f"Solution: {solution}",
+            "font": {"size": 13, "color": PALETTE[2]},
+        }
+    ]
+    return {"data": traces, "layout": layout}
+
+
+def _inequality_solution_text(
+    a: float,
+    op: str,
+    strict: bool,
+    want_negative: bool,
+    r1: float | None,
+    r2: float | None,
+    disc: float,
+) -> str:
+    """Human-readable solution set for the quadratic inequality."""
+    # No real roots: the parabola never crosses zero, so f keeps the sign of a.
+    if disc < 0 or r1 is None:
+        f_positive_everywhere = a > 0
+        satisfied = f_positive_everywhere == (not want_negative)
+        return "all real x" if satisfied else "no real solutions"
+
+    # Repeated root: f touches zero at one point and otherwise keeps sign(a).
+    if disc == 0:
+        r = r1
+        f_positive_elsewhere = a > 0
+        if want_negative:
+            if f_positive_elsewhere:
+                # f ≤ 0 only at the root; f < 0 nowhere.
+                return f"x = {r:g}" if not strict else "no real solutions"
+            return "all real x" if not strict else f"x ≠ {r:g}"
+        else:  # want_positive
+            if f_positive_elsewhere:
+                return "all real x" if not strict else f"x ≠ {r:g}"
+            return f"x = {r:g}" if not strict else "no real solutions"
+
+    # Distinct roots r1 < r2. With a>0 the parabola is negative *between* the
+    # roots; with a<0 it's positive between them.
+    between_is_negative = a > 0
+    region_between = (want_negative and between_is_negative) or (
+        (not want_negative) and (not between_is_negative)
+    )
+    if region_between:
+        return (
+            f"{r1:g} < x < {r2:g}" if strict else f"{r1:g} ≤ x ≤ {r2:g}"
+        )
+    return (
+        f"x < {r1:g} or x > {r2:g}"
+        if strict
+        else f"x ≤ {r1:g} or x ≥ {r2:g}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# 1c. plot_linear_inequality
+# ---------------------------------------------------------------------------
+#
+# A one-variable linear inequality (e.g. ``2x - 3 > 5`` → ``x > 4``) has a ray
+# for its solution set. The standard sketch is a number line with the
+# satisfying ray shaded and the endpoint drawn open (strict ``<``/``>``) or
+# filled (non-strict ``≤``/``≥``). Pass the SOLVED form: a boundary value and
+# the operator relating ``x`` to it.
+
+
+def plot_linear_inequality(
+    boundary: float,
+    operator: str,
+    *,
+    variable: str = "x",
+    x_range: tuple[float, float] | None = None,
+    title: str = "",
+) -> dict[str, Any]:
+    """Draw a number line shading where ``x [op] boundary`` holds.
+
+    Args:
+        boundary: the value ``x`` is compared to (e.g. ``4`` for ``x > 4``).
+        operator: one of ``<``, ``<=``, ``>``, ``>=`` (``≤``/``≥`` accepted).
+        variable: axis label / variable name (default ``"x"``).
+        x_range:  optional bounds; a sensible window around the boundary is
+                  used when omitted.
+
+    Raises:
+        ValueError: if ``boundary`` is non-numeric or ``operator`` unknown.
+    """
+    if not isinstance(boundary, int | float):
+        raise ValueError(f"boundary must be a number; got {boundary!r}")
+    b = float(boundary)
+    op = _normalise_operator(operator)
+    strict = op in ("<", ">")
+    greater = op in (">", ">=")
+
+    if x_range is not None:
+        lo, hi = _validate_x_range(x_range)
+    else:
+        pad = max(4.0, abs(b) * 0.5)
+        lo, hi = b - pad, b + pad
+
+    band = (b, hi) if greater else (lo, b)
+    ray_x = [b, hi] if greater else [lo, b]
+
+    op_glyph = {"<": "<", "<=": "≤", ">": ">", ">=": "≥"}[op]
+    solution = f"{variable} {op_glyph} {b:g}"
+
+    traces: list[dict[str, Any]] = [
+        {
+            "type": "scatter",
+            "mode": "lines",
+            "name": "number line",
+            "x": [lo, hi],
+            "y": [0.0, 0.0],
+            "line": {"color": "#888", "width": 2},
+            "hoverinfo": "skip",
+        },
+        {
+            "type": "scatter",
+            "mode": "lines",
+            "name": "solution",
+            "x": ray_x,
+            "y": [0.0, 0.0],
+            "line": {"color": PALETTE[0], "width": 6},
+            "hovertemplate": f"{solution}<extra></extra>",
+        },
+        {
+            "type": "scatter",
+            "mode": "markers",
+            "name": "boundary",
+            "x": [b],
+            "y": [0.0],
+            "marker": {
+                "color": PALETTE[0],
+                "size": 13,
+                # Open circle = endpoint NOT included (strict); filled = included.
+                "symbol": "circle-open" if strict else "circle",
+                "line": {"width": 3, "color": PALETTE[0]},
+            },
+            "hovertemplate": f"{variable}={b:g}<extra></extra>",
+        },
+    ]
+
+    layout = _base_layout(
+        title or solution,
+        x_label=variable,
+        y_label="",
+        summary=f"Number line with the solution {solution} shaded.",
+    )
+    layout["shapes"] = [
+        {
+            "type": "rect",
+            "xref": "x",
+            "yref": "paper",
+            "x0": band[0],
+            "x1": band[1],
+            "y0": 0,
+            "y1": 1,
+            "fillcolor": "rgba(39, 174, 96, 0.18)",
+            "line": {"width": 0},
+            "layer": "below",
+        }
+    ]
+    # A 1-D number line — suppress the y-axis entirely.
+    layout["yaxis"] = {"visible": False, "range": [-1, 1], "fixedrange": True}
+    layout["showlegend"] = False
+    layout["annotations"] = [
+        {
+            "xref": "paper",
+            "yref": "paper",
+            "x": 0.5,
+            "y": 1.0,
+            "yanchor": "bottom",
+            "showarrow": False,
+            "text": f"Solution: {solution}",
+            "font": {"size": 13, "color": PALETTE[2]},
+        }
+    ]
+    return {"data": traces, "layout": layout}
+
+
+# ---------------------------------------------------------------------------
+# 1d. plot_polynomial_shapes
+# ---------------------------------------------------------------------------
+#
+# "Tell me about the shapes of polynomials" / "what does a positive vs negative
+# quadratic/cubic look like" is a general-shape question, not a specific
+# equation. The pedagogy is a reference card: side-by-side sketches of the
+# canonical shapes (+x², −x², +x³, −x³) so the student sees how the sign of the
+# leading coefficient flips the curve and how odd vs even degree changes the
+# end behaviour. This generator builds that card as a small-multiples grid:
+# one row per degree, positive on the left, negative on the right.
+
+_SUPERSCRIPTS = {1: "", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶"}
+
+
+def plot_polynomial_shapes(
+    degrees: list[int] = [2, 3],
+    x_range: tuple[float, float] = (-2.5, 2.5),
+    *,
+    title: str = "Shapes of polynomials",
+    samples: int = 200,
+) -> dict[str, Any]:
+    """Reference card of canonical polynomial shapes (+ and − leading coeff).
+
+    Args:
+        degrees: which degrees to show, one row each (default quadratic +
+                 cubic). Capped at 4 rows so the grid stays legible in the
+                 narrow chat panel.
+        x_range: shared x-domain for every sketch.
+
+    Each row shows ``+x^n`` (left) and ``−x^n`` (right). y-axes auto-scale per
+    sketch so each shape reads clearly regardless of how fast it grows.
+
+    Raises:
+        ValueError: if ``degrees`` is empty / non-integer / out of 1..6, or
+        more than 4 degrees are requested.
+    """
+    if not (isinstance(degrees, list | tuple) and degrees):
+        raise ValueError(f"degrees must be a non-empty list; got {degrees!r}")
+    if len(degrees) > 4:
+        raise ValueError("at most 4 degrees can be shown at once.")
+    degs: list[int] = []
+    for d in degrees:
+        if not isinstance(d, int) or d < 1 or d > 6:
+            raise ValueError(f"each degree must be an int in 1..6; got {d!r}")
+        degs.append(d)
+
+    lo, hi = _validate_x_range(x_range)
+    rows, cols = len(degs), 2
+    hgap, vgap = 0.14, 0.18
+    col_w = (1.0 - hgap) / cols
+    row_h = (1.0 - vgap * (rows - 1)) / rows
+
+    data: list[dict[str, Any]] = []
+    annotations: list[dict[str, Any]] = []
+    layout: dict[str, Any] = {
+        "title": {"text": title, "x": 0.5, "xanchor": "center"},
+        "plot_bgcolor": "#ffffff",
+        "paper_bgcolor": "#ffffff",
+        "showlegend": False,
+        "margin": {"l": 30, "r": 20, "t": 70, "b": 30},
+        "meta": {
+            "summary": (
+                "Reference sketches of polynomial shapes: positive and negative "
+                + ", ".join(f"degree-{d}" for d in degs)
+                + " curves, showing how the leading-coefficient sign and odd/even "
+                "degree determine the shape."
+            )
+        },
+    }
+
+    for r, deg in enumerate(degs):
+        for c, sign in enumerate((1, -1)):
+            n = r * cols + c + 1
+            suf = "" if n == 1 else str(n)
+            xs = np.linspace(lo, hi, samples)
+            ys = sign * np.power(xs, deg)
+
+            x0 = c * (col_w + hgap)
+            x1 = x0 + col_w
+            y1 = 1.0 - r * (row_h + vgap)
+            y0 = y1 - row_h
+
+            data.append(
+                {
+                    "type": "scatter",
+                    "mode": "lines",
+                    "name": "f(x)",
+                    "x": xs.tolist(),
+                    "y": _nan_to_none(ys),
+                    "xaxis": f"x{suf}",
+                    "yaxis": f"y{suf}",
+                    "line": {"color": PALETTE[0], "width": 2},
+                    "hovertemplate": "x=%{x:.2f}<br>y=%{y:.2f}<extra></extra>",
+                }
+            )
+            layout[f"xaxis{suf}"] = {
+                "domain": [x0, x1],
+                "anchor": f"y{suf}",
+                "zeroline": True,
+                "zerolinecolor": "#888",
+                "showgrid": False,
+                "showticklabels": False,
+            }
+            layout[f"yaxis{suf}"] = {
+                "domain": [y0, y1],
+                "anchor": f"x{suf}",
+                "zeroline": True,
+                "zerolinecolor": "#888",
+                "showgrid": False,
+                "showticklabels": False,
+            }
+            sign_str = "" if sign > 0 else "−"
+            label = f"y = {sign_str}x{_SUPERSCRIPTS.get(deg, f'^{deg}')}"
+            annotations.append(
+                {
+                    "xref": "paper",
+                    "yref": "paper",
+                    "x": (x0 + x1) / 2.0,
+                    "y": y1 + 0.015,
+                    "xanchor": "center",
+                    "yanchor": "bottom",
+                    "showarrow": False,
+                    "text": label,
+                    "font": {"size": 12, "color": PALETTE[0]},
+                }
+            )
+
+    layout["annotations"] = annotations
+    return {"data": data, "layout": layout}
+
+
+# ---------------------------------------------------------------------------
+# 1e. plot_modulus
+# ---------------------------------------------------------------------------
+#
+# A modulus graph y = |inner(x)| is taught as "draw inner(x), then reflect the
+# part below the x-axis up". This generator shows both: the inner polynomial as
+# a faint dashed line and y = |inner(x)| as the solid curve, so the reflection
+# is visible. Default inner is x (the canonical V-shaped y = |x|).
+
+
+def plot_modulus(
+    inner_coefficients: list[float] = [1, 0],
+    x_range: tuple[float, float] | None = None,
+    *,
+    title: str = "",
+    samples: int = DEFAULT_SAMPLES,
+) -> dict[str, Any]:
+    """Plot ``y = |inner(x)|`` where ``inner`` is a polynomial.
+
+    Args:
+        inner_coefficients: polynomial inside the modulus, highest-degree
+                            first. Default ``[1, 0]`` → ``y = |x|``. Examples:
+                            ``[1, -2]`` → ``|x - 2|``; ``[1, 0, -4]`` → ``|x²-4|``.
+        x_range:            optional bounds; derived from the inner roots /
+                            vertex when omitted.
+
+    Draws the inner polynomial as a faint dashed reference and ``|inner|`` as
+    the solid curve so the reflection of the negative part is visible.
+
+    Raises:
+        ValueError: if ``inner_coefficients`` is empty or non-numeric.
+    """
+    if not (isinstance(inner_coefficients, list | tuple) and inner_coefficients):
+        raise ValueError("inner_coefficients must be a non-empty list of numbers.")
+    if not all(isinstance(c, int | float) for c in inner_coefficients):
+        raise ValueError(
+            f"inner_coefficients must be numeric; got {inner_coefficients!r}"
+        )
+
+    coeffs = np.array(inner_coefficients, dtype=float)
+
+    if x_range is not None:
+        lo, hi = _validate_x_range(x_range)
+    else:
+        roots = _polynomial_real_roots(coeffs, (-1e6, 1e6))
+        if roots:
+            span = max(max(roots) - min(roots), 1.0)
+            pad = max(2.0, span * 0.6)
+            lo, hi = min(roots) - pad, max(roots) + pad
+        else:
+            lo, hi = -5.0, 5.0
+
+    xs = _make_xs((lo, hi), samples)
+    inner_ys = np.polyval(coeffs, xs)
+    abs_ys = np.abs(inner_ys)
+
+    inner_expr = _polynomial_title(coeffs).removeprefix("f(x) = ")
+    auto_title = title or f"y = |{inner_expr}|"
+
+    traces: list[dict[str, Any]] = [
+        {
+            "type": "scatter",
+            "mode": "lines",
+            "name": f"{inner_expr} (before |·|)",
+            "x": xs.tolist(),
+            "y": _nan_to_none(inner_ys),
+            "line": {"color": "#9ca3af", "width": 1.5, "dash": "dash"},
+            "hovertemplate": "x=%{x:.2f}<br>y=%{y:.2f}<extra></extra>",
+        },
+        {
+            "type": "scatter",
+            "mode": "lines",
+            "name": f"|{inner_expr}|",
+            "x": xs.tolist(),
+            "y": _nan_to_none(abs_ys),
+            "line": {"color": PALETTE[0], "width": 2.5},
+            "hovertemplate": "x=%{x:.2f}<br>y=%{y:.2f}<extra></extra>",
+        },
+    ]
+    return {
+        "data": traces,
+        "layout": _base_layout(
+            auto_title,
+            summary=(
+                f"Modulus graph y = |{inner_expr}|: the dashed line is "
+                f"{inner_expr}, and the solid curve reflects its negative part "
+                "above the x-axis."
+            ),
+        ),
+    }
+
+
+# ---------------------------------------------------------------------------
 # 2. plot_trig
 # ---------------------------------------------------------------------------
 
@@ -852,6 +1458,10 @@ def plot_overlay(
 
 GENERATOR_REGISTRY: dict[str, Callable[..., dict[str, Any]]] = {
     "plot_polynomial": plot_polynomial,
+    "plot_quadratic_inequality": plot_quadratic_inequality,
+    "plot_linear_inequality": plot_linear_inequality,
+    "plot_polynomial_shapes": plot_polynomial_shapes,
+    "plot_modulus": plot_modulus,
     "plot_trig": plot_trig,
     "plot_exponential": plot_exponential,
     "plot_log": plot_log,

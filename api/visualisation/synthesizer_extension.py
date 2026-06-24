@@ -49,7 +49,14 @@ GRAPH_TRIGGER_PHRASES: tuple[str, ...] = (
     r"\bsketch\b",
     r"\bgraph\b",
     r"\bplot\b",
-    r"\bshape of\b",
+    # Quadratic-inequality questions are taught sketch-and-shade; the shaded
+    # region IS the answer, so consider a graph. The tool-router still decides
+    # whether a concrete quadratic example is available (else it returns none).
+    r"\binequalit\w*\b",
+    # "shape of" / "shapes of" — the polynomial-shapes reference card.
+    r"\bshapes?\s+of\b",
+    # Modulus / absolute-value graphs are inherently visual at LCHL.
+    r"\bmodulus\b",
     r"\bdraw\b",
     r"\bbehaviour at infinity\b",
     r"\bbehavior at infinity\b",
@@ -96,6 +103,7 @@ def should_emit_graph(
     query_class: str,
     retrieved: list[Any],
     *,
+    answer: str | None = None,
     llm_client: Callable[..., Any] | None = None,
 ) -> bool:
     """Return True iff the answer would benefit from a graph.
@@ -134,7 +142,12 @@ def should_emit_graph(
         return False
 
     # --- Stage 1: deterministic --------------------------------------------
-    if _GRAPH_TRIGGER_RE.search(query):
+    # Search both the question AND the answer the tutor produced — an answer
+    # that says "sketch the parabola" / "graph the boundary" / "shade the
+    # region" is graph-shaped even when the question ("explain inequalities")
+    # carries no trigger word.
+    haystack = query if not answer else f"{query}\n{answer}"
+    if _GRAPH_TRIGGER_RE.search(haystack):
         logger.debug("should_emit_graph: deterministic trigger phrase matched")
         return True
 
@@ -223,6 +236,22 @@ _TOOL_CALL_SCHEMA: dict[str, dict[str, Any]] = {
         "required": ["coefficients"],
         "optional": ["x_range", "title", "show_zeros", "show_turning_points"],
     },
+    "plot_quadratic_inequality": {
+        "required": ["coefficients", "operator"],
+        "optional": ["x_range", "title"],
+    },
+    "plot_linear_inequality": {
+        "required": ["boundary", "operator"],
+        "optional": ["variable", "x_range", "title"],
+    },
+    "plot_polynomial_shapes": {
+        "required": [],
+        "optional": ["degrees", "x_range", "title"],
+    },
+    "plot_modulus": {
+        "required": [],
+        "optional": ["inner_coefficients", "x_range", "title"],
+    },
     "plot_trig": {
         "required": ["family"],
         "optional": [
@@ -270,6 +299,36 @@ Functions available:
 
 * plot_polynomial(coefficients, x_range?, title?, show_zeros?, show_turning_points?)
    — for quadratics/cubics/quartics. coefficients in highest-degree-first order.
+* plot_quadratic_inequality(coefficients, operator, x_range?, title?)
+   — for QUADRATIC INEQUALITY questions (e.g. "x^2 - 3x - 4 <= 0", "solve and
+   graph quadratic inequalities"). coefficients = [a, b, c] highest-degree
+   first; operator is one of "<", "<=", ">", ">=". Draws the parabola AND
+   shades the region of x that satisfies the inequality. Prefer this over
+   plot_polynomial whenever the question is about a quadratic inequality. If
+   the question is general ("explain inequalities") but the question text or a
+   retrieved tutorial works a specific quadratic-inequality example, use that
+   example's coefficients and operator.
+* plot_linear_inequality(boundary, operator, variable?, x_range?, title?)
+   — for ONE-VARIABLE LINEAR inequality questions whose solution is a ray,
+   e.g. "2x - 3 > 5" → x > 4. Pass the SOLVED form: boundary is the number x is
+   compared to (4) and operator is one of "<","<=",">",">=" for x [op] boundary.
+   Draws a number line with the solution ray shaded and the endpoint open
+   (strict) or filled (non-strict). Use this — NOT plot_polynomial — when the
+   answer solves a linear inequality down to "x [op] number".
+* plot_polynomial_shapes(degrees?, x_range?, title?)
+   — for GENERAL questions about the SHAPES of polynomials (e.g. "tell me about
+   the shapes of polynomials", "what does a positive/negative quadratic/cubic
+   look like", "shapes of cubics"). Shows reference sketches of +x^n and −x^n
+   for each degree. degrees defaults to [2, 3] (quadratic + cubic); pass e.g.
+   [2, 3, 4] if the question is about higher degrees too. Use this — NOT
+   plot_polynomial — when the question is about general shape rather than one
+   specific equation.
+* plot_modulus(inner_coefficients?, x_range?, title?)
+   — for MODULUS / absolute-value graph questions, y = |inner(x)| (e.g. "show
+   me a modulus graph", "graph y = |x - 2|"). inner_coefficients is the
+   polynomial inside the bars, highest-degree first; defaults to [1, 0] for the
+   canonical y = |x|. Take the inner expression from the answer's example when
+   it gives one (|x-2| → [1,-2], |x²-4| → [1,0,-4]).
 * plot_trig(family, amplitude?, period?, phase?, vertical_shift?, x_range?, title?)
    — family ∈ {"sin","cos","tan","sec","cosec","cot"}.
 * plot_exponential(base?, multiplier?, growth_rate?, offset?, x_range?, title?)
@@ -297,6 +356,11 @@ Top retrieved tutorial: {top_slug}
 Snippet from top tutorial:
 {snippet}
 
+The tutor's answer (graph EXACTLY the concrete worked example it uses — take
+the coefficients / boundary / operator from this answer so the chart matches
+what the student is reading):
+{answer}
+
 Emit the JSON object now.
 """
 
@@ -305,6 +369,7 @@ def select_and_invoke_generator(
     query: str,
     retrieved: list[Any],
     llm_client: Callable[..., Any] | None = None,
+    answer: str | None = None,
 ) -> list[dict[str, Any]]:
     """Ask the LLM which generator to invoke; invoke it; return Plotly JSON.
 
@@ -338,6 +403,7 @@ def select_and_invoke_generator(
         query=query.strip()[:1200],
         top_slug=top_slug,
         snippet=snippet[:800],
+        answer=(answer.strip()[:1500] if answer else "(none)"),
     )
 
     try:

@@ -567,3 +567,70 @@ def extract_topic_for_retrieval(query: str) -> str:
         return query
     logger.info("topic-extraction: q=%r -> retrieval=%r", query[:80], phrase)
     return phrase
+
+
+# ---------------------------------------------------------------------------
+# Conversation memory — condense history + latest message into a standalone query
+# ---------------------------------------------------------------------------
+#
+# The widget sends the last few turns; we rewrite the student's latest message
+# into a single self-contained question that resolves references ("the second
+# part", "that") and carries over stated constraints ("algebra only, no complex
+# numbers"). Fixes the stateless follow-up problem AND the negation case (a
+# clean standalone query retrieves better than the raw "no X" phrasing).
+
+_MEMORY_FLAG_ENV = "CONVERSATION_MEMORY_ENABLED"
+_MAX_HISTORY_TURNS = 6
+
+CONDENSE_SYSTEM_PROMPT = (
+    "You rewrite a student's latest message into ONE standalone question, using "
+    "the prior conversation only for context. Resolve references ('that', 'it', "
+    "'the second part') and carry over any constraints the student stated (e.g. "
+    "'algebra only, no complex numbers' must remain an explicit exclusion). Keep "
+    "it in the student's voice. Output ONLY the standalone question — no preamble."
+)
+
+
+def _is_memory_enabled() -> bool:
+    raw = os.environ.get(_MEMORY_FLAG_ENV, "true").strip().lower()
+    return raw in ("1", "true", "yes", "on")
+
+
+def condense_query(history: list, q: str) -> str:
+    """Rewrite the latest message into a standalone question using recent turns.
+
+    ``history`` is a list of items exposing ``role`` and ``text`` (pydantic
+    models or dicts), oldest first. Returns ``q`` unchanged if memory is
+    disabled, history is empty, or on any failure. NEVER raises.
+    """
+    if not _is_memory_enabled() or not history or not q or not q.strip():
+        return q
+    turns: list[str] = []
+    for t in list(history)[-_MAX_HISTORY_TURNS:]:
+        role = getattr(t, "role", None)
+        text = getattr(t, "text", None)
+        if role is None and isinstance(t, dict):
+            role, text = t.get("role"), t.get("text")
+        text = (text or "").strip()
+        if not text:
+            continue
+        who = "Student" if str(role).lower() == "user" else "Tutor"
+        turns.append(f"{who}: {text[:500]}")
+    if not turns:
+        return q
+    user_prompt = (
+        "Conversation so far:\n"
+        + "\n".join(turns)
+        + f"\n\nStudent's latest message: {q.strip()}\n\nStandalone question:"
+    )
+    try:
+        raw = _call_rewrite_llm(CONDENSE_SYSTEM_PROMPT, user_prompt)
+    except Exception:
+        logger.exception("conversation condense failed; using original q=%r", q[:120])
+        return q
+    cleaned = _clean_llm_output(raw)
+    if not cleaned or len(cleaned) > 600:
+        return q
+    if cleaned != q.strip():
+        logger.info("conversation condense: %r -> %r", q[:80], cleaned[:120])
+    return cleaned
