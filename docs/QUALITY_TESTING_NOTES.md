@@ -73,5 +73,26 @@ flip. Also verify the rewrite LLM client is wired at startup.
 **Good test cases for the pass:** this integration question; "applications of
 differentiation"; "prove bijective".
 
+## 6. ⭐ Photo/exam-question retrieval miss #2 — indices (2026-06-24)
+**Query (photo, 2025 P1 Q5(a) + caption "help me with the first part"):** "Write
+each of the following numbers in the form 4^r, where r ∈ Q. Numbers: 64, 1/16, 2."
+**Got:** guardrail ("I'm not sure"), surfacing Sequences & Series 8 and Number
+Theory 2.
+**Should retrieve:** *Indices and Logs 1* (or 2) — 64 = 4³, 1/16 = 4⁻², 2 = 4^½.
+**Cause:** same class as #5 — long `IMAGE_EXTRACTED` question; plain semantic
+search on the full text is dominated by surface words ("numbers/form/∈ Q") and
+misses the indices topic; score < floor → guardrail.
+**Important finding:** the existing **query-rewrite fallback does NOT help here.**
+`_should_rewrite_fallback` returns False unless `query_class == CONCEPT` and the
+query is a short (≤6-token) bare-noun fragment with no domain symbols. Long
+image-extracted exam questions are excluded by design. So enabling
+`QUERY_REWRITE_FALLBACK_ENABLED` is a no-op for these.
+**Real fix (headline build for the tuning pass):** add a **topic-extraction
+retrieval step for IMAGE_EXTRACTED (and long) queries** — distil "what concept/
+method is this testing?" (short phrase) and retrieve on that, before the
+TUTOR_SEARCH call, rather than embedding the whole question. Validate with the
+eval harness so it doesn't regress currently-good answers. Test cases: this
+indices question (#6) and the integration question (#5).
+
 ---
 _Add new findings above this line with date, query, got vs. should, and a fix to trial._

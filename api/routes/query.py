@@ -43,7 +43,11 @@ from ..orchestrator.contract import (
     QueryRequest,
     QueryResponse,
 )
-from ..orchestrator.query_rewrite import maybe_rewrite, maybe_rewrite_fallback
+from ..orchestrator.query_rewrite import (
+    extract_topic_for_retrieval,
+    maybe_rewrite,
+    maybe_rewrite_fallback,
+)
 from ..orchestrator.retriever import RETRIEVAL_FLOOR, retrieve
 from ..orchestrator.synthesizer import (
     GUARDRAIL_ANSWER,
@@ -504,8 +508,19 @@ async def _run_query(
             "query rewrite fired: original=%r rewritten=%r", q, q_retrieval
         )
 
+    # Retrieval query: for image-extracted exam questions, retrieve on the
+    # distilled core topic — the full-question text is dominated by surface
+    # words (values, "in the form", "∈ Q") and mis-ranks tutorials. Synthesis
+    # below still uses the FULL question (q_retrieval), so the student's actual
+    # problem gets solved against the right tutorial.
+    retrieval_query = q_retrieval
+    if extracted_from_image:
+        topic = extract_topic_for_retrieval(q)
+        if topic and topic != q:
+            retrieval_query = topic
+
     # 2. Retrieve
-    retrieval = await retrieve(q_retrieval, query_class)
+    retrieval = await retrieve(retrieval_query, query_class)
 
     # 2b. Retrieve-then-rewrite fallback (AGENT_24) — when the first
     # attempt missed the floor AND iter-1 hadn't already rewritten the

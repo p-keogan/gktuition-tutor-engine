@@ -509,3 +509,61 @@ def maybe_rewrite_fallback(query: str, query_class: QueryClass) -> str:
         )
         return query
     return cleaned
+
+
+# ---------------------------------------------------------------------------
+# Topic-extraction retrieval — for image-extracted / long exam questions
+# ---------------------------------------------------------------------------
+#
+# Distinct from maybe_rewrite / maybe_rewrite_fallback (which target SHORT
+# concept fragments). A photographed or pasted exam question is long and full
+# of surface terms ("numbers", "form", "∈ Q", specific values), so a
+# full-question embedding ranks the wrong tutorials. Here we distil the
+# question to its core topic+method and retrieve on THAT. The caller uses the
+# result ONLY to drive retrieval; synthesis still answers the full question.
+
+_IMAGE_TOPIC_FLAG_ENV = "IMAGE_TOPIC_RETRIEVAL_ENABLED"
+
+TOPIC_EXTRACTION_SYSTEM_PROMPT = (
+    "You are a Leaving Cert Higher Level (LCHL) Maths retrieval assistant. You "
+    "are given the text of a maths exam question. Reply with ONE short phrase "
+    "(at most ~12 words) naming the core topic and method the question tests, "
+    "in standard LCHL terminology, suitable for searching a tutorial library. "
+    "Examples:\n"
+    "- 'Write 64, 1/16, 2 in the form 4^r' -> indices: writing numbers as powers with rational exponents\n"
+    "- 'Integrate g''(x)=30x-18, slope -2 at (-1,8), find g(x)' -> integration: finding a function from its second derivative using an initial condition\n"
+    "- 'Use de Moivre to find (3 - sqrt(3) i)^8' -> complex numbers: de Moivre's theorem and polar form\n"
+    "Output ONLY the phrase. No preamble, no quotes, no markdown."
+)
+
+
+def _is_image_topic_enabled() -> bool:
+    """Default ON. Only an explicit false-y value disables topic extraction."""
+    raw = os.environ.get(_IMAGE_TOPIC_FLAG_ENV, "true").strip().lower()
+    return raw in ("1", "true", "yes", "on")
+
+
+def extract_topic_for_retrieval(query: str) -> str:
+    """Distil a long/exam question to a short topic phrase for retrieval.
+
+    Returns the topic phrase, or the original ``query`` if disabled or on any
+    failure. NEVER raises. Used ONLY to drive retrieval — synthesis answers the
+    full original question.
+    """
+    if not _is_image_topic_enabled():
+        return query
+    if not query or not query.strip():
+        return query
+    try:
+        raw = _call_rewrite_llm(TOPIC_EXTRACTION_SYSTEM_PROMPT, query.strip())
+    except Exception:
+        logger.exception(
+            "topic extraction failed; using original query: q=%r", query[:120]
+        )
+        return query
+    phrase = _clean_llm_output(raw)
+    # Guard against a degenerate (empty) or non-distilled (too-long) response.
+    if not phrase or len(phrase) > 200:
+        return query
+    logger.info("topic-extraction: q=%r -> retrieval=%r", query[:80], phrase)
+    return phrase

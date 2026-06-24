@@ -134,6 +134,16 @@ kill_timeout = "10s"
   # affecting the other.
   QUERY_REWRITE_FALLBACK_ENABLED = "false"
 
+  # Topic-extraction retrieval for image-extracted / long exam questions
+  # (query_rewrite.extract_topic_for_retrieval). A photographed/pasted exam
+  # question is long and full of surface terms, so a full-question embedding
+  # mis-ranks tutorials (e.g. "write 64 in the form 4^r" missed Indices&Logs).
+  # For IMAGE_EXTRACTED queries we distil the core topic+method and retrieve on
+  # THAT; synthesis still answers the full question. Defaults ON in code; set
+  # "false" to disable. Only affects the image path, and only the retrieval
+  # query — so it can't regress typed-question answers.
+  IMAGE_TOPIC_RETRIEVAL_ENABLED = "true"
+
   # Slug-anchor override (Phase 2, AGENT_22) — downstream sibling to
   # AGENT_21. Narrow exception to RETRIEVAL_FLOOR: when the top-1
   # retrieved slug lexically anchors the query (canonical case:
