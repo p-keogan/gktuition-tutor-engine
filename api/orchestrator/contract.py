@@ -352,6 +352,14 @@ class StreamDoneData(BaseModel):
         ),
     )
     elapsed_ms: int = Field(..., ge=0)
+    exam_appearances: list[ExamAppearance] = Field(
+        default_factory=list,
+        description=(
+            "Curated exam appearances for the cited tutorials. Same shape as "
+            ":class:`QueryResponse.exam_appearances`; the widget renders the "
+            "most recent few under the answer."
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------

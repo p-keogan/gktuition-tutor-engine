@@ -45,8 +45,9 @@ function Widget({ opts, client: clientOverride }: WidgetProps) {
     return createApiClient({
       tierEndpoint: opts.tierEndpoint ?? '/wp-json/gktuition/v1/tier',
       fastapiUrl: opts.fastapiUrl ?? '',
+      restNonce: opts.restNonce,
     });
-  }, [clientOverride, opts.tierEndpoint, opts.fastapiUrl]);
+  }, [clientOverride, opts.tierEndpoint, opts.fastapiUrl, opts.restNonce]);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,6 +107,7 @@ export function mount(target: HTMLElement, opts: WidgetOptions = {}): () => void
     fastapiUrl: opts.fastapiUrl ?? '',
     position: opts.position ?? 'bottom-right',
     anonymousRateLimit: opts.anonymousRateLimit ?? 3,
+    restNonce: opts.restNonce,
   };
   let root = ROOTS.get(target);
   if (!root) {
@@ -135,6 +137,7 @@ export function __renderWithClient(
     fastapiUrl: opts.fastapiUrl ?? '',
     position: opts.position ?? 'bottom-right',
     anonymousRateLimit: opts.anonymousRateLimit ?? 3,
+    restNonce: opts.restNonce,
   };
   let root = ROOTS.get(target);
   if (!root) {

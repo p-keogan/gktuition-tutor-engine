@@ -542,6 +542,10 @@ def synthesize_stream(
         not retrieval.chunks or retrieval.top_reranker_score < RETRIEVAL_FLOOR
     ) and not slug_anchor_override(retrieval, query):
         yield StreamEvent("token", {"text": GUARDRAIL_ANSWER})
+        # The guardrail text invites "related tutorials" — surface the closest
+        # matches so the promise isn't empty. select_citations returns the top
+        # few even on the guardrail path.
+        yield from _citation_events(retrieval)
         yield StreamEvent("done", {"model_used": NO_MODEL})
         return
 
@@ -787,12 +791,15 @@ def _to_graph_spec(figure: dict[str, object]) -> GraphSpec:
 def select_citations(retrieval: RetrievalResult) -> list[Citation]:
     """Return the citations to surface in the response.
 
-    The guardrail path emits no citations even if the chunks are still in
-    ``retrieved`` — we don't want the widget to render a "we used these
-    sources" UI when the answer text is "I'm not sure".
+    On the guardrail path we surface the top few closest matches as the
+    "related tutorials" the "I'm not sure" answer invites the student to try
+    (previously this returned nothing, which left that promise empty).
     """
     if not retrieval.chunks or retrieval.top_reranker_score < RETRIEVAL_FLOOR:
         if retrieval.query_class == QueryClass.ANALYTICAL:
             return retrieval.citations[:5]
-        return []
+        # Guardrail path: the "I'm not sure — try one of these related
+        # tutorials" answer explicitly invites related tutorials, so surface
+        # the top few closest matches (empty only if retrieval found nothing).
+        return retrieval.citations[:3]
     return retrieval.citations[:5]

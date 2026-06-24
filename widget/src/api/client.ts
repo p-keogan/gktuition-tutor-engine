@@ -7,6 +7,7 @@
  */
 
 import type {
+  ImageQueryResult,
   QueryRequest,
   QueryResponse,
   TierResponse,
@@ -19,6 +20,8 @@ import type {
 export interface ApiClient {
   fetchTier(): Promise<TierResponse>;
   postQuery(req: QueryRequest, signal?: AbortSignal): Promise<QueryResponse>;
+  /** Upload a photo of a question to /image_query (paying tier only). */
+  postImageQuery(file: Blob, signal?: AbortSignal): Promise<ImageQueryResult>;
   /** Test-only — get the current in-memory token. */
   _currentToken(): { jwt: string; exp: number; fastapiUrl: string } | null;
 }
@@ -27,6 +30,8 @@ export interface ApiClientOptions {
   tierEndpoint: string;
   /** May be empty — falls back to TierResponse.fastapi_url. */
   fastapiUrl: string;
+  /** WordPress REST nonce, sent as X-WP-Nonce so the tier endpoint sees the logged-in user. */
+  restNonce?: string;
   /** Override for unit tests. Defaults to globalThis.fetch. */
   fetchImpl?: typeof fetch;
   /** Override for unit tests. Defaults to () => Date.now(). */
@@ -61,10 +66,12 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     if (inflight) return inflight;
     inflight = (async () => {
       try {
+        const headers: Record<string, string> = { Accept: 'application/json' };
+        if (opts.restNonce) headers['X-WP-Nonce'] = opts.restNonce;
         const res = await fetchImpl(opts.tierEndpoint, {
           method: 'GET',
           credentials: 'same-origin',
-          headers: { Accept: 'application/json' },
+          headers,
         });
         if (!res.ok) {
           const body = await safeText(res);
@@ -117,9 +124,30 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     return (await res.json()) as QueryResponse;
   }
 
+  async function postImageQuery(file: Blob, signal?: AbortSignal): Promise<ImageQueryResult> {
+    const auth = await ensureToken();
+    const base = auth.fastapiUrl.replace(/\/$/, '');
+    const fd = new FormData();
+    // Field name must match the FastAPI param: image: UploadFile = File(...).
+    fd.append('image', file, (file as File).name || 'question.jpg');
+    const res = await fetchImpl(`${base}/image_query`, {
+      method: 'POST',
+      signal,
+      // No Content-Type — the browser sets the multipart boundary itself.
+      headers: { Accept: 'application/json', Authorization: `Bearer ${auth.jwt}` },
+      body: fd,
+    });
+    if (!res.ok) {
+      const body = await safeText(res);
+      throw new ApiError(`/image_query returned ${res.status}`, res.status, body);
+    }
+    return (await res.json()) as ImageQueryResult;
+  }
+
   return {
     fetchTier,
     postQuery,
+    postImageQuery,
     _currentToken: () => token,
   };
 }

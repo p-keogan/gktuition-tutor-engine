@@ -91,6 +91,20 @@ export interface QueryResponse {
   debug_info?: Record<string, unknown> | null;
 }
 
+/**
+ * Response from POST /image_query. Either a single extracted question plus its
+ * full answer, or (when the photo holds several questions) a list to choose
+ * from. See api/routes/image_query.py.
+ */
+export interface ImageQueryResult {
+  /** Present when exactly one question was read from the image. */
+  extracted_question?: string;
+  /** Full answer for the extracted question (same shape as a text query). */
+  rag_response?: QueryResponse;
+  /** Present when multiple questions were detected — ask the student to pick. */
+  questions?: string[];
+}
+
 /** Response from GET /wp-json/gktuition/v1/tier — see Stack A. */
 export interface TierResponse {
   tier: Tier;
@@ -104,6 +118,13 @@ export interface WidgetOptions {
   tierEndpoint?: string;
   /** Absolute base URL of the FastAPI orchestrator. Falls back to TierResponse.fastapi_url. */
   fastapiUrl?: string;
+  /**
+   * WordPress REST nonce (wp_create_nonce('wp_rest')). Sent as the X-WP-Nonce
+   * header on the tier request so WordPress authenticates the logged-in user's
+   * cookie — without it, logged-in students resolve as "anonymous" and hit the
+   * anonymous rate-limit wall.
+   */
+  restNonce?: string;
   /** Floating-button placement. */
   position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
   /**

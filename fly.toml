@@ -83,7 +83,14 @@ kill_timeout = "10s"
 
   # Firewall layers — every layer toggled ON in production. Tuning happens
   # via secrets or via `fly machines update` for short-lived experiments.
-  TURNSTILE_ENABLED = "true"
+  #
+  # TURNSTILE: OFF during the staging widget-integration / test phase. The
+  # widget does not yet render a Cloudflare Turnstile challenge, so anonymous
+  # requests can never produce a token and would always 403. MUST be set back
+  # to "true" before public launch, once (a) the widget renders a Turnstile
+  # challenge and (b) the WP tier endpoint authenticates logged-in users (REST
+  # nonce) so paying/authenticated tiers bypass the check.
+  TURNSTILE_ENABLED = "false"
   RATE_LIMIT_ENABLED = "true"
   SEMANTIC_CACHE_ENABLED = "true"
   CIRCUIT_BREAKER_ENABLED = "true"

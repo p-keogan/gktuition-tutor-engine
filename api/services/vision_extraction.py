@@ -12,11 +12,26 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def _strip_code_fences(text: str) -> str:
+    """Strip a leading/trailing Markdown code fence from an LLM response.
+
+    Models frequently wrap JSON in ```json … ``` even when asked for raw JSON.
+    We remove the fence so json.loads succeeds. Safe no-op when there's no
+    fence.
+    """
+    t = text.strip()
+    if t.startswith("```"):
+        t = re.sub(r"^```[A-Za-z0-9_-]*\s*\n?", "", t)
+        t = re.sub(r"\n?```\s*$", "", t)
+    return t.strip()
 
 # Sonnet 4 is materially better than Haiku 4.5 on handwritten maths — see
 # ADR-004-section-image-path.md for the rationale.
@@ -152,7 +167,7 @@ async def extract_maths_question(
         ) from exc
 
     try:
-        parsed = json.loads(raw_text)
+        parsed = json.loads(_strip_code_fences(raw_text))
     except json.JSONDecodeError as exc:
         logger.warning("Vision model returned non-JSON output: %r", raw_text[:200])
         raise VisionExtractionError(

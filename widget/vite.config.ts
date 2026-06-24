@@ -7,6 +7,13 @@ import { resolve } from 'node:path';
 // calls window.GKTuitionTutor.mount() once the DOM is ready.
 export default defineConfig({
   plugins: [react()],
+  // Vite's library mode does NOT replace `process.env.NODE_ENV` for bundled
+  // deps (React/ReactDOM reference it), so the IIFE throws "process is not
+  // defined" in the browser. Replace it at build time. This also selects
+  // React's faster production build.
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production'),
+  },
   build: {
     lib: {
       entry: resolve(__dirname, 'src/Widget.tsx'),
@@ -27,6 +34,9 @@ export default defineConfig({
     sourcemap: false,
     minify: 'esbuild',
     target: 'es2020',
+    // Inline the bundled KaTeX woff2 fonts as base64 into the single CSS file
+    // (no separate font assets to deploy / get blocked).
+    assetsInlineLimit: 100000000,
   },
   test: {
     environment: 'jsdom',

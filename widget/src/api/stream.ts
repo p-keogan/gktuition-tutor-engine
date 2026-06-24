@@ -21,7 +21,7 @@
  * ``postQuery`` path.
  */
 
-import type { Citation, QueryClass, QueryRequest } from './types';
+import type { Citation, ExamAppearance, QueryClass, QueryRequest } from './types';
 
 /** Payload of ``event: token`` per ``contract.py::StreamTokenData``. */
 export interface StreamTokenEvent {
@@ -39,6 +39,7 @@ export interface StreamDoneEvent {
   from_cache: boolean;
   voice_anchor_strand: string | null;
   elapsed_ms: number;
+  exam_appearances?: ExamAppearance[];
 }
 
 export interface StreamHandlers {

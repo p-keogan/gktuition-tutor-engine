@@ -22,12 +22,34 @@
  */
 
 import type { Citation } from '../api/types';
+import { CORPUS_TO_WP_SLUG } from './slugMap';
 
-const TOPIC_BASE = 'https://gktuition.ie/topic';
+/**
+ * Base origin for topic links. The widget is embedded inside the WordPress
+ * site, so the topic pages live on the same origin — staging
+ * (gktuitionstg.wpenginepowered.com) during testing, gktuition.ie in
+ * production. Deriving from window.location.origin means the links are
+ * correct in both places with no rebuild. Falls back to the production
+ * origin in non-browser contexts (SSR / unit tests).
+ */
+function topicBase(): string {
+  const origin =
+    typeof window !== 'undefined' && window.location && window.location.origin
+      ? window.location.origin
+      : 'https://gktuition.ie';
+  return `${origin.replace(/\/$/, '')}/topic`;
+}
 
-export function citationGktuitionUrl(citation: Citation): string {
-  const slug = encodeURIComponent(citation.slug);
-  const base = `${TOPIC_BASE}/${slug}/`;
+/**
+ * Build the topic-page URL for a citation, or ``null`` when the cited corpus
+ * slug has no WordPress equivalent (the caller renders plain text instead of
+ * a dead link). The engine cites by descriptive corpus slugs; we translate to
+ * the WordPress topic slug via the generated CORPUS_TO_WP_SLUG map.
+ */
+export function citationGktuitionUrl(citation: Citation): string | null {
+  const wpSlug = CORPUS_TO_WP_SLUG[citation.slug];
+  if (!wpSlug) return null;
+  const base = `${topicBase()}/${encodeURIComponent(wpSlug)}/`;
   if (citation.timestamp_seconds != null && citation.timestamp_seconds > 0) {
     return `${base}?t=${citation.timestamp_seconds}`;
   }
@@ -35,12 +57,12 @@ export function citationGktuitionUrl(citation: Citation): string {
 }
 
 /**
- * Best-effort: links to the gktuition.ie topic page (which embeds the
- * YouTube player) with the timestamp query honoured. v1 does not deep-link
- * directly to youtube.com because the citation does not carry the YouTube
- * video ID — see file header.
+ * Best-effort: links to the topic page (which embeds the YouTube player) with
+ * the timestamp query honoured. v1 does not deep-link directly to youtube.com
+ * because the citation does not carry the YouTube video ID — see file header.
+ * Returns ``null`` when the slug has no WordPress page.
  */
-export function citationYoutubeUrl(citation: Citation): string {
+export function citationYoutubeUrl(citation: Citation): string | null {
   return citationGktuitionUrl(citation);
 }
 

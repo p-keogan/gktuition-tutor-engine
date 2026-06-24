@@ -1,7 +1,7 @@
-import { useRef, useState, useEffect, type FormEvent } from 'react';
+import { useRef, useState, useEffect, type ChangeEvent, type FormEvent } from 'react';
 import type { ApiClient } from '../api/client';
 import { streamQuery, streamSupported } from '../api/stream';
-import type { Citation, QueryClass, Tier, WidgetOptions } from '../api/types';
+import type { Citation, ExamAppearance, QueryClass, Tier, WidgetOptions } from '../api/types';
 import { MessageBubble, type ChatMessage } from './MessageBubble';
 import { EmailCaptureWall } from './EmailCaptureWall';
 
@@ -58,8 +58,11 @@ export function ChatPanel({
   const [error, setError] = useState<string | null>(null);
   const [wallShown, setWallShown] = useState(false);
   const [wallDismissed, setWallDismissed] = useState(false);
+  // Larger panel toggle — students on bigger screens can expand the window.
+  const [expanded, setExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Count of questions asked by an anonymous user (resets on tier upgrade).
   const anonymousAskedCount = messages.filter((m) => m.role === 'user').length;
@@ -128,6 +131,7 @@ export function ChatPanel({
         text: res.answer,
         citations: res.citations,
         graphs: res.graphs,
+        examAppearances: res.exam_appearances,
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
@@ -137,6 +141,77 @@ export function ChatPanel({
     } finally {
       setBusy(false);
       setProgress(null);
+      abortRef.current = null;
+    }
+  }
+
+  async function handleImageSelected(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    // Reset the input so selecting the same file again re-fires change.
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (!file || busy) return;
+
+    setError(null);
+    setMessages((prev) => [
+      ...prev,
+      { id: makeId(), role: 'user', text: `📷 Uploaded a photo: ${file.name}` },
+    ]);
+    setBusy(true);
+    setThinking(true);
+
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    try {
+      const res = await client.postImageQuery(file, ctrl.signal);
+      if (res.questions && res.questions.length > 0) {
+        const list = res.questions.map((q, i) => `${i + 1}. ${q}`).join('\n');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: makeId(),
+            role: 'assistant',
+            text:
+              'I spotted more than one question in that image. Type the one you want help with:\n\n' +
+              list,
+          },
+        ]);
+      } else if (res.rag_response) {
+        const r = res.rag_response;
+        const prefix = res.extracted_question
+          ? `Question I read: "${res.extracted_question}"\n\n`
+          : '';
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: makeId(),
+            role: 'assistant',
+            text: prefix + r.answer,
+            citations: r.citations,
+            graphs: r.graphs,
+            examAppearances: r.exam_appearances,
+          },
+        ]);
+      } else {
+        setError("I couldn't read a question from that image. Try a clearer, closer photo.");
+      }
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/40[13]/.test(msg)) {
+        setError('Photo questions are available on the paid plan.');
+      } else if (/422/.test(msg)) {
+        setError(
+          "I couldn't find a clear maths question in that photo. Make sure the " +
+            'question is fully in frame and well-lit, then try again.',
+        );
+      } else if (/50[0-9]/.test(msg)) {
+        setError('I had trouble reading that image — please retake the photo and try again.');
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setBusy(false);
+      setThinking(false);
       abortRef.current = null;
     }
   }
@@ -166,6 +241,7 @@ export function ChatPanel({
     const draftId = makeId();
     let buffer = '';
     let citations: Citation[] = [];
+    let examAppearances: ExamAppearance[] = [];
     let firstTokenSeen = false;
     let done = false;
 
@@ -180,6 +256,7 @@ export function ChatPanel({
               role: 'assistant',
               text: buffer,
               citations: citations.length ? citations : undefined,
+              examAppearances: examAppearances.length ? examAppearances : undefined,
             },
           ];
         }
@@ -188,6 +265,9 @@ export function ChatPanel({
           ...next[idx],
           text: buffer,
           citations: citations.length ? citations : next[idx].citations,
+          examAppearances: examAppearances.length
+            ? examAppearances
+            : next[idx].examAppearances,
         };
         return next;
       });
@@ -209,8 +289,12 @@ export function ChatPanel({
             citations.push(c);
             flushDraft();
           },
-          onDone: () => {
+          onDone: (ev) => {
             done = true;
+            if (ev.exam_appearances && ev.exam_appearances.length) {
+              examAppearances = ev.exam_appearances;
+              flushDraft();
+            }
           },
         },
         {
@@ -281,21 +365,34 @@ export function ChatPanel({
 
   return (
     <div
-      className={`gktuition-tutor__panel gktuition-tutor__panel--${position}`}
+      className={`gktuition-tutor__panel gktuition-tutor__panel--${position}${
+        expanded ? ' gktuition-tutor__panel--expanded' : ''
+      }`}
       role="dialog"
       aria-label="GKTuition AI tutor"
       data-testid="gktuition-panel"
     >
       <div className="gktuition-tutor__header">
         <h3>GKTuition AI Tutor</h3>
-        <button
-          type="button"
-          className="gktuition-tutor__close"
-          onClick={onClose}
-          aria-label="Close"
-        >
-          ×
-        </button>
+        <div className="gktuition-tutor__header-actions">
+          <button
+            type="button"
+            className="gktuition-tutor__expand"
+            onClick={() => setExpanded((v) => !v)}
+            aria-label={expanded ? 'Shrink window' : 'Enlarge window'}
+            title={expanded ? 'Shrink' : 'Enlarge'}
+          >
+            {expanded ? '🗗' : '⤢'}
+          </button>
+          <button
+            type="button"
+            className="gktuition-tutor__close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
       </div>
       <div className="gktuition-tutor__messages" ref={scrollRef}>
         {messages.length === 0 ? (
@@ -323,6 +420,28 @@ export function ChatPanel({
         ) : null}
       </div>
       <form className="gktuition-tutor__composer" onSubmit={handleSubmit}>
+        {tier === 'paying' ? (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelected}
+              style={{ display: 'none' }}
+              data-testid="gktuition-image-input"
+            />
+            <button
+              type="button"
+              className="gktuition-tutor__attach"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={busy}
+              aria-label="Upload a photo of a question"
+              title="Upload a photo of a question"
+            >
+              📷
+            </button>
+          </>
+        ) : null}
         <input
           className="gktuition-tutor__input"
           type="text"

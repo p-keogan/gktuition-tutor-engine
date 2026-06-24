@@ -1,0 +1,6406 @@
+{
+"statistics-20-p-values-and-critical-regions": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(c)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**p-value** for a two-tailed test = `2 · P(Z > |z|)`. Then compare with `α = 0.05` and conclude"
+},
+{
+"year": 2021,
+"paper": 2,
+"question": "Q8(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**`p`-value computation** from the `z`-statistic, then comparison to `α = 0.05`"
+},
+{
+"year": 2019,
+"paper": 2,
+"question": "Q8(b)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**interpreting the p-value** — compare to the significance level `α`"
+},
+{
+"year": 2015,
+"paper": 2,
+"question": "Q2(c)",
+"level": "HL",
+"marks": 8,
+"note": "**p-value** — the probability of observing a sample mean at least as extreme as the one we got, **assuming `H₀` is true**"
+}
+],
+"statistics-19-hypothesis-testing": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**z-test statistic for a sample mean**: `z = (x̄ − μ₀) / (s/√n)`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(b)",
+"level": "HL",
+"marks": 8,
+"note": "**two-tailed hypothesis test** for a population mean using the z-statistic"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(d)",
+"level": "HL",
+"marks": 8,
+"note": "**two-sided hypothesis test on a population proportion** — use a 95% confidence interval and check whether the null value `p = 0.75` lies inside"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(b)",
+"level": "HL",
+"marks": 7,
+"note": "**two-tailed hypothesis test for a population mean** — standardise the sample mean using `z = (x̄ − μ)/(σ/√n)`, compare to critical values `±1.96` at the 5% significance level, reject `H₀` if `|z| > 1.96`"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q8(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**two-tailed hypothesis test** for a population mean. The null is \"no difference\"; the alternative is \"different\". Reject if the population mean from `H₀` falls **outside** the 95% CI (or equivalently if `|z| > 1·96`)"
+}
+],
+"statistics-18-central-limit-theorem": [
+{
+"year": 2020,
+"paper": 2,
+"question": "Q8(d)",
+"level": "HL",
+"marks": 10,
+"note": "**distribution of the sample mean** — `X̄` for a sample of size `n` from `N(μ, σ²)` is `N(μ, σ²/n)`. Translate `P(total > 3000)` into `P(X̄ > 75)`, then standardise"
+},
+{
+"year": 2016,
+"paper": 2,
+"question": "Q9(c)",
+"level": "HL",
+"marks": 2,
+"note": "**Central Limit Theorem** — the distribution of sample means is approximately normal regardless of the underlying distribution, provided the sample size is large enough (`n ≥ 30` is the rule of thumb)"
+},
+{
+"year": 2015,
+"paper": 2,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 9,
+"note": "**confidence interval** for a population mean from a sample mean — uses the `x̄ ± 1.96 · σ/√n` formula (z-based CI, valid because `n = 100` is large per the Central Limit Theorem)"
+}
+],
+"statistics-9-z-scores-1": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(d)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**horizontal translation** of a normal curve — changing the mean shifts the curve left/right while preserving shape (since SD is unchanged)"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(d)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**vertical compression / horizontal narrowing** of a normal curve — smaller `σ` makes the curve **taller and narrower** (more concentrated around the mean), while keeping the centre fixed"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q8(a)",
+"level": "HL",
+"marks": 9,
+"note": "**standardise** to the standard normal, then look up the table value (page 36 of the log tables) and use complement-of-tail logic for negative `z`"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q10(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**standardise** to `z = (x − μ)/σ`, look up `P(Z < z)` in the standard normal table, take complement if needed"
+},
+{
+"year": 2018,
+"paper": 2,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 7,
+"note": "**inverse standard-normal lookup** — given a cumulative probability, find the corresponding z-value"
+}
+],
+"statistics-7-skewed-data": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 7,
+"note": "**mean vs median behaviour under a change to the extremes** — the mean is **sensitive to all values** (changing any value changes the sum, hence the mean); the median is sensitive only to the **middle values** (positions 5 and 6 for `n = 10`)"
+}
+],
+"statistics-5-scatter-graphs-correlation-line-of-best-fit": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 6,
+"note": "**qualitative description** of paired data. Look for direction (everyone improved? everyone got worse?) and **linearity** (uniform improvement? variable improvement?)"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 6,
+"note": "**Pearson's correlation coefficient** — typically computed on the calculator's two-variable statistics mode"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q9(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**correlation coefficient** — sign (positive/negative) reflects whether the variables increase or decrease together; magnitude (close to `±1`) reflects how tightly the data clusters around a straight line"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q9(a)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**line of best fit** drawn by eye — should balance points above and below it, and have a slope reflecting the average trend. Then read off the predicted weight at height `1.8 m`"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q5(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**correlation coefficient `r`** — Pearson's measure of linear association between two variables. On the LC, this is **always computed by calculator** — the formula is unwieldy by hand"
+}
+],
+"statistics-10-z-scores-2": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**probability over an interval** for a normal random variable — standardise the interval bounds to `z`-scores, then look up cumulative probabilities in the standard normal table"
+}
+],
+"statistics-13-z-scores-5-standardising-formula": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(a)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**forward standardising** — convert raw score `420` to z-score, look up tail probability"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**z-score** lookup against the standard normal table"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**standardise an individual observation** — `z = (x − μ)/σ`, then look up `P(Z < z)`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "**inverse standardising** — given a tail probability, find the corresponding raw value"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**probability over an interval** for a normal random variable — standardise the interval bounds to `z`-scores, then look up cumulative probabilities in the standard normal table"
+}
+],
+"statistics-1-types-of-data": [
+{
+"year": 2017,
+"paper": 2,
+"question": "Q2(d)(ii)",
+"level": "HL",
+"marks": 5,
+"note": "read off fuel consumption from Table 1 at each speed, compute litres used, multiply by fuel price (132·9 cents/litre), subtract"
+}
+],
+"statistics-12-z-scores-4": [
+{
+"year": 2021,
+"paper": 2,
+"question": "Q8(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**inverse normal** — find the `z`-score with `P(Z ≤ z) = 0.90`, then convert back to a raw score"
+},
+{
+"year": 2017,
+"paper": 2,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**inverse normal** — given a tail probability, find the corresponding z-value, then de-standardise. Load-bearing skill for \"percentile-rank\" questions"
+},
+{
+"year": 2016,
+"paper": 2,
+"question": "Q9(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**inverse standardisation** — given a cumulative probability, find the data value"
+}
+],
+"statistics-8-empirical-rule": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**empirical rule** (\"68–95–99.7 rule\") — for a normal distribution, ~68% of values lie within ±1σ of the mean; ~95% within ±2σ; ~99.7% within ±3σ. The diagram's tick marks are at `μ − 2σ`, `μ − σ`, `μ`, `μ + σ`, `μ + 2σ` (and sometimes ±3σ)"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q2(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**empirical rule** — the standard 68–95–99.7 gridlines correspond to `μ − 3σ, μ − 2σ, μ − σ, μ, μ + σ, μ + 2σ, μ + 3σ` on a normal distribution"
+},
+{
+"year": 2018,
+"paper": 2,
+"question": "Q2(b)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "the **empirical rule** (68–95–99.7) — fixed percentages of a normal distribution within ±1, ±2, ±3 standard deviations of the mean"
+},
+{
+"year": 2017,
+"paper": 2,
+"question": "Q9(f)",
+"level": "HL",
+"marks": 8,
+"note": "**uniform probability over a continuous range** — the \"wedge\" of allowed fall directions over the full `360°` of possible directions"
+}
+],
+"statistics-3-mean-mode-median-range-iqr-sd-percentiles": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q4(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**median of an even-sized list** = average of the two middle values. For 12 values, that's the 6th and 7th"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q4(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**IQR = Q₃ − Q₁** — find `Q₃` as the median of the upper half, subtract `Q₁`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 7,
+"note": "**mean vs median behaviour under a change to the extremes** — the mean is **sensitive to all values** (changing any value changes the sum, hence the mean); the median is sensitive only to the **middle values** (positions 5 and 6 for `n = 10`)"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 7,
+"note": "**mean from a frequency table** using **mid-interval values (MIV)**: `mean = Σ (f · MIV) / Σ f`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q1(a)(i)",
+"level": "HL",
+"marks": 6,
+"note": "**mode** = the most frequent value"
+}
+],
+"statistics-6-correlation-vs-causality": [
+{
+"year": 2017,
+"paper": 2,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 5,
+"note": "**calculator-based** correlation coefficient `r`. The calculator's statistics mode computes `r` from a two-column data list — this is a \"press buttons\" question rather than a manual-formula question on the LCHL"
+}
+],
+"statistics-15-z-scores-7": [
+{
+"year": 2019,
+"paper": 2,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "**standardise** to a z-score, then look up the probability in the standard normal table (page 36 / 37 of the formulae and tables booklet)"
+},
+{
+"year": 2019,
+"paper": 2,
+"question": "Q8(a)(iii)",
+"level": "HL",
+"marks": 9,
+"note": "**inverse normal** — given a percentile, find the underlying x-value. Read the z-table in reverse, then de-standardise"
+}
+],
+"statistics-11-z-scores-3": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(a)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**forward standardising** — convert raw score `420` to z-score, look up tail probability"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(a)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**inverse normal lookup** — find the value `x` such that `P(X < x) = 0.05`; involves looking up the `z`-score for `0.95` in the table and then reverting via `x = μ + z · σ`"
+},
+{
+"year": 2021,
+"paper": 2,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "**two-tail probability** for a normal distribution — standardise both endpoints, find `P(z₁ ≤ Z ≤ z₂)` from the tables"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q8(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**inverse normal** — given a percentile (here the 75th, since \"top 25%\" means above the 75th percentile), find the corresponding raw score. Use the **standardising formula** `z = (x − μ)/σ` rearranged for `x`"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**forward standardising + percentile comparison** — convert Eileen's score to a z-score, then compare to the 40th percentile's z-value"
+}
+],
+"statistics-16-margin-of-error": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q5(a)(i)",
+"level": "HL",
+"marks": 6,
+"note": "**margin of error at 95% confidence** — the approximation `E = 1/√n` for a population proportion"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q5(a)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "**invert the margin-of-error formula** — solve `E = 1/√n` for `n` given `E`"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q5(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "the \"quick\" margin of error formula `1/√n` (a conservative upper bound on `1.96 · √(p(1−p)/n)` — at most `0.5/√n · 2 = 1/√n` — which is taught in the LC syllabus)"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q8(b)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**the 95% confidence interval** — the central `95%` of the standard normal sits between `z = −1.96` and `z = +1.96`"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q8(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**invert the margin-of-error formula** for a 95% CI on a proportion: `ME = 1.96 √(p̂(1−p̂)/n)`. Solve for `p̂`"
+}
+],
+"statistics-2-types-of-sampling": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(d)",
+"level": "HL",
+"marks": 7,
+"note": "**stratified random sampling** procedure + **commentary on relevance**"
+}
+],
+"statistics-17-confidence-intervals": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(b)",
+"level": "HL",
+"marks": 7,
+"note": "**confidence interval for a mean** — `x̄ ± 1.96 · s/√n` (page 34)"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(d)",
+"level": "HL",
+"marks": 8,
+"note": "**two-sided hypothesis test on a population proportion** — use a 95% confidence interval and check whether the null value `p = 0.75` lies inside"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**95% confidence interval for a population proportion** using the formula `p̂ ± z · √(p̂(1 − p̂)/n)` with `z = 1.96`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(c)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**interpretation** of a confidence interval — what does \"95% confidence\" actually claim?"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q8(b)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**confidence interval for a mean** (large sample) — `x̄ ± z_{α/2} · (σ/√n)` with `z_{0·025} = 1·96` for 95% confidence (page 35 of log tables)"
+}
+],
+"statistics-14-z-scores-6-standardising-sample-means": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**z-test statistic for a sample mean**: `z = (x̄ − μ₀) / (s/√n)`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(b)",
+"level": "HL",
+"marks": 8,
+"note": "**two-tailed hypothesis test** for a population mean using the z-statistic"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(b)",
+"level": "HL",
+"marks": 7,
+"note": "**two-tailed hypothesis test for a population mean** — standardise the sample mean using `z = (x̄ − μ)/(σ/√n)`, compare to critical values `±1.96` at the 5% significance level, reject `H₀` if `|z| > 1.96`"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 7,
+"note": "**two-tailed hypothesis test for a population mean** using a known sample mean, sample standard deviation, and large sample size (`n = 500`, so central limit theorem applies and the sample SD is a good substitute for the unknown population SD)"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q7(e)(i)",
+"level": "HL",
+"marks": 5,
+"note": "**distribution of sample means** — `x̄ ~ N(μ, (σ/√n)²)`"
+}
+],
+"statistics-21-hypothesis-testing-and-confidence-intervals": [
+{
+"year": 2023,
+"paper": 2,
+"question": "Q8(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**two-tailed hypothesis test** for a population mean. The null is \"no difference\"; the alternative is \"different\". Reject if the population mean from `H₀` falls **outside** the 95% CI (or equivalently if `|z| > 1·96`)"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q8(c)",
+"level": "HL",
+"marks": 10,
+"note": "**two-tailed hypothesis test** on a sample mean — `H₀: μ = 12`, `H₁: μ ≠ 12`, with critical values `±1.96` (95% confidence)"
+},
+{
+"year": 2017,
+"paper": 2,
+"question": "Q8(a)(iii)",
+"level": "HL",
+"marks": 10,
+"note": "**two-tailed hypothesis test** for a population mean using the **Central Limit Theorem** + **z-test** (page 36 critical value `±1·96` for two-tailed 5%). Load-bearing alternative: build a **95% confidence interval** for the population mean and check whether `63·5` is inside"
+},
+{
+"year": 2015,
+"paper": 2,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 8,
+"note": "**two-tailed z-test** for a population mean. The hypothesis test and the confidence interval are **two views of the same machinery** — fail to reject `H₀: μ = μ₀` at the 5% level iff `μ₀` lies inside the 95% CI"
+}
+],
+"statistics-4-basic-graphs": [
+{
+"year": 2022,
+"paper": 2,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "appropriate graphical display for discrete numerical data — a **bar chart** is the natural choice"
+}
+],
+"algebra-5-fractions-part-2": [
+{
+"year": 2020,
+"paper": 1,
+"question": "Q7(b)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**adding fractions with unlike denominators** — a JC-foundational fraction-manipulation move"
+},
+{
+"year": 2019,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 12,
+"note": "equation involving three algebraic fractions; clear the fractions with a common denominator, expand, collect onto one side, and solve the resulting quadratic"
+}
+],
+"algebra-13-long-division": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "factor theorem + polynomial long division + quadratic factoring"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "cubic with **all real coefficients**, given one complex root — use the **conjugate-pair theorem** to write down a second root for free, then long-divide to extract the real third root"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 8,
+"note": "factor theorem — `(x − a)` is a factor of `p(x)` ⟺ `p(a) = 0`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**factor a cubic** given one known root — use polynomial **long division** by the linear factor `(x + 16)` to extract the quadratic factor, then solve the quadratic"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "polynomial long division — quadratic divisor, letter coefficients in the dividend, missing `x²` term in the dividend"
+}
+],
+"algebra-17-surd-equations": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 10,
+"note": "bracket expansion involving surds"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(e)(i)",
+"level": "HL",
+"marks": 7,
+"note": "assembling a total-time function from two right-triangle distance pieces"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(e)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "solving a derivative-equals-zero condition involving a surd; squaring to clear the square root"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "surd equation; squaring to eliminate the surd, then solving the resulting quadratic, with a mandatory verification step"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(c)(i)",
+"level": "HL",
+"marks": 8,
+"note": "area between curves via integration; using symmetry to halve the work"
+}
+],
+"algebra-10-generating-a-cubic-equation-given-the-roots": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(c)",
+"level": "HL",
+"marks": 8,
+"note": "**construct a cubic from its roots and `y`-intercept** — the three roots fix the linear factors (up to a constant multiplier `a`); the `y`-intercept pins down `a`"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "reconstruct a quadratic from its roots — either via the factor form `(x − r₁)(x − r₂)` or via the **sum-and-product** identities for the roots of `x² + bx + c = 0`"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q1(a)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "**sum and product of roots** of a quadratic — the page-20 formula relating a quadratic's coefficients to its roots. For `x² + bx + c = 0` with roots `α` and `β`: **sum = `−b`**, **product = `c`**. Use the constraint \"roots differ by 3\" to set up two equations in two unknowns (the roots)"
+}
+],
+"algebra-2-factorising-quadratics": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "modulus inequality"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 10,
+"note": "bracket expansion involving surds"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "factor theorem + polynomial long division + quadratic factoring"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 15,
+"note": "discriminant condition for a quadratic with equal roots"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "quadratic equation that doesn't factor over the integers — fall back to the **−b formula** (the \"quadratic formula\")"
+}
+],
+"algebra-18-simultaneous-equations-three-variables": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(c)",
+"level": "HL",
+"marks": 10,
+"note": "simultaneous equations (one linear + one non-linear), plus the geometric insight \"on the y-axis ⟹ x = 0\""
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "3-variable simultaneous equations by **elimination cascade**"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 15,
+"note": "three-variable simultaneous equations — the standard \"reduce to two variables, then one\" elimination process"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q2(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "3-variable simultaneous linear equations by **elimination cascade**"
+},
+{
+"year": 2018,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 13,
+"note": "simultaneous equations in three variables, with a structural shortcut (one equation already in two variables)"
+}
+],
+"algebra-21-binomial-theorem": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 15,
+"note": "binomial theorem applied via the **general term** formula from page 20 of the log tables"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "binomial expansion at low power — either direct multiplication or the binomial theorem with `n = 3`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 15,
+"note": "specific-term extraction from a binomial expansion, with a `1/x` term inside the bracket — the \"**ascending**\" wrinkle changes which side of the bracket counts as the \"first\" symbol in the formula"
+}
+],
+"algebra-15-modulus-equations": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "modulus inequality"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(c)",
+"level": "HL",
+"marks": 6,
+"note": "apply the `|a| + |b| = n` rule to a specific point"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 10,
+"note": "modulus **inequality** — Paul's universal rule from Algebra 15: **always square**"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "modulus equation"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q4(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "apply the **perpendicular distance** formula (page 18) to convert \"distance from line to point\" into an equation; solve the resulting modulus equation by the **two-cases method** (split into `±`)"
+}
+],
+"algebra-14-manipulation-of-formula": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(d)(i)",
+"level": "HL",
+"marks": 6,
+"note": "simple equation rearrangement"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(d)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "algebraic substitution + simplification; the `(a + b)² = a² + 2ab + b²` expansion"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 15,
+"note": "discriminant condition for a quadratic with equal roots"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(b)",
+"level": "HL",
+"marks": 7,
+"note": "solving an algebraic equation modelled from a contextual word problem"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(e)(i)",
+"level": "HL",
+"marks": 7,
+"note": "assembling a total-time function from two right-triangle distance pieces"
+}
+],
+"algebra-22-abstract-inequalities": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(b)",
+"level": "HL",
+"marks": 7,
+"note": "algebraic identification: points where taxicab distance = Euclidean distance"
+}
+],
+"algebra-4-fractions": [
+{
+"year": 2022,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 7,
+"note": "combine algebraic fractions over a common denominator"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q7(b)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**adding fractions with unlike denominators** — a JC-foundational fraction-manipulation move"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "algebraic proof using the **closed form** `Tₙ = n(n+1)/2` and the result from (b)(i) for `Tₙ₊₁`"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q6(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**sum of the first three Bernoulli probabilities** — `P(X = 0) + P(X = 1) + P(X = 2)` for `n` trials with success probability `1/2`. Simplify symbolically"
+},
+{
+"year": 2019,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 12,
+"note": "equation involving three algebraic fractions; clear the fractions with a common denominator, expand, collect onto one side, and solve the resulting quadratic"
+}
+],
+"algebra-12-nature-of-cubic-roots": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "factor theorem + polynomial long division + quadratic factoring"
+},
+{
+"year": 2017,
+"paper": 1,
+"question": "Q5(c)",
+"level": "HL",
+"marks": 8,
+"note": "**vertical translation of a cubic** + counting real roots from the graph. The cubic `f(x)` (from Q5) has a local max at `(−2, 9)` and a local min at `(1/3, −100/27)`. Translating it up or down by `a` shifts the graph **vertically**; we want the values of `a` for which the translated graph crosses the x-axis exactly **once**"
+}
+],
+"algebra-7-rational-inequalities": [
+{
+"year": 2023,
+"paper": 1,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 15,
+"note": "rational inequality — the canonical Algebra 7 pattern (linear-over-linear ≤ constant)"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "rational inequality — fraction-on-one-side, constant-on-the-other"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 6,
+"note": "**modulus inequality** — solve `|2x + 5| ≤ 1`. Paul's voice rule for modulus inequalities: **ALWAYS square**. Squaring converts the modulus inequality into a clean polynomial inequality with no `±` bookkeeping"
+},
+{
+"year": 2018,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 12,
+"note": "**rational inequality** — fraction on the LHS, constant on the RHS. The canonical Algebra 7 pattern"
+},
+{
+"year": 2016,
+"paper": 1,
+"question": "Q5(a)(i)",
+"level": "HL",
+"marks": 19,
+"note": "Pythagoras — set up `(longest side)² = (other side)² + (other side)²`, then solve the resulting quadratic"
+}
+],
+"algebra-1-revision-of-jc-factorising": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 10,
+"note": "bracket expansion involving surds"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(b)",
+"level": "HL",
+"marks": 7,
+"note": "algebraic identification: points where taxicab distance = Euclidean distance"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(d)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "algebraic substitution + simplification; the `(a + b)² = a² + 2ab + b²` expansion"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(c)",
+"level": "HL",
+"marks": 10,
+"note": "simultaneous equations (one linear + one non-linear), plus the geometric insight \"on the y-axis ⟹ x = 0\""
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(b)",
+"level": "HL",
+"marks": 7,
+"note": "solving an algebraic equation modelled from a contextual word problem"
+}
+],
+"algebra-19-simultaneous-equations-by-substitution": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(c)",
+"level": "HL",
+"marks": 10,
+"note": "simultaneous equations (one linear + one non-linear), plus the geometric insight \"on the y-axis ⟹ x = 0\""
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "simultaneous equations — one linear, one quadratic. The linear equation gives `y`; substitute into the quadratic, solve for `x`, then back-substitute for the `y`-values"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "**non-linear simultaneous equations** — one quadratic equation in `x, y` and one linear equation in `x, y`. Solve by **substitution** (isolate one variable from the linear equation, sub into the quadratic)"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "simultaneous equations — line and a (non-linear) curve"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 7,
+"note": "translate two probability conditions into two simultaneous linear equations"
+}
+],
+"algebra-11-solving-cubic-equations": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "factor theorem + polynomial long division + quadratic factoring"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 8,
+"note": "factor theorem — `(x − a)` is a factor of `p(x)` ⟺ `p(a) = 0`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(b)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**showing a value is a root** — direct substitution. If `g(value) = 0`, then `value` is a root"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q9(a)",
+"level": "HL",
+"marks": 9,
+"note": "**substitution check** — show `g(1.5) = 0`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 15,
+"note": "direct substitution into a polynomial parameterised by a letter, simplifying to `0`"
+}
+],
+"algebra-20-pascals-triangle": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "binomial expansion at low power — either direct multiplication or the binomial theorem with `n = 3`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 15,
+"note": "specific-term extraction from a binomial expansion, with a `1/x` term inside the bracket — the \"**ascending**\" wrinkle changes which side of the bracket counts as the \"first\" symbol in the formula"
+}
+],
+"algebra-6-inequalities": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "modulus inequality"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(v)",
+"level": "HL",
+"marks": 6,
+"note": "solving a quadratic inequality (or equation) modelled as a contextual stage count"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(e)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "solving a derivative-equals-zero condition involving a surd; squaring to clear the square root"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 10,
+"note": "modulus **inequality** — Paul's universal rule from Algebra 15: **always square**"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(b)",
+"level": "HL",
+"marks": 8,
+"note": "quadratic inequality; finding boundary roots via the `−b` formula, then using a sign analysis to pick the correct interval"
+}
+],
+"algebra-9-nature-of-quadratic-graphs": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "completing the square / vertex form — leading coefficient ≠ 1"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 15,
+"note": "discriminant condition for a quadratic with equal roots"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(v)",
+"level": "HL",
+"marks": 6,
+"note": "solving a quadratic inequality (or equation) modelled as a contextual stage count"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(i)",
+"level": "HL",
+"marks": 7,
+"note": "evaluating a quadratic function at two values; alternative — using the axis of symmetry"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "quadratic equation that doesn't factor over the integers — fall back to the **−b formula** (the \"quadratic formula\")"
+}
+],
+"sequences-series-10-induction-proof-of-sn": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(e)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "mathematical induction"
+}
+],
+"sequences-series-3-arithmetic-sequences-3": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(iv)",
+"level": "HL",
+"marks": 6,
+"note": "sum of an arithmetic series; the page-22 sum-formula"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(v)",
+"level": "HL",
+"marks": 6,
+"note": "solving a quadratic inequality (or equation) modelled as a contextual stage count"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q7(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "building successive triangular numbers using the recursive `Tₙ = Tₙ₋₁ + n`"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q7(a)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "\"is `K` a triangular number?\" ⟺ \"does `Tₙ = K` have a positive integer solution for some `n`?\" — a quadratic equation in `n`"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q7(b)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "apply the result from (b)(ii) — `Tₙ + Tₙ₊₁ = (n + 1)²` — directly to extract `n` from the given sum"
+}
+],
+"sequences-series-introduction": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(a)",
+"level": "HL",
+"marks": 7,
+"note": "pattern recognition; identifying the \"diamond\" `|a| + |b| = n` rule"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(c)",
+"level": "HL",
+"marks": 6,
+"note": "apply the `|a| + |b| = n` rule to a specific point"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(e)(i)",
+"level": "HL",
+"marks": 6,
+"note": "counting the dots in Pattern 1 from the diagram (or from the `|a| + |b| = 1` rule)"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(i)",
+"level": "HL",
+"marks": 7,
+"note": "building an arithmetic sequence from cumulative totals (`A(n) = S(n) − S(n−1)`)"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q5(c)",
+"level": "HL",
+"marks": 10,
+"note": "successive differentiation; each new term is the derivative of the previous"
+}
+],
+"sequences-series-14-convergence-divergence-continuity-limits": [
+{
+"year": 2023,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "limit at infinity of a sum of three pieces"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q9(a)",
+"level": "HL",
+"marks": 25,
+"note": "**substitute `t = 0`** into the model"
+},
+{
+"year": 2017,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 12,
+"note": "**sum to infinity** of a geometric series. Side lengths form a geometric sequence with `r = 1/√2`; perimeters (= `4 ·` side) also form a geometric sequence with the **same ratio**. Sum-to-infinity exists because `|r| < 1`"
+}
+],
+"sequences-series-6-geometric-sequences-2": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(b)(i)",
+"level": "HL",
+"marks": 6,
+"note": "common ratio of a geometric sequence; next-term computation"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "common ratio of a geometric sequence from two non-adjacent terms"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q9(d)",
+"level": "HL",
+"marks": 7,
+"note": "sum of a finite geometric series"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q9(f)(i)",
+"level": "HL",
+"marks": 7,
+"note": "derive the sum-of-`n`-terms formula for Jessica's geometric series"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q2(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**De Moivre's Theorem** — applied to compute `rⁿ` for a complex `r` by converting to polar form, raising the modulus to the power and multiplying the argument by the power"
+}
+],
+"sequences-series-8-geometric-sequences-4": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "sum of a geometric series — page-22 formula `Sₙ = a(rⁿ − 1)/(r − 1)`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(b)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "scaling the partial-sum count — first `k` laps contain `18k` orbitals"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "sum of a geometric series — present value of an annuity over the full mortgage term"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(d)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**sum to infinity of an alternating geometric series** — the weight's signed displacements form a geometric series with `r = −4/5` (alternating direction). Apply `S∞ = a/(1 − r)`"
+},
+{
+"year": 2021,
+"paper": 1,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**sum to infinity** of a geometric series — `S∞ = a / (1 − r)`, valid because `|r| = 0.9 < 1`"
+}
+],
+"sequences-series-1-arithmetic-sequences-1": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(i)",
+"level": "HL",
+"marks": 7,
+"note": "building an arithmetic sequence from cumulative totals (`A(n) = S(n) − S(n−1)`)"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "finding the general term of an arithmetic sequence — `Tₙ = a + (n − 1)d` formula"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "evaluating the general term at a specific index"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "definition of arithmetic sequence — equal common differences"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "sum of an arithmetic sequence — apply `Sₙ = (n/2)[2a + (n − 1)d]` from page 22 of the log tables"
+}
+],
+"sequences-series-patterns-1-quadratic-patterns": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(a)",
+"level": "HL",
+"marks": 7,
+"note": "pattern recognition; identifying the \"diamond\" `|a| + |b| = n` rule"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(iv)",
+"level": "HL",
+"marks": 6,
+"note": "sum of an arithmetic series; the page-22 sum-formula"
+}
+],
+"sequences-series-15-sum-to-infinity-proof": [
+{
+"year": 2021,
+"paper": 1,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**sum to infinity** of a geometric series — `S∞ = a / (1 − r)`, valid because `|r| = 0.9 < 1`"
+}
+],
+"sequences-series-4-arithmetic-sequences-4": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(iv)",
+"level": "HL",
+"marks": 6,
+"note": "sum of an arithmetic series; the page-22 sum-formula"
+}
+],
+"sequences-series-5-geometric-sequences-1": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(b)(i)",
+"level": "HL",
+"marks": 6,
+"note": "common ratio of a geometric sequence; next-term computation"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 10,
+"note": "geometric growth — set up the inequality `6.7 · (1.1)ⁿ > 20`, take logs, ceiling to the next natural number"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "sum the geometric series from (i) using the `Sₙ` formula from page 22 of the log tables"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "common ratio of a geometric sequence from two non-adjacent terms"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(a)",
+"level": "HL",
+"marks": 9,
+"note": "**geometric sequence values** — each stage's distance is `4/5` times the previous stage's distance"
+}
+],
+"sequences-series-2-arithmetic-sequences-2": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "finding the general term of an arithmetic sequence — `Tₙ = a + (n − 1)d` formula"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "evaluating the general term at a specific index"
+}
+],
+"sequences-series-9-geometric-sequences-5": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "sum of a geometric series — page-22 formula `Sₙ = a(rⁿ − 1)/(r − 1)`"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q9(e)",
+"level": "HL",
+"marks": 7,
+"note": "**sum to infinity** of a convergent geometric series"
+}
+],
+"sequences-series-7-geometric-sequences-3": [
+{
+"year": 2021,
+"paper": 1,
+"question": "Q7(a)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "**sum** of a geometric sequence — `Sₙ = a(1 − rⁿ)/(1 − r)` from the log tables (page 22)"
+},
+{
+"year": 2018,
+"paper": 1,
+"question": "Q9(b)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**`Tₙ` of a geometric sequence** — page-22 log-tables formula `Tₙ = a · r^(n−1)`, or by direct inspection"
+},
+{
+"year": 2017,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 13,
+"note": "geometric sequence — identify the common ratio from consecutive terms, apply `T_n = ar^(n−1)`, solve an inequality in `n` using **logs**"
+}
+],
+"trigonometry-1-3-sketching-right-angled-triangles": [
+{
+"year": 2021,
+"paper": 2,
+"question": "Q7(f)",
+"level": "HL",
+"marks": 8,
+"note": "**angle of elevation + tan in a right triangle**"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 13,
+"note": "**sine rule** applied twice — first in `△EFH` to find `|FH|`, then in `△FGH` (with the pole-incline geometry) to find `|FG|`"
+}
+],
+"trigonometry-1-1-pythagoras-theorem": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(c)",
+"level": "HL",
+"marks": 10,
+"note": "**cosine rule** to find the cosine of an angle from three sides, then **Pythagoras on a right triangle with that cosine** to extract the sine, then take the ratio for tan"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**Pythagoras** in the square (to get `|OB|`), then again in the right triangle `△OBP` (to get `|OP|`)"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**geometric deduction from the diagram setup** — locate `O` using the `∠OTR = 90°` and `|QT| = 20` data, then use the fact that `N` lies on the wiper's arc to get `|OB| = |ON|`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q8(b)",
+"level": "HL",
+"marks": 9,
+"note": "**sphere circumscribing a cylinder** — Pythagoras in the central cross-section"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q8(e)",
+"level": "HL",
+"marks": 8,
+"note": "**geometry of nested circles** — extract distances by walking through the configuration: small circles touching ⟹ centre-to-centre distance equals `2r_small`; centres forming a square ⟹ diagonal of that square is the key length; large circle's radius equals the distance from its centre to a small circle's centre plus `r_small`; large circle inscribed in tile ⟹ tile side equals large circle's diameter"
+}
+],
+"trigonometry-1-5-sine-rule": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(c)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**sine rule** applied to the triangle formed by the two observation positions and the top of the tower"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**sine rule** in a triangle with a side and its opposite angle, and the unknown side opposite a known angle"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "**sine rule, ambiguous case** — when `sin θ = (some value)`, there are TWO angles in `(0°, 180°)` with that sine"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q4(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**sine rule** combined with the **double-angle identity** from (b)(i). The given angles `W` and `2W` are perfectly designed for the `sin 2W = 2 sin W cos W` substitution to make `cos W` factor out"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q7(b)",
+"level": "HL",
+"marks": 7,
+"note": "two-step trig — first apply the **sine rule** in horizontal triangle `OPR` to find `|RO|`, then use right-triangle trig in the **vertical triangle** `HRO` (with the elevation angle) to find `|HO|`"
+}
+],
+"trigonometry-1-6-cosine-rule": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(c)",
+"level": "HL",
+"marks": 10,
+"note": "**cosine rule** to find the cosine of an angle from three sides, then **Pythagoras on a right triangle with that cosine** to extract the sine, then take the ratio for tan"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(c)(iv)",
+"level": "HL",
+"marks": 7,
+"note": "angle at `B` in the isoceles triangle `BCD` — can be found via the **trig-area formula** `(1/2) ab sin C = Area`, or via cosine rule, or via splitting the isoceles triangle into two right triangles and using `arctan`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "**cosine rule** — given three sides of a triangle, find any angle"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(b)",
+"level": "HL",
+"marks": 7,
+"note": "**cosine rule** in an **isosceles triangle** — two sides equal `|OE| = |OE′| = x`, included angle `105°`, third side equal to the rectangle width `180`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(d)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**cosine rule** in a triangle where two sides are expressed in terms of an unknown `h`, and the third side and the included angle are known"
+}
+],
+"trigonometry-1-4-sina-equals-cos-90-minus-a": [
+{
+"year": 2023,
+"paper": 2,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 10,
+"note": "**prescribed proof** — derive the `sin(A + B)` compound-angle identity from the `cos(A − B)` identity (which is on **page 14** of the log tables) using the **complementary-angle identity** `sin A = cos(90° − A)`"
+}
+],
+"trigonometry-1-7-area-of-non-right-angled-triangle": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(c)(iv)",
+"level": "HL",
+"marks": 7,
+"note": "angle at `B` in the isoceles triangle `BCD` — can be found via the **trig-area formula** `(1/2) ab sin C = Area`, or via cosine rule, or via splitting the isoceles triangle into two right triangles and using `arctan`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(c)(v)",
+"level": "HL",
+"marks": 7,
+"note": "**lens area** = sum of two **circular segments**, each = (sector area) − (triangle area)"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "**trig area formula** `(1/2) a b sin C` — apply to one face, then multiply by 4 (all four faces are congruent)"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(a)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "area of a quadrilateral split into two triangles, each via `½ ab sin C`; volume = area × depth"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "**area of a parallelogram** = `(adjacent side 1) × (adjacent side 2) × sin(included angle)`"
+}
+],
+"trigonometry-1-2-sin-cos-tan": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(b)",
+"level": "HL",
+"marks": 8,
+"note": "**angle of elevation** via `tan = opposite/adjacent`, then **percentage error** = `|measured − true| / true × 100`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(c)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**right-triangle trig** to find the vertical drop from the top of the tower to the level of Ally's eyes, then add Ally's eye height"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(b)(i)",
+"level": "HL",
+"marks": 9,
+"note": "find the angle at the origin in each triangle using SOH-CAH-TOA"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(a)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**right-triangle trigonometry** — `cos = adjacent / hypotenuse` in the right triangle `OTB`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(d)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**angle of elevation** — apply the trig ratio (tan = opposite / adjacent) in the right triangle formed by the building, its base, and the observation point"
+}
+],
+"trigonometry-1-8-sector-of-a-circle": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(c)(v)",
+"level": "HL",
+"marks": 7,
+"note": "**lens area** = sum of two **circular segments**, each = (sector area) − (triangle area)"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(a)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "**area of a sector** = `(angle/360°) × π r²`. Sweep angle `∠BOB′ = 180° − 2(41.4°)`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**distance per revolution** = circle's **circumference** `C = 2πr`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "**find area from circumference** — use `C = 2πr` to find `r`, then plug into `A = πr²`"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q4(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**shaded area = rectangle area − sector area**"
+}
+],
+"induction-6-de-moivre-by-induction": [
+{
+"year": 2018,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 13,
+"note": "**prescribed proof** — De Moivre's Theorem by induction. **Tier 0 — drill cold.**"
+}
+],
+"induction-2-inequalities": [
+{
+"year": 2019,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 8,
+"note": "proof by induction, exponential-vs-linear inequality, range starting at `n = 2` (not `n = 1`)"
+}
+],
+"induction-3-factorials": [
+{
+"year": 2023,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 15,
+"note": "**factorial manipulation** — show two algebraic expressions involving factorials are equal. Both directions of the identity will produce the same simplified form `(n + 1)(n − 1)!`"
+}
+],
+"induction-5-series": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(e)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "mathematical induction"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 10,
+"note": "**proof by induction** — the arithmetic-sum identity. The cleanest, most-standard induction problem in the LCHL series-induction toolbox"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "**proof by induction** — series-induction template applied to the **canonical** `∑n = n(n+1)/2` identity (sometimes called the *triangular numbers* formula, or Gauss's schoolboy formula)"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q7(d)",
+"level": "HL",
+"marks": 7,
+"note": "**proof by induction** — three-step skeleton: prove `P(1)`, assume `P(k)`, prove `P(k + 1)`"
+}
+],
+"induction-4-divisibility": [
+{
+"year": 2023,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 15,
+"note": "**proof by induction — divisibility type**. The third of the five induction families taught in the LCHL syllabus"
+},
+{
+"year": 2021,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "**proof by induction** of a divisibility statement"
+},
+{
+"year": 2016,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 13,
+"note": "induction (divisibility type) — the split-the-coefficient template"
+}
+],
+"induction-1-introduction": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(e)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "mathematical induction"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 10,
+"note": "**proof by induction** — the arithmetic-sum identity. The cleanest, most-standard induction problem in the LCHL series-induction toolbox"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "**proof by induction** — series-induction template applied to the **canonical** `∑n = n(n+1)/2` identity (sometimes called the *triangular numbers* formula, or Gauss's schoolboy formula)"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 15,
+"note": "**proof by induction — divisibility type**. The third of the five induction families taught in the LCHL syllabus"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q2(a)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "proof by induction (multiplicative version)"
+}
+],
+"probability-2-mutually-exclusive-not-mutually-exclusive": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q3(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**probability from a Venn diagram** — `P(A)` is the count of people in `A` (any of the four regions inside the `A` circle), divided by the total surveyed"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q3(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**union formula** verification — compute LHS and RHS independently from the diagram, show they're equal"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q3(a)(i)",
+"level": "HL",
+"marks": 6,
+"note": "**set-difference probability** — `P(A\\B) = P(A) − P(A ∩ B)`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 8,
+"note": "**mutually exclusive events** ⟹ `P(A ∩ B) = 0`. Then `P(A ∪ B) = P(A) + P(B)`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q2(c)",
+"level": "HL",
+"marks": 7,
+"note": "**complement of union** + **maximising/minimising** by varying the unknown intersection"
+}
+],
+"probability-1-jc-revision": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q3(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**probability from a Venn diagram** — `P(A)` is the count of people in `A` (any of the four regions inside the `A` circle), divided by the total surveyed"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q2(c)",
+"level": "HL",
+"marks": 7,
+"note": "**complement of union** + **maximising/minimising** by varying the unknown intersection"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q6(c)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**classical probability** = `(favourable outcomes) / (total outcomes)`. Count pairs on the same horizontal line (same `y`-coordinate)"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q9(d)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**probability via combinations** — count favourable outcomes (Sunday's pick disjoint from Saturday's) and divide by total outcomes (Sunday's pick from all 7)"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "**independent events** — spins are independent of each other; multiply the per-event probabilities to get the joint probability of a specific sequence"
+}
+],
+"probability-7-twin-rule": [
+{
+"year": 2019,
+"paper": 2,
+"question": "Q1(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "probability **without replacement** (two-stage); when **order doesn't matter** but the events are distinguishable, apply the **twin rule** — count both orderings"
+}
+],
+"probability-3-independent-events-conditional-probability": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q3(a)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "**independence test** — `A ⊥ B ⟺ P(A ∩ B) = P(A) · P(B)`. Compute both sides, compare"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 7,
+"note": "**probability without replacement** — order doesn't matter, so multiply by `C(2, 1) = 2` to account for \"which one is picked first\". Or use combinations directly"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q9(a)",
+"level": "HL",
+"marks": 8,
+"note": "**conditional-probability tree diagram** — first branch on \"has / does not have diabetes\", second branch on \"tests positive / negative\". Multiply along each path to get the joint probability for each outcome"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q9(a)(iv)",
+"level": "HL",
+"marks": 7,
+"note": "**Bayes-style conditional probability** — `P(has | positive) = P(has AND positive) / P(positive)`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q2(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**independence** of repeated trials. Each spin is independent, so the conditional probability equals the marginal"
+}
+],
+"probability-8-bernoulli-trials": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q9(b)",
+"level": "HL",
+"marks": 7,
+"note": "**Bernoulli/binomial complement** — `P(≥ 2) = 1 − P(0) − P(1)`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q9(c)(i)",
+"level": "HL",
+"marks": 6,
+"note": "**Bernoulli trials** (binomial probability) — probability of `R` successes in `n` trials. Page 33 of the log tables"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(b)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**Bernoulli trials** — binomial probability"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**solve `q^n = constant` for `n`** — take logs"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q9(b)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**geometric/Bernoulli sequence probability** — the first \"success\" (in this case, the first **missed** tackle) occurs on a specific trial only if all previous trials are \"failures\" (made tackles) AND that trial is a \"success\" (missed tackle)"
+}
+],
+"probability-5-permutations": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q9(c)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "for a fixed group A of 10 distinguishable people, count the number of ways to pair them off with the 10 distinguishable people in group B. This is a **permutation** of group B"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q9(b)(i)",
+"level": "HL",
+"marks": 6,
+"note": "**permutations** of 9 distinct people in 9 seats — `9!` arrangements"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**fundamental counting principle** — `n` independent positions, each with `k` choices ⟹ `kⁿ` total"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q6(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**permutations of `n` distinct objects** — there are `n!` arrangements"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q6(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**\"glued-together\" trick** for adjacency constraints — treat the constrained pair as a single block, count arrangements of the block + the remaining items, then multiply by the internal arrangements of the block"
+}
+],
+"probability-4-factorials": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q9(b)(i)",
+"level": "HL",
+"marks": 6,
+"note": "**permutations** of 9 distinct people in 9 seats — `9!` arrangements"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q6(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**permutations of `n` distinct objects** — there are `n!` arrangements"
+},
+{
+"year": 2018,
+"paper": 2,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 8,
+"note": "**factorial simplification** — `(n + k)!/(n + 1)! = (n + 2)(n + 3) … (n + k)`. Then expand and match coefficients"
+}
+],
+"probability-9-relative-frequency-expected-value": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(e)",
+"level": "HL",
+"marks": 7,
+"note": "**expected value optimization** under linear constraints — write `E[X]` in terms of `p` and `r`, use the constraint to eliminate one variable, then maximize subject to the inequality constraints"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q2(b)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**expected value** of a discrete distribution — `E(X) = Σ(probability × value)`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 8,
+"note": "**fair game = expected net = 0** (or equivalently, expected winnings = cost)"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q9(c)",
+"level": "HL",
+"marks": 7,
+"note": "**expected value** of a discrete random variable combined with a linear relation among the probabilities and the normalisation `x + y + z = 1`. Three equations, three unknowns"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q8(e)",
+"level": "HL",
+"marks": 8,
+"note": "**expected value** of a discrete random variable — `E(X) = Σ(probability × value)`. Set the expression equal to €13·85 and solve for `x`"
+}
+],
+"probability-6-combinations": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 7,
+"note": "**probability without replacement** — order doesn't matter, so multiply by `C(2, 1) = 2` to account for \"which one is picked first\". Or use combinations directly"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q9(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**combinations** — `C(n, k) = n! / (k! (n−k)!)`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q9(d)",
+"level": "HL",
+"marks": 7,
+"note": "**partition into groups** — distribute 16 Y-people into 8 distinguishable buckets (one per X-person), each bucket holding 2"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q10(c)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**combinations** — choose 2 from 4 men AND choose 3 from 6 women; multiply"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q6(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**combinations** `nCr` — number of unordered pairs from a set of `n` items is `C(n, 2) = n(n−1)/2`"
+}
+],
+"functions-graphs-6-surjective-functions": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(c)",
+"level": "HL",
+"marks": 10,
+"note": "read off the **range** of `g` from the graph. A horizontal line that doesn't cut the graph corresponds to a `k`-value **outside the range**"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q5(c)",
+"level": "HL",
+"marks": 10,
+"note": "**function composition** — read the arrows in the diagram"
+}
+],
+"functions-graphs-9-drawing-graphs": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "reading slope, function composition, and inverse function — all directly from a graph"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(b)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "plotting 9 points + joining with a smooth curve (two pieces, joined at `t = 4`)"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(d)",
+"level": "HL",
+"marks": 8,
+"note": "conceptual question about the shape of the exponential decay — at higher altitudes, the curve is flatter, so the same 40 m rise produces a smaller pressure drop. Justify using the monotonic-decay structure of `e^(kh)` with `k < 0`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(c)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "reflection of a function in the y-axis — `k(x) = s(−x)`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "plot 7 points + smooth-curve connection. Identify the cubic's characteristic shape"
+}
+],
+"functions-graphs-10-limits": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(d)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "limit at infinity for a rational function (degree-2 over degree-2)"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(a)(iv)",
+"level": "HL",
+"marks": 10,
+"note": "**limit at infinity** of an exponential approach. The decaying exponential goes to 0; the constant remains"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "limit at infinity of a sum of three pieces"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q9(a)",
+"level": "HL",
+"marks": 25,
+"note": "**substitute `t = 0`** into the model"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 8,
+"note": "limit at infinity of an exponential function"
+}
+],
+"functions-graphs-1-jc-revision": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(b)(i)",
+"level": "HL",
+"marks": 6,
+"note": "evaluating a piecewise function — pick the correct piece based on the input value of `t`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "substituting into a cubic model"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "evaluating a function at given values; cubic computation"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(e)",
+"level": "HL",
+"marks": 8,
+"note": "**comparison of exponential decay rates** — recognise that a larger `|k|` (more negative `k`) produces faster decay toward the same asymptote"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q9(a)",
+"level": "HL",
+"marks": 25,
+"note": "**substitute `t = 0`** into the model"
+}
+],
+"functions-graphs-5-injective-functions": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "**injectivity** — apply the **horizontal line test** (Functions and Graphs 5) to a function with a known local max"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(c)",
+"level": "HL",
+"marks": 10,
+"note": "read off the **range** of `g` from the graph. A horizontal line that doesn't cut the graph corresponds to a `k`-value **outside the range**"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q5(c)",
+"level": "HL",
+"marks": 10,
+"note": "**function composition** — read the arrows in the diagram"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q6(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "existence of an inverse function — depends on whether the original function is **injective** (one-to-one) on the given domain"
+},
+{
+"year": 2016,
+"paper": 1,
+"question": "Q5(b)(i)",
+"level": "HL",
+"marks": 2,
+"note": "**algebraic proof of injectivity** — start with `f(a) = f(b)`, show `a = b`"
+}
+],
+"functions-graphs-2-shapes-of-quadratic-functions": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "completing the square / vertex form — leading coefficient ≠ 1"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(i)",
+"level": "HL",
+"marks": 7,
+"note": "evaluating a quadratic function at two values; alternative — using the axis of symmetry"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(b)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "plotting 9 points + joining with a smooth curve (two pieces, joined at `t = 4`)"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "the conceptual difference between **local** and **global** minimum"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(b)",
+"level": "HL",
+"marks": 8,
+"note": "max/min of a sinusoid using the range of cos"
+}
+],
+"functions-graphs-4-composite-functions": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "reading slope, function composition, and inverse function — all directly from a graph"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(c)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "reflection of a function in the y-axis — `k(x) = s(−x)`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(b)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "composite function evaluation + simplification using log rules"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "**function composition** — substitute `f(x)` everywhere `x` appears in `g`, then expand and simplify"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q5(c)",
+"level": "HL",
+"marks": 10,
+"note": "**function composition** — read the arrows in the diagram"
+}
+],
+"functions-graphs-3-vertex-form-completing-the-square": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "completing the square / vertex form — leading coefficient ≠ 1"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 15,
+"note": "discriminant condition for a quadratic with equal roots"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q2(c)",
+"level": "HL",
+"marks": 10,
+"note": "graph translations — **vertical translation** (changing the y-values, leaving the x-values alone) and **horizontal translation** (changing the x-values, leaving the y-values alone)"
+},
+{
+"year": 2021,
+"paper": 1,
+"question": "Q5(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "differentiate, then complete the square (vertex form)"
+},
+{
+"year": 2018,
+"paper": 2,
+"question": "Q8(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**max of a quadratic** — either calculus (Diff 15 from P1) or completing the square"
+}
+],
+"functions-graphs-8-inverse-functions": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "reading slope, function composition, and inverse function — all directly from a graph"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(c)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "reflection of a function in the y-axis — `k(x) = s(−x)`"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q6(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "existence of an inverse function — depends on whether the original function is **injective** (one-to-one) on the given domain"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 9,
+"note": "**function composition** — compute `f(g(x))` and `g(f(x))` separately, then compare. (These two functions happen to be **inverses** of each other, so both compositions return `x` — a special case that the question is implicitly testing your awareness of.)"
+},
+{
+"year": 2018,
+"paper": 1,
+"question": "Q6(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**graph of an inverse function** — by reflection in the line `y = x`. Since the diagram already contains `h(x) = x`, we have the axis of reflection drawn"
+}
+],
+"differentiation-18-rates-of-change": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(v)",
+"level": "HL",
+"marks": 6,
+"note": "chain rule applied across a composite — `dF/dt = (dF/dc)(dc/dt)`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(c)(i)",
+"level": "HL",
+"marks": 8,
+"note": "differentiating an exponential — `d/dt[e^(kt)] = k e^(kt)`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q9(d)",
+"level": "HL",
+"marks": 8,
+"note": "**related rates** — chain rule connecting `dV/dt` with `dV/dx` and `dx/dt`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(e)",
+"level": "HL",
+"marks": 8,
+"note": "**work-rate combination** — convert each pipe's \"time to fill\" into a \"fraction per minute\" rate, combine the rates while both are running, then switch to Pipe B alone"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(d)",
+"level": "HL",
+"marks": 8,
+"note": "**physical interpretation of derivative properties** — translate calculus statements (`w' < 0`, `|w'|` decreasing) into plain-English statements about the wood's drying behaviour"
+}
+],
+"differentiation-15-turning-points-max-min": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "quotient rule, plus the \"turning points need slope = 0\" condition from Diff 15"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(e)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "solving a derivative-equals-zero condition involving a surd; squaring to clear the square root"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(e)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "matching a function to a sketch using calculus-derived features"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "the **5-step turning-points recipe** from Differentiation 15 — find `h'(x)`, set it to zero, solve for the `x`-values, substitute each back into `h(x)` to get the `y`-values, then use the **second-derivative test** to label max vs min"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "**optimisation** — apply the turning-points recipe to `V(x)` over its physical domain `x ∈ (0, 5)`"
+}
+],
+"differentiation-11-inverse-trig": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(e)",
+"level": "HL",
+"marks": 8,
+"note": "solve a transcendental equation involving sin — `inverse sin` (arcsin) to isolate the angle"
+}
+],
+"differentiation-14-slopes": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "equation of a tangent line — combines Diff 14 (slope of tangent = first derivative) with the coordinate-geometry page-18 point-slope formula"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "reading slope, function composition, and inverse function — all directly from a graph"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(b)(i)",
+"level": "HL",
+"marks": 8,
+"note": "tangent line — combines slope-from-derivative with the page-18 point-slope formula"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 7,
+"note": "geometric interpretation of \"slopes match\" — find where a tangent to `p(x)` is parallel to the line `l(x)`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(b)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**graphical interpretation of the derivative** — translate the visual properties of a graph into statements about the sign of `f'(x)`"
+}
+],
+"differentiation-13-second-derivative": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "the **5-step turning-points recipe** from Differentiation 15 — find `h'(x)`, set it to zero, solve for the `x`-values, substitute each back into `h(x)` to get the `y`-values, then use the **second-derivative test** to label max vs min"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "**optimisation** — apply the turning-points recipe to `V(x)` over its physical domain `x ∈ (0, 5)`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "point of inflection — where the second derivative is zero"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q5(c)",
+"level": "HL",
+"marks": 10,
+"note": "successive differentiation; each new term is the derivative of the previous"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(d)",
+"level": "HL",
+"marks": 8,
+"note": "**physical interpretation of derivative properties** — translate calculus statements (`w' < 0`, `|w'|` decreasing) into plain-English statements about the wood's drying behaviour"
+}
+],
+"differentiation-7-quotient-rule": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "quotient rule, plus the \"turning points need slope = 0\" condition from Diff 15"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "quotient rule, then evaluate at a specific point"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "differentiation of a reciprocal of a polynomial. Two valid routes: chain rule (Paul's preferred — rewrite as `(5x² + 7)⁻¹` and use the **bracket-to-the-power** method), or quotient rule"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q9(a)",
+"level": "HL",
+"marks": 25,
+"note": "**substitute `t = 0`** into the model"
+}
+],
+"differentiation-16-increasing-decreasing-curves": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "quotient rule, plus the \"turning points need slope = 0\" condition from Diff 15"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(e)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "matching a function to a sketch using calculus-derived features"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 7,
+"note": "geometric interpretation of \"slopes match\" — find where a tangent to `p(x)` is parallel to the line `l(x)`"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q10(c)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "sign of the derivative ⟺ direction of monotonicity"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q6(b)(i)",
+"level": "HL",
+"marks": 10,
+"note": "read an increasing region from a graph"
+}
+],
+"differentiation-5-exponentials": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "definite integration of an exponential, then solve for an unknown limit"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(b)(i)",
+"level": "HL",
+"marks": 6,
+"note": "evaluating a piecewise function — pick the correct piece based on the input value of `t`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(b)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "plotting 9 points + joining with a smooth curve (two pieces, joined at `t = 4`)"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "differentiate `V(t)` (chain rule on `e^(−0.2t)`), evaluate at `t = 1`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(b)(i)",
+"level": "HL",
+"marks": 8,
+"note": "evaluating `e^(some number)` on the calculator; scientific notation"
+}
+],
+"differentiation-1-introduction": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "differentiation — constant + power rule + trig with chain rule (the \"multiply by the derivative of the angle\" step)"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "equation of a tangent line — combines Diff 14 (slope of tangent = first derivative) with the coordinate-geometry page-18 point-slope formula"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "chain rule, applied to a bracket-to-a-power"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "elementary differentiation — power rule on a quadratic"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "evaluating a derivative through a composite — **simplify the log first using the rules of logs, THEN substitute.**"
+}
+],
+"differentiation-8-chain-rule": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "chain rule, applied to a bracket-to-a-power"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "quotient rule, plus the \"turning points need slope = 0\" condition from Diff 15"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(v)",
+"level": "HL",
+"marks": 6,
+"note": "chain rule applied across a composite — `dF/dt = (dF/dc)(dc/dt)`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "differentiate `V(t)` (chain rule on `e^(−0.2t)`), evaluate at `t = 1`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(c)",
+"level": "HL",
+"marks": 10,
+"note": "chain rule on the reciprocal `1/(2x − 1)` — rewrite as `(2x − 1)⁻¹` and apply the bracket-to-the-power method. Set the derivative to zero, solve the resulting equation"
+}
+],
+"differentiation-20-rate-problems": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(v)",
+"level": "HL",
+"marks": 6,
+"note": "chain rule applied across a composite — `dF/dt = (dF/dc)(dc/dt)`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "read the geometric constraint from the diagram. The sheet is 20 cm wide, and along that direction the net occupies `h + 2·(2x) = h + 4x` cm (the rectangle's `h` dimension stacked with two circles each of diameter `2x`)"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**related rates** — chain rule connecting `dV/dt` to `dh/dt` via `dV/dh`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q9(d)",
+"level": "HL",
+"marks": 8,
+"note": "**related rates** — chain rule connecting `dV/dt` with `dV/dx` and `dx/dt`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q9(e)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**substitute a geometric constraint into the cone volume formula** — straightforward algebraic substitution into `V = (1/3) π r² h` (page 10 of the log tables)"
+}
+],
+"differentiation-19-tan-of-angle-with-horizontal": [
+{
+"year": 2018,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 13,
+"note": "**slope of a tangent = tan of the angle = derivative**. The Differentiation 19 unifying identity, with the obtuse-angle correction because the slope is negative"
+},
+{
+"year": 2016,
+"paper": 1,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 2,
+"note": "**slope = tan θ** — the unifying identity from Differentiation 19"
+},
+{
+"year": 2015,
+"paper": 1,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**slope = tan(angle with the horizontal) = f'(x)** — the unifying identity from Differentiation 19"
+}
+],
+"differentiation-17-points-of-inflection": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "point of inflection — where the second derivative is zero"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "plot 7 points + smooth-curve connection. Identify the cubic's characteristic shape"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q9(c)",
+"level": "HL",
+"marks": 8,
+"note": "**steepest point** of a function = **point of inflection** = where `f''(x) = 0`. The slope `f'(x)` is itself a function of `x`; its maximum / minimum occurs where its derivative `f''(x) = 0`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 15,
+"note": "standard cubic turning-point + point-of-inflection workflow. Two routines run in parallel: `g'(x) = 0` for turning points, `g''(x) = 0` for point of inflection"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q10(d)",
+"level": "HL",
+"marks": 7,
+"note": "at a point of inflection, the **second derivative** is zero (and changes sign). Compute `P''(t)`, show it's never zero on the interval"
+}
+],
+"differentiation-9-logs": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(iv)",
+"level": "HL",
+"marks": 6,
+"note": "differentiation of a natural log — **simplify the log first**, then apply the elementary derivative `d/dt[ln t] = 1/t`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q5(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**product rule** combined with the chain rule for `ln(x³)` — or, simpler, **simplify the log first** using `ln(x³) = 3 ln(x)` and differentiate the simplified product"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "**product rule** combined with the **chain rule** (the `tan(x/2)` needs the chain rule for the inner angle)"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q10(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "differentiate `ln(t + 1)`; evaluate at `t = 1`"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q6(b)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**chain rule** applied to a log — differentiate `ln(stuff)` as `1/stuff`, then multiply by the derivative of the inside"
+}
+],
+"differentiation-21-shapes-of-derivatives": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "reading slope, function composition, and inverse function — all directly from a graph"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(e)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "matching a function to a sketch using calculus-derived features"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 7,
+"note": "geometric interpretation of \"slopes match\" — find where a tangent to `p(x)` is parallel to the line `l(x)`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "the conceptual difference between **local** and **global** minimum"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(d)",
+"level": "HL",
+"marks": 8,
+"note": "identifying a function from its graph using structural features"
+}
+],
+"differentiation-2-first-principles": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "differentiation from first principles via the limit definition"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 10,
+"note": "**differentiation from first principles** — the limit definition of the derivative"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 9,
+"note": "**first principles** differentiation — apply the limit definition `f'(x) = lim_{h→0} (f(x + h) − f(x))/h` rather than the power rule"
+},
+{
+"year": 2017,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 13,
+"note": "the **limit definition of the derivative**. Method is prescribed: *\"from first principles\"* — no shortcuts allowed"
+},
+{
+"year": 2016,
+"paper": 1,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 9,
+"note": "differentiation from first principles — the rigid 5-step template"
+}
+],
+"differentiation-6-product-rule": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 10,
+"note": "**product rule** combined with the **chain rule** (the `sin 3x` has an inner angle `3x`, not just `x`). Then evaluate the derivative at `x = π/4`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "quotient rule, then evaluate at a specific point"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q5(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**product rule** combined with the chain rule for `ln(x³)` — or, simpler, **simplify the log first** using `ln(x³) = 3 ln(x)` and differentiate the simplified product"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "**product rule** combined with the **chain rule** (the `tan(x/2)` needs the chain rule for the inner angle)"
+},
+{
+"year": 2019,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 8,
+"note": "differentiate a sum of four terms, one of which is a product `3x · ln x` requiring the **product rule**; then evaluate the derivative at `x = e`"
+}
+],
+"differentiation-3-trigonometric-functions": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "differentiation — constant + power rule + trig with chain rule (the \"multiply by the derivative of the angle\" step)"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 10,
+"note": "**product rule** combined with the **chain rule** (the `sin 3x` has an inner angle `3x`, not just `x`). Then evaluate the derivative at `x = π/4`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 8,
+"note": "integration of `cos(angle)` where the angle isn't just `x` — the \"divide by the derivative of the angle\" trick"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**trig derivative with a non-`x` angle** — apply the chain rule mechanically (differentiate the trig as usual, then multiply by the derivative of the angle)"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "**product rule** combined with the **chain rule** (the `tan(x/2)` needs the chain rule for the inner angle)"
+}
+],
+"avm-1-3-trapezoidal-rule": [
+{
+"year": 2015,
+"paper": 1,
+"question": "Q3(a)(i)",
+"level": "HL",
+"marks": 7,
+"note": "function evaluation — substitute each `x`-value into `f(x) = −x² + 12x − 27` and compute"
+},
+{
+"year": 2015,
+"paper": 1,
+"question": "Q3(a)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "**trapezoidal rule** — the page-12 log-tables formula for estimating the area of a region using ordinate heights at equal strip widths"
+}
+],
+"avm-1-1-jc-revision": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(b)",
+"level": "HL",
+"marks": 7,
+"note": "**volume equation** assembling three component formulas — hemisphere + cylinder + cone — and solving for `x`. Then total length `= x + 7x + 4x = 12x`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(a)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "area of a quadrilateral split into two triangles, each via `½ ab sin C`; volume = area × depth"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**surface area of a sphere** `= 4πr²`. Equate to (b)(i) and solve for `L`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q8(c)",
+"level": "HL",
+"marks": 8,
+"note": "**dimensions from volume and a ratio** — introduce a single parameter `x`, write each dimension as a multiple of `x`, plug into `V = h · w · l`, solve for `x`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q8(d)",
+"level": "HL",
+"marks": 8,
+"note": "**cylinder volume with a height-equals-diameter constraint** — substitute the constraint into `V = πr²h` to get a single-variable equation in `r`, then solve"
+}
+],
+"avm-1-2-unit-conversion": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**scale conversion** — total drawn length corresponds to the total actual length; use the ratio to scale each component"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(b)",
+"level": "HL",
+"marks": 8,
+"note": "**angle of elevation** via `tan = opposite/adjacent`, then **percentage error** = `|measured − true| / true × 100`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(c)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**speed = distance / time**, with **unit conversion** from mm/s to km/h"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q8(b)",
+"level": "HL",
+"marks": 8,
+"note": "**distance/speed/time** with **unit conversion** — match the units between distance (`m → km`) and speed (`km/h`), then convert the result from hours to minutes"
+}
+],
+"avm-1-4-area-of-triangle-using-trigonometry": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q8(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**area of a non-right-angled triangle** — formula `A = ½ ab sin C` from page 16 of the log tables, where `a` and `b` are two sides and `C` is the **included angle** (the angle between them)"
+}
+],
+"indices-logs-2-rules-of-logs-1": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "simplifying log expressions using the three log rules + the special fact `ln e = 1`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "logs equation — combine into a single log using the **product/quotient/power rules**, then convert from log form to index form, then solve the resulting quadratic. Domain check at the end (`n > 0`)"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "exponential equation that converts into the quadratic from part (i) by the substitution `y = 4ˣ`. The keyword **\"hence\"** is the load-bearing hint — re-use the result of (i)"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "solving a log equation by converting to exponential form, AND simplifying the log first via Rule 3"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "**logs simplification** — three terms with the same base combined using the **product** and **quotient** rules, then a **change-of-base** step from base `100` down to base `10`"
+}
+],
+"indices-logs-4-changing-the-base": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "**logs simplification** — three terms with the same base combined using the **product** and **quotient** rules, then a **change-of-base** step from base `100` down to base `10`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 8,
+"note": "logs equation with **different bases** — change every term to the same base, then solve"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 15,
+"note": "**read off the change-of-base formula in both directions** — given the formula written out, match the symbols"
+}
+],
+"indices-logs-3-rules-of-logs-2": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "simplifying log expressions using the three log rules + the special fact `ln e = 1`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "evaluating a derivative through a composite — **simplify the log first using the rules of logs, THEN substitute.**"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(iv)",
+"level": "HL",
+"marks": 6,
+"note": "differentiation of a natural log — **simplify the log first**, then apply the elementary derivative `d/dt[ln t] = 1/t`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "logs equation — combine into a single log using the **product/quotient/power rules**, then convert from log form to index form, then solve the resulting quadratic. Domain check at the end (`n > 0`)"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "solving a log equation by converting to exponential form, AND simplifying the log first via Rule 3"
+}
+],
+"indices-logs-6-quadratic-equations-1": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "exponential equation that converts into the quadratic from part (i) by the substitution `y = 4ˣ`. The keyword **\"hence\"** is the load-bearing hint — re-use the result of (i)"
+},
+{
+"year": 2021,
+"paper": 1,
+"question": "Q3(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**disguised quadratic** in `3ᵐ`, solved by substitution; then a one-line logs finish with change-of-base **bonus identity** `log₃(3) = 1` to split into `log₃ p − q`"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q3(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**log equation** — eliminate logs using the anchor identity `log_a(a^k) = k` (specifically rewrite the bare `2` as `log₅ 25`), combine with the **log-of-a-product** rule, then de-log both sides. The resulting non-log equation, combined with the log-log linearisation from (b)(i), produces a quadratic in `x`"
+},
+{
+"year": 2016,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 7,
+"note": "quadratic-in-`eˣ` disguise — the substitution `u = eˣ` turns the exponential equation into a standard quadratic"
+}
+],
+"indices-logs-5-unknown-in-power-natural-log": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "definite integration of an exponential, then solve for an unknown limit"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "simplifying log expressions using the three log rules + the special fact `ln e = 1`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(a)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "evaluating a derivative through a composite — **simplify the log first using the rules of logs, THEN substitute.**"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 10,
+"note": "geometric growth — set up the inequality `6.7 · (1.1)ⁿ > 20`, take logs, ceiling to the next natural number"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(c)",
+"level": "HL",
+"marks": 8,
+"note": "invert the exponential formula — solve for `h` given `P(h) = 80`. Take logs of both sides; the log of `e` to a power becomes the power"
+}
+],
+"indices-logs-1-jc-revision": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 15,
+"note": "binomial theorem applied via the **general term** formula from page 20 of the log tables"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q2(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "exponential equation that converts into the quadratic from part (i) by the substitution `y = 4ˣ`. The keyword **\"hence\"** is the load-bearing hint — re-use the result of (i)"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q7(a)",
+"level": "HL",
+"marks": 9,
+"note": "evaluate a formula at the boundary value to extract the unknown coefficient"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "rules of indices — **negative powers** convert `1/aⁿ` into `a^(−n)`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q9(a)",
+"level": "HL",
+"marks": 25,
+"note": "**substitute `t = 0`** into the model"
+}
+],
+"indices-logs-7-quadratic-equations-2": [
+{
+"year": 2021,
+"paper": 1,
+"question": "Q3(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**disguised quadratic** in `3ᵐ`, solved by substitution; then a one-line logs finish with change-of-base **bonus identity** `log₃(3) = 1` to split into `log₃ p − q`"
+}
+],
+"indices-logs-8-log-problems": [
+{
+"year": 2020,
+"paper": 1,
+"question": "Q3(b)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**log-log linearisation** — take logs of both sides of a power-law relationship, then use the **log-of-a-product** and **log-of-a-power** rules to convert it into a linear equation in `log y` and `log x`"
+}
+],
+"integration-7-with-limits": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "definite integration of an exponential, then solve for an unknown limit"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(b)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "average value of a function — `Avg = (1/(b − a)) ∫ₐᵇ f(x) dx`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "**area between two curves** via the definite integral of (top minus bottom)"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(c)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "average value of a function via integration — `Avg = (1/(b−a)) ∫ₐᵇ f(t) dt`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**average value** of a function on an interval, by definite integration of a trig function with a non-`x` angle"
+}
+],
+"integration-4-constant-to-power-of-unknown": [
+{
+"year": 2022,
+"paper": 1,
+"question": "Q7(b)",
+"level": "HL",
+"marks": 6,
+"note": "average value of a function over an interval — formula `avg = (1/(b − a)) · ∫[a→b] f(x) dx`. Antiderivative of `(0·8)ˣ` from Integration 4"
+}
+],
+"integration-5-trigonometry-1": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 8,
+"note": "integration of `cos(angle)` where the angle isn't just `x` — the \"divide by the derivative of the angle\" trick"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**average value** of a function on an interval, by definite integration of a trig function with a non-`x` angle"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q8(f)",
+"level": "HL",
+"marks": 10,
+"note": "**average value of a function** — `(1/(b−a)) ∫_a^b f(t) dt`. Integral of `cos(C t)` is `(1/C) sin(C t)`"
+},
+{
+"year": 2018,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 12,
+"note": "**average value of a function** — the dedicated Integration 11 formula `avg = (1/(b − a)) · ∫[a→b] f(x) dx`. **Not in the log tables — must be memorised.**"
+},
+{
+"year": 2015,
+"paper": 1,
+"question": "Q9(e)",
+"level": "HL",
+"marks": 10,
+"note": "**average value of a function** — `avg = (1/(b−a)) · ∫[a→b] f(t) dt`. Combined with definite-integral evaluation of a sinusoidal antiderivative"
+}
+],
+"integration-1-algebra": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(b)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "average value of a function — `Avg = (1/(b − a)) ∫ₐᵇ f(x) dx`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "**area between two curves** via the definite integral of (top minus bottom)"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "**antidifferentiation with an initial condition** — integrate the derivative to recover `f(x)` up to a constant, then use the given point to pin down the constant"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q9(d)",
+"level": "HL",
+"marks": 8,
+"note": "**area of a composite region** built from two curves and the x-axis — split the region using the curves that bound it, integrate each piece, subtract / add as needed"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q10(e)",
+"level": "HL",
+"marks": 10,
+"note": "evaluate a definite integral with a quadratic integrand. Recover the classic pyramid-volume formula `V = (1/3) × base × height`"
+}
+],
+"integration-8-finding-fx-given-slope": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "**antidifferentiation with an initial condition** — integrate the derivative to recover `f(x)` up to a constant, then use the given point to pin down the constant"
+},
+{
+"year": 2021,
+"paper": 1,
+"question": "Q6(c)",
+"level": "HL",
+"marks": 10,
+"note": "**anti-derivative** — integrate `h'(x)` to get `h(x)`, then use the given point to find the constant of integration"
+},
+{
+"year": 2019,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 8,
+"note": "integrate the derivative `f'(x)` to recover `f(x)` up to a constant `C`; then use the **point condition** (the graph passes through `A(2, 0)`, i.e. `f(2) = 0`) to pin down `C`"
+}
+],
+"integration-6-trigonometry-2": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 8,
+"note": "integration of `cos(angle)` where the angle isn't just `x` — the \"divide by the derivative of the angle\" trick"
+}
+],
+"integration-9-kinematics": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(c)",
+"level": "HL",
+"marks": 7,
+"note": "time = distance / speed, applied to a two-segment journey"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(d)",
+"level": "HL",
+"marks": 7,
+"note": "Pythagoras (right triangle SAF) + time formula"
+}
+],
+"integration-13-area-curve-y-axis": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(c)(i)",
+"level": "HL",
+"marks": 8,
+"note": "area between curves via integration; using symmetry to halve the work"
+}
+],
+"integration-10-anti-derivatives": [
+{
+"year": 2022,
+"paper": 1,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 10,
+"note": "indefinite integral of a polynomial — apply the **reverse power rule** term by term"
+},
+{
+"year": 2019,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 9,
+"note": "routine indefinite integration of a polynomial term by term, using the power rule for integration"
+}
+],
+"integration-2-integrating-1-over-x": [
+{
+"year": 2020,
+"paper": 1,
+"question": "Q6(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**integration to find an unknown limit** — set up the definite integral, integrate, equate to the given area, and solve for `A`"
+}
+],
+"integration-12-area-curve-x-axis": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "**area between two curves** via the definite integral of (top minus bottom)"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(c)(i)",
+"level": "HL",
+"marks": 8,
+"note": "area between curves via integration; using symmetry to halve the work"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(b)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "**definite integral as signed area** — interpret `∫₀ᵃ f(x) dx` geometrically as (area above the x-axis between `0` and `a`) **minus** (area below the x-axis between `0` and `a`); find the range of `a` where the running total is `> 0`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q9(d)",
+"level": "HL",
+"marks": 8,
+"note": "**area of a composite region** built from two curves and the x-axis — split the region using the curves that bound it, integrate each piece, subtract / add as needed"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q10(a)",
+"level": "HL",
+"marks": 10,
+"note": "translate the verbal description (\"smallest collection of `n` equal-height rectangles that completely covers the triangle\") into a precise drawing"
+}
+],
+"integration-3-exponentials": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "definite integration of an exponential, then solve for an unknown limit"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(a)(iii)",
+"level": "HL",
+"marks": 10,
+"note": "**average value of a function** via integration — `avg = (1/(b−a)) ∫ᵇₐ V(t) dt`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(c)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "average value of a function via integration — `Avg = (1/(b−a)) ∫ₐᵇ f(t) dt`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 10,
+"note": "definite integral with the unknown appearing in **three** places — as the upper limit, as the coefficient, and as the constant in the exponent. Integrate, substitute the limits, simplify, then solve the resulting equation by taking `ln` of both sides"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q5(d)",
+"level": "HL",
+"marks": 7,
+"note": "definite integral of a constant minus an exponential"
+}
+],
+"integration-11-average-value": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q9(b)(iii)",
+"level": "HL",
+"marks": 6,
+"note": "average value of a function — `Avg = (1/(b − a)) ∫ₐᵇ f(x) dx`"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q10(a)(iii)",
+"level": "HL",
+"marks": 10,
+"note": "**average value of a function** via integration — `avg = (1/(b−a)) ∫ᵇₐ V(t) dt`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(c)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "average value of a function via integration — `Avg = (1/(b−a)) ∫ₐᵇ f(t) dt`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**average value** of a function on an interval, by definite integration of a trig function with a non-`x` angle"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q7(d)",
+"level": "HL",
+"marks": 7,
+"note": "**average value** of a function on an interval, by definite integration"
+}
+],
+"financial-maths-5-annuities-saving": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**savings annuity** — each deposit compounds for a known number of months. Compounding factor `1.0035` per month"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "sum the geometric series from (i) using the `Sₙ` formula from page 22 of the log tables"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q8(d)",
+"level": "HL",
+"marks": 8,
+"note": "**savings annuity** — each periodic deposit compounds for one fewer period than the previous, giving a geometric series"
+}
+],
+"financial-maths-8-pensions": [
+{
+"year": 2018,
+"paper": 2,
+"question": "Q8(c)",
+"level": "HL",
+"marks": 10,
+"note": "**present value of a geometrically-growing annuity** — combines compounding (FM 2/3) with a growing-payment GP (FM 6). The present value is a GP in `r_eff = (1 + g)/(1 + i)` where `g = 0.01` (payment growth) and `i = 0.024` (discount rate)"
+}
+],
+"financial-maths-7-amortization-proof": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "sum of a geometric series — present value of an annuity over the full mortgage term"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 13,
+"note": "**amortisation formula** (page 31 of the log tables) — given the principal `P`, the per-period interest rate `i`, and the number of periods `n`, the per-period repayment `A` is `A = P · i(1+i)ⁿ / ((1+i)ⁿ − 1)`"
+},
+{
+"year": 2017,
+"paper": 1,
+"question": "Q8(a)",
+"level": "HL",
+"marks": 8,
+"note": "**prescribed proof** — derivation of the amortisation formula. One of the five Paper 1 proofs that may be asked on the LCHL. The proof uses the **present-value-of-an-annuity** idea: the amount borrowed equals the sum of present values of all future repayments. That sum is a **finite geometric series**, evaluated via the partial-sum formula"
+}
+],
+"financial-maths-3-time-value-of-money": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(b)(i)",
+"level": "HL",
+"marks": 9,
+"note": "present value of a single future payment — discount factor `1/(1 + i)^n`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q8(b)",
+"level": "HL",
+"marks": 9,
+"note": "**present value** — the conceptual definition"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q7(b)",
+"level": "HL",
+"marks": 10,
+"note": "**present value of an annuity** — sum of discounted future payments, computed as a geometric series"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q7(c)",
+"level": "HL",
+"marks": 6,
+"note": "definition of present value"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 12,
+"note": "**balance-outstanding-on-a-loan** at an intermediate point — equals the **present value of all remaining payments**. Sum a finite geometric series of the discounted future payments"
+}
+],
+"financial-maths-1-simple-interest": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(a)",
+"level": "HL",
+"marks": 8,
+"note": "successive percentage discounts"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q10(d)",
+"level": "HL",
+"marks": 8,
+"note": "order of operations matters for percentage and absolute discounts"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(a)",
+"level": "HL",
+"marks": 9,
+"note": "Irish PAYE income tax — two tax bands, gross tax, then tax credit"
+},
+{
+"year": 2017,
+"paper": 1,
+"question": "Q8(b)(i)",
+"level": "HL",
+"marks": 8,
+"note": "percentage of a fixed amount"
+}
+],
+"financial-maths-6-annuities-paying-back": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(b)",
+"level": "HL",
+"marks": 8,
+"note": "**paying-back annuity** — present value of an annuity paying out €A per month, equated to the starting balance"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(b)(i)",
+"level": "HL",
+"marks": 9,
+"note": "present value of a single future payment — discount factor `1/(1 + i)^n`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(b)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "sum of a geometric series — present value of an annuity over the full mortgage term"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q7(a)",
+"level": "HL",
+"marks": 10,
+"note": "**amortisation table** — row-by-row construction of the balance schedule. Each row: charge interest on previous balance; subtract the (monthly payment − interest) reduction from the previous balance to get the new balance"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q7(b)",
+"level": "HL",
+"marks": 10,
+"note": "**present value of an annuity** — sum of discounted future payments, computed as a geometric series"
+}
+],
+"financial-maths-2-compound-interest": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**savings annuity** — each deposit compounds for a known number of months. Compounding factor `1.0035` per month"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(c)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "annual equivalent rate for continuous compounding"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(f)",
+"level": "HL",
+"marks": 8,
+"note": "**compound annual rate equivalent to a sequence of single-year rates** — multiply the three single-year growth factors together to get the total three-year factor, then equate that to `(1 + r)³` and take the cube root"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q8(a)",
+"level": "HL",
+"marks": 9,
+"note": "**compound interest** — forward direction: given principal `P`, rate `i`, time `t`, find future value `F`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q7(a)",
+"level": "HL",
+"marks": 10,
+"note": "**amortisation table** — row-by-row construction of the balance schedule. Each row: charge interest on previous balance; subtract the (monthly payment − interest) reduction from the previous balance to get the new balance"
+}
+],
+"financial-maths-4-rate-conversion": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q7(c)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "annual equivalent rate for continuous compounding"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q8(f)",
+"level": "HL",
+"marks": 8,
+"note": "**compound annual rate equivalent to a sequence of single-year rates** — multiply the three single-year growth factors together to get the total three-year factor, then equate that to `(1 + r)³` and take the cube root"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q8(c)",
+"level": "HL",
+"marks": 8,
+"note": "**rate conversion** — convert a yearly compound rate (APR) to an equivalent rate for a shorter compounding period (quarterly), so that the two compound to the same yearly factor"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q7(c)",
+"level": "HL",
+"marks": 10,
+"note": "**rate conversion** — convert a per-period rate to its annual equivalent using the master framework `(1 + i_period)^k = (1 + i_year)^1`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q7(d)",
+"level": "HL",
+"marks": 10,
+"note": "**inverse rate conversion** — APR → monthly. Same master framework, run the other way"
+}
+],
+"complex-numbers-3-division-conjugates": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "complex division by the conjugate trick"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "complex-number division — multiply top and bottom by the **conjugate of the denominator** to clear the `i` from the denominator"
+},
+{
+"year": 2021,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "complex division — multiply top and bottom by the conjugate of the denominator"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 9,
+"note": "**simultaneous equations** with **complex unknowns** — solve the first equation for `z₁` (division by `i`), then substitute into the second to get `z₂`"
+},
+{
+"year": 2020,
+"paper": 1,
+"question": "Q2(b)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**common ratio** of a geometric sequence is `r = T₂/T₁`. The new wrinkle is that both terms are complex, so the division step uses Complex Numbers 3's **multiply-by-the-conjugate** trick"
+}
+],
+"complex-numbers-9-cubic-equations": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "cubic with **all real coefficients**, given one complex root — use the **conjugate-pair theorem** to write down a second root for free, then long-divide to extract the real third root"
+}
+],
+"complex-numbers-13-converting-to-polar-form-and-applying-de-moivres-theorem": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "**square roots** of a complex number using De Moivre's Theorem — a **multi-valued** root extraction. Two roots because the power is `1/2`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 8,
+"note": "raising a complex number to a high power via polar form + de Moivre"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "**square roots** of a complex number using De Moivre's Theorem — a **multi-valued** root extraction. Two roots because the power is `1/2`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "**square roots** of a complex number using De Moivre's Theorem — a **multi-valued** root extraction. Two roots because the power is `1/2`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "**cube roots** of a complex number using De Moivre's Theorem — a **multi-valued** root extraction. Three roots because the power is `1/3`"
+}
+],
+"complex-numbers-8-quadratic-equations": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "cubic with **all real coefficients**, given one complex root — use the **conjugate-pair theorem** to write down a second root for free, then long-divide to extract the real third root"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 8,
+"note": "quadratic with **negative discriminant** ⟹ complex roots via the `−b` formula"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "complex number is a root of a quadratic — **substitute** the known root into the equation and solve for the unknown coefficient"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "**conjugate-pair theorem** applied to a quadratic with **real integer coefficients** — given one complex root, the conjugate is also a root, then use sum and product of roots to identify the two coefficients"
+},
+{
+"year": 2019,
+"paper": 1,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 9,
+"note": "quadratic with **real coefficients** has complex roots in **conjugate pairs**; use sum and product of roots to recover the coefficients"
+}
+],
+"complex-numbers-7-rotations": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "geometric meanings of three CN operations on the Argand plane — **negation** (180° rotation), **conjugation** (reflection in the real axis), and **multiplication by `i`** (90° anti-clockwise rotation)"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(c)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "angle between two complex numbers as viewed from the origin — equal to the difference of their arguments"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "**transformations of complex numbers on the Argand plane** — multiplication by a real scalar (scaling along the same direction), multiplication by `−1` (point reflection through the origin), and multiplication by `i` (90° anti-clockwise rotation about the origin)"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "**multiplying a complex number by `i`** (= 90° anti-clockwise rotation about the origin — load-bearing identity from CN 7), and **complex conjugation** (reflection in the real axis — load-bearing from CN 5)"
+}
+],
+"complex-numbers-1-introduction": [
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 8,
+"note": "quadratic with **negative discriminant** ⟹ complex roots via the `−b` formula"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "classify each of six complex numbers into the correct region of a Venn diagram. `ℝ` is the set of real numbers, `ℂ` is the set of complex numbers, and `X` is the set of complex numbers whose **real and imaginary parts are both rational**. The six numbers are `√17`, `3i`, `3 + 2i`, `π + 5i`, `2·5`, and `cos 180° + i sin 180°`"
+}
+],
+"complex-numbers-16-proof-of-de-moivres-theorem-by-induction": [
+{
+"year": 2018,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 13,
+"note": "**prescribed proof** — De Moivre's Theorem by induction. **Tier 0 — drill cold.**"
+}
+],
+"complex-numbers-11-rules-for-polar-form": [
+{
+"year": 2017,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 12,
+"note": "multiplication of complex numbers in **polar form** — moduli multiply, arguments add. Then read off the Cartesian value at the resulting angle"
+}
+],
+"complex-numbers-2-addition-subtraction-multiplication": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "complex division by the conjugate trick"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "**complex number arithmetic** — bracket multiplication and combination, with the load-bearing `i² = −1` substitution"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "complex number is a root of a quadratic — **substitute** the known root into the equation and solve for the unknown coefficient"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "complex-number division — multiply top and bottom by the **conjugate of the denominator** to clear the `i` from the denominator"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q3(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "complex arithmetic — multiply `i` by a complex number, subtract"
+}
+],
+"complex-numbers-10-introduction-to-polar-form": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "finding roots of a complex equation via de Moivre — fractional-power route, multi-valued"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "**square roots** of a complex number using De Moivre's Theorem — a **multi-valued** root extraction. Two roots because the power is `1/2`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 8,
+"note": "raising a complex number to a high power via polar form + de Moivre"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "convert polar to rectangular form for plotting"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(c)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "angle between two complex numbers as viewed from the origin — equal to the difference of their arguments"
+}
+],
+"complex-numbers-14-using-de-moivres-theorem-to-find-more-than-one-answer": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "finding roots of a complex equation via de Moivre — fractional-power route, multi-valued"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "**square roots** of a complex number using De Moivre's Theorem — a **multi-valued** root extraction. Two roots because the power is `1/2`"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "**square roots** of a complex number using De Moivre's Theorem — a **multi-valued** root extraction. Two roots because the power is `1/2`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "**square roots** of a complex number using De Moivre's Theorem — a **multi-valued** root extraction. Two roots because the power is `1/2`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "**cube roots** of a complex number using De Moivre's Theorem — a **multi-valued** root extraction. Three roots because the power is `1/3`"
+}
+],
+"complex-numbers-12-introduction-to-de-moivres-theorem": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "de Moivre identity proof — expand `(cos θ + i sin θ)²` two different ways, equate real parts"
+},
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "finding roots of a complex equation via de Moivre — fractional-power route, multi-valued"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 8,
+"note": "raising a complex number to a high power via polar form + de Moivre"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 7,
+"note": "raising a complex number to a high power via polar form + De Moivre"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 10,
+"note": "raise a complex number to a positive integer power using De Moivre's theorem — the **four-step De Moivre pipeline**"
+}
+],
+"complex-numbers-4-argand-plane-and-modulus": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 10,
+"note": "finding roots of a complex equation via de Moivre — fractional-power route, multi-valued"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 8,
+"note": "raising a complex number to a high power via polar form + de Moivre"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q2(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "convert polar to rectangular form for plotting"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q3(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "modulus of a complex number — `|a + bi| = √(a² + b²)`, so `|a + bi|² = a² + b²`"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q3(a)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "geometry on the Argand plane — area of a circle from a diameter"
+}
+],
+"complex-numbers-6-equating-coefficients": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "de Moivre identity proof — expand `(cos θ + i sin θ)²` two different ways, equate real parts"
+},
+{
+"year": 2021,
+"paper": 1,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "complex division — multiply top and bottom by the conjugate of the denominator"
+},
+{
+"year": 2021,
+"paper": 1,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 10,
+"note": "square root of a complex number via **equating coefficients**"
+}
+],
+"complex-numbers-17-proof-of-sin-3a-and-cos-3a": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "de Moivre identity proof — expand `(cos θ + i sin θ)²` two different ways, equate real parts"
+}
+],
+"trigonometry-2-5-coefficient-in-front-of-the-angle": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q4(c)",
+"level": "HL",
+"marks": 7,
+"note": "trig equation with **coefficient on the angle**. The coefficient `2` doubles the period — meaning more solutions in the original `x`-domain"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 10,
+"note": "**trig equation with coefficient in front of the angle** — domain stretches, more solutions appear"
+},
+{
+"year": 2021,
+"paper": 2,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "**unit-circle trig equation** with a phase shift. Reference angle + quadrant analysis + careful tracking of the **shifted range** `150° ≤ B + 150° ≤ 510°`"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 13,
+"note": "**trig equation** with a **fraction inside the trig argument** — solve the inner equation `tan(α) = −1/√3` where `α = θ/2` first, on the domain `α ∈ [0, 2π]`, then double each solution to get `θ`"
+},
+{
+"year": 2018,
+"paper": 2,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 13,
+"note": "**trig equation with a coefficient in front of the angle** — the domain stretches, so more solutions appear"
+}
+],
+"trigonometry-2-8-converting-degrees-radians-dms": [
+{
+"year": 2019,
+"paper": 2,
+"question": "Q7(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "trigonometric ratio in a right triangle; then convert to radians (calculator must be in RAD mode)"
+}
+],
+"trigonometry-2-4-more-than-two-answers-to-unit-circle": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 10,
+"note": "**trig equation** with multiple revolutions — find the reference angle, place it in the correct quadrants, then add `±360°` to enumerate the solutions inside the domain"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 8,
+"note": "**unit-circle quadrant analysis** — identify the quadrant from the signs of `sin` and `cos`, then find the reference angle"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q2(c)",
+"level": "HL",
+"marks": 10,
+"note": "trig equation — use the **double-angle formula** to convert `sin 2t` into `2 sin t cos t`, then factorise, then solve each factor for `t` in the given domain"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q8(e)",
+"level": "HL",
+"marks": 10,
+"note": "solve a trig equation; **enumerate multiple solutions** in the relevant `t`-range; pick the second"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "trig equation over a multi-revolution domain. `tan A` is negative in Q2 and Q4; the reference angle is `60°`"
+}
+],
+"trigonometry-2-2-introduction-to-unit-circle": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "**compound angle formula** — split a non-standard angle (`105°`) into two standard angles whose sum equals it (`60° + 45°`), then apply `cos(A + B) = cos A cos B − sin A sin B`"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "apply the `sin(A + B)` identity with a **strategically chosen split** — write `75°` as a sum of two standard angles whose sine and cosine values are exact (on page 13)"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q9(c)(i)",
+"level": "HL",
+"marks": 8,
+"note": "unit-circle coordinates — any point on the unit circle at angle `θ` from the positive x-axis is `(cos θ, sin θ)`"
+}
+],
+"trigonometry-2-9-use-the-calculator-to-find-the-reference-angle": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 10,
+"note": "**trig equation** with multiple revolutions — find the reference angle, place it in the correct quadrants, then add `±360°` to enumerate the solutions inside the domain"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q8(e)",
+"level": "HL",
+"marks": 10,
+"note": "solve a trig equation; **enumerate multiple solutions** in the relevant `t`-range; pick the second"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 13,
+"note": "**trig equation** with a **fraction inside the trig argument** — solve the inner equation `tan(α) = −1/√3` where `α = θ/2` first, on the domain `α ∈ [0, 2π]`, then double each solution to get `θ`"
+},
+{
+"year": 2017,
+"paper": 1,
+"question": "Q9(c)",
+"level": "HL",
+"marks": 10,
+"note": "solve `a + b cos(ct) = 5·2` for `t`. Multiple solutions; use `cos⁻¹` and the unit-circle CAST routine, then convert to clock times. Restrict to afternoon"
+}
+],
+"trigonometry-2-3-radians-and-the-unit-circle": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**evaluate a periodic function** at discrete `t`-values — substitute each `t` into `h(t) = 30 − 30 cos(5πt)`, using standard radian values of cosine"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q8(a)",
+"level": "HL",
+"marks": 10,
+"note": "evaluating a cosine function at integer-angle multiples of `π/3` using the **unit circle**"
+},
+{
+"year": 2017,
+"paper": 1,
+"question": "Q9(c)",
+"level": "HL",
+"marks": 10,
+"note": "solve `a + b cos(ct) = 5·2` for `t`. Multiple solutions; use `cos⁻¹` and the unit-circle CAST routine, then convert to clock times. Restrict to afternoon"
+},
+{
+"year": 2015,
+"paper": 1,
+"question": "Q9(a)",
+"level": "HL",
+"marks": 10,
+"note": "evaluating a trigonometric function at a given input"
+}
+],
+"trigonometry-2-1-deriving-the-unit-circle": [
+{
+"year": 2020,
+"paper": 1,
+"question": "Q8(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "the **polar-coordinate parametrisation of a point on a circle** centred at the origin with radius `r`: `(r cos θ, r sin θ)`"
+}
+],
+"trigonometry-3-3-changing-the-period": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 10,
+"note": "**period and range** of a composed trig function — `|sin x|` has half the period of `sin x` (the negative half-cycle reflects up); `|4 sin x| − 1` is then a vertical scaling and shift"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q4(d)",
+"level": "HL",
+"marks": 7,
+"note": "read **amplitude**, **range**, and **period** off a trig graph"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q7(f)",
+"level": "HL",
+"marks": 7,
+"note": "identify `a` (midline), `b` (amplitude with sign), `c` (angular frequency) from the new min/max/period"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q8(a)",
+"level": "HL",
+"marks": 10,
+"note": "evaluating a cosine function at integer-angle multiples of `π/3` using the **unit circle**"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q8(c)",
+"level": "HL",
+"marks": 10,
+"note": "read off the period and range of a general cosine `A + B cos(C t)`"
+}
+],
+"trigonometry-3-1-shapes-of-trigonometric-graphs": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**evaluate a periodic function** at discrete `t`-values — substitute each `t` into `h(t) = 30 − 30 cos(5πt)`, using standard radian values of cosine"
+},
+{
+"year": 2018,
+"paper": 2,
+"question": "Q9(b)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**periodicity and range** of a function built from a rotating mechanism. The crank rotates with period `360°` (one full revolution), so `f` repeats. The range is determined by the extreme positions of the slider"
+},
+{
+"year": 2017,
+"paper": 1,
+"question": "Q9(a)",
+"level": "HL",
+"marks": 10,
+"note": "axes labelling and scaling for a periodic function with known maximum (`5·5 m`), minimum (`1·7 m`), and period (between two consecutive high tides)"
+}
+],
+"trigonometry-3-2-changing-the-amplitude": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 10,
+"note": "**period and range** of a composed trig function — `|sin x|` has half the period of `sin x` (the negative half-cycle reflects up); `|4 sin x| − 1` is then a vertical scaling and shift"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q4(d)",
+"level": "HL",
+"marks": 7,
+"note": "read **amplitude**, **range**, and **period** off a trig graph"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q10(b)",
+"level": "HL",
+"marks": 7,
+"note": "**interpret the period of a periodic function** in physical context"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q7(c)",
+"level": "HL",
+"marks": 7,
+"note": "**min and max** of a cosine-based model. `cos` ranges over `[−1, +1]`, so `−0·4 cos(...)` ranges over `[−0·4, +0·4]`, and `V(t) = 2 − 0·4 cos(...)` ranges over `[2 − 0·4, 2 + 0·4] = [1·6, 2·4]`"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q8(c)",
+"level": "HL",
+"marks": 10,
+"note": "read off the period and range of a general cosine `A + B cos(C t)`"
+}
+],
+"trigonometry-3-6-drawing-graphs-accurately": [
+{
+"year": 2023,
+"paper": 2,
+"question": "Q8(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "**plot a sinusoid** from key points (max/min/midline crossings)"
+},
+{
+"year": 2017,
+"paper": 1,
+"question": "Q9(a)",
+"level": "HL",
+"marks": 10,
+"note": "axes labelling and scaling for a periodic function with known maximum (`5·5 m`), minimum (`1·7 m`), and period (between two consecutive high tides)"
+},
+{
+"year": 2016,
+"paper": 2,
+"question": "Q8(d)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "draw a smooth cosine-like curve through the nine plotted points"
+}
+],
+"trigonometry-3-4-changing-the-midline": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 10,
+"note": "**period and range** of a composed trig function — `|sin x|` has half the period of `sin x` (the negative half-cycle reflects up); `|4 sin x| − 1` is then a vertical scaling and shift"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q4(d)",
+"level": "HL",
+"marks": 7,
+"note": "read **amplitude**, **range**, and **period** off a trig graph"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q7(c)",
+"level": "HL",
+"marks": 7,
+"note": "**min and max** of a cosine-based model. `cos` ranges over `[−1, +1]`, so `−0·4 cos(...)` ranges over `[−0·4, +0·4]`, and `V(t) = 2 − 0·4 cos(...)` ranges over `[2 − 0·4, 2 + 0·4] = [1·6, 2·4]`"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q7(f)",
+"level": "HL",
+"marks": 7,
+"note": "identify `a` (midline), `b` (amplitude with sign), `c` (angular frequency) from the new min/max/period"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q8(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**range of a sinusoidal function** `A + B sin(kt)` is `[A − |B|, A + |B|]`"
+}
+],
+"trigonometry-4-5-trig-proof-1-pythagorean-identity": [
+{
+"year": 2021,
+"paper": 2,
+"question": "Q4(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "apply the **double-angle identity** with `A = θ/2` to express `cos θ` in terms of `sin(θ/2)`"
+}
+],
+"trigonometry-4-2-double-angle-formula": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q4(b)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**prescribed double-angle proof** — derive `sin 2A = 2 sin A cos A` from the compound angle formula by substituting `B = A`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q4(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**sine rule** combined with the **double-angle identity** from (b)(i). The given angles `W` and `2W` are perfectly designed for the `sin 2W = 2 sin W cos W` substitution to make `cos W` factor out"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q2(c)",
+"level": "HL",
+"marks": 10,
+"note": "trig equation — use the **double-angle formula** to convert `sin 2t` into `2 sin t cos t`, then factorise, then solve each factor for `t` in the given domain"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q4(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**double-angle formulas** `sin 2A = 2 sin A cos A` and `cos 2A = cos²A − sin²A`, combined with Pythagoras to find `cos A` from `sin A`"
+},
+{
+"year": 2021,
+"paper": 2,
+"question": "Q4(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**double-angle identity** derived from the compound-angle identity by setting both inputs equal"
+}
+],
+"trigonometry-4-4-quadratic-equations": [
+{
+"year": 2023,
+"paper": 2,
+"question": "Q2(c)",
+"level": "HL",
+"marks": 10,
+"note": "trig equation — use the **double-angle formula** to convert `sin 2t` into `2 sin t cos t`, then factorise, then solve each factor for `t` in the given domain"
+},
+{
+"year": 2015,
+"paper": 1,
+"question": "Q9(b)",
+"level": "HL",
+"marks": 10,
+"note": "solving a trigonometric equation by isolating the sine, applying `sin⁻¹`, and converting the resulting day-count to a calendar date"
+}
+],
+"trigonometry-4-3-products-to-sums-and-back": [
+{
+"year": 2016,
+"paper": 2,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 13,
+"note": "**sum-to-product** identities — convert each of the numerator (a sum of cosines) and denominator (a difference of sines) into a product, then cancel a common factor"
+}
+],
+"trigonometry-4-11-trig-proof-7": [
+{
+"year": 2023,
+"paper": 2,
+"question": "Q4(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**prescribed trig proof** (Trig Proof 7). Uses the complementary-angle bridge `sin x = cos(90° − x)` to convert into a `cos(A − B)` problem, then applies the cosine subtraction formula"
+}
+],
+"trigonometry-4-1-compound-angle-formula": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(e)",
+"level": "HL",
+"marks": 8,
+"note": "**compound-angle formula** for `sin(X + Y)`. Page 13 of the log tables"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 10,
+"note": "**compound angle formula** — split a non-standard angle (`105°`) into two standard angles whose sum equals it (`60° + 45°`), then apply `cos(A + B) = cos A cos B − sin A sin B`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q4(b)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**prescribed double-angle proof** — derive `sin 2A = 2 sin A cos A` from the compound angle formula by substituting `B = A`"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 10,
+"note": "**prescribed proof** — derive the `sin(A + B)` compound-angle identity from the `cos(A − B)` identity (which is on **page 14** of the log tables) using the **complementary-angle identity** `sin A = cos(90° − A)`"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "apply the `sin(A + B)` identity with a **strategically chosen split** — write `75°` as a sum of two standard angles whose sine and cosine values are exact (on page 13)"
+}
+],
+"trigonometry-4-8-trig-proof-4": [
+{
+"year": 2023,
+"paper": 2,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 10,
+"note": "**prescribed proof** — derive the `sin(A + B)` compound-angle identity from the `cos(A − B)` identity (which is on **page 14** of the log tables) using the **complementary-angle identity** `sin A = cos(90° − A)`"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q4(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**prescribed trig proof** (Trig Proof 7). Uses the complementary-angle bridge `sin x = cos(90° − x)` to convert into a `cos(A − B)` problem, then applies the cosine subtraction formula"
+}
+],
+"the-line-4-area-of-triangle": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "**inverse problem on a line** — use the **slope constraint** AND the **area constraint** simultaneously. Two solutions (mirror-image around the origin) because area is unsigned"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(c)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "**triangle area** from coordinates — when two sides are aligned with axes (here `CD` is vertical), use `(1/2) × base × height` directly"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "**area of triangle** by coordinate geometry — translate one vertex to the origin, then apply the page-18 area formula `½|x₁y₂ − x₂y₁|`"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 7,
+"note": "**area of a triangle** by coordinates. Translate one vertex to the origin, then apply `½|x₁y₂ − x₂y₁|`"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 13,
+"note": "**perpendicular-distance formula** from a point to a line. The distance is `0` ⟺ the point lies on the line ⟺ the three points are **collinear**"
+}
+],
+"the-line-5-perpendicular-distance-from-a-point-to-a-line": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "**tangent condition** — a line is tangent to a circle ⟺ the **perpendicular distance from the centre to the line equals the radius**. Set up the equation, square both sides, solve the resulting quadratic"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 10,
+"note": "**perpendicular distance from a point to a line** — load-bearing formula from page 18"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(b)(i)",
+"level": "HL",
+"marks": 7,
+"note": "combined coordinate-geometry/circle/geometry problem — use the fact that **two tangents from a common external point are perpendicular only if the angle subtended at the centre is right**, deriving the distance from origin to the tangent point, then to side `AB`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 8,
+"note": "**perpendicular-distance formula** from a point `(x₀, y₀)` to a line `ax + by + c = 0`:"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q9(c)",
+"level": "HL",
+"marks": 8,
+"note": "**foot of the perpendicular** from a point to a line — same technique as 2018 P2 Q5(b)"
+}
+],
+"the-line-3-dividing-a-line-into-a-specific-ratio": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 8,
+"note": "**section formula** — given two endpoints and a ratio, find the dividing point (or, in reverse here, given one endpoint and the dividing point, find the other endpoint)"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 10,
+"note": "internal section formula"
+},
+{
+"year": 2021,
+"paper": 2,
+"question": "Q2(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "divide a line segment in a given ratio, then compute a length"
+},
+{
+"year": 2021,
+"paper": 2,
+"question": "Q2(c)(ii)",
+"level": "HL",
+"marks": 7,
+"note": "translate along a horizontal direction; use the ratio split on `[CB]` mirroring the one on `[CA]`"
+},
+{
+"year": 2017,
+"paper": 2,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 9,
+"note": "**point dividing a segment in a given ratio** — `G` divides `AP` in ratio `|AG|:|GP| = 2:1`. Use Section/Division formula"
+}
+],
+"the-line-6-angle-between-two-lines": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 10,
+"note": "**angle between two lines** — page-18 formula `tan θ = |(m₁ − m₂)/(1 + m₁ m₂)|`, with the absolute value picking out the acute angle"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q1(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**angle between two lines** — load-bearing formula from page 18"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q2(c)",
+"level": "HL",
+"marks": 10,
+"note": "**angle between two lines** formula"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 12,
+"note": "**angle between two lines** — page-18 formula `tan θ = | (m₁ − m₂)/(1 + m₁ m₂) |`, or equivalently subtract the two angles each line makes with the `x`-axis"
+},
+{
+"year": 2017,
+"paper": 2,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 12,
+"note": "angle at one vertex of a triangle, given coordinates of all three. Two clean routes: **cosine rule** (length-only, no slopes) or **tan-of-angle-between-two-lines** (slope-based)"
+}
+],
+"the-line-2-position-of-a-point-relative-to-a-line": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "**point on a line** — substitute the coordinates into the line's equation and solve for the unknown"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q3(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "verify a point lies on a line by substituting into the line equation"
+}
+],
+"the-line-7-construction-16-circumcircle": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q1(a)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "**circumcentre** = intersection of any two perpendicular bisectors of a triangle's sides. Use one bisector from (a)(ii); find a second bisector from another side; solve simultaneously"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "**circumcentre** = intersection of the perpendicular bisectors of any two sides of a triangle"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 10,
+"note": "standard compass-and-straight-edge construction"
+}
+],
+"the-line-9-construction-22-orthocentre": [
+{
+"year": 2017,
+"paper": 2,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 8,
+"note": "the **orthocentre** is the intersection of the three altitudes. A point is the orthocentre iff every altitude passes through it. In a **right-angled triangle**, the orthocentre is the right-angle vertex (because two of the three altitudes coincide with the two sides meeting at the right angle)"
+},
+{
+"year": 2016,
+"paper": 2,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 13,
+"note": "equation of an **altitude** of a triangle — perpendicular slope rule, then point-slope form"
+},
+{
+"year": 2016,
+"paper": 2,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 12,
+"note": "**orthocentre** = intersection of the three altitudes — find a second altitude, then solve simultaneous equations"
+}
+],
+"the-line-1-jc-revision": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q1(a)",
+"level": "HL",
+"marks": 10,
+"note": "**point on a line** — substitute the coordinates into the line's equation and solve for the unknown"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q1(b)",
+"level": "HL",
+"marks": 10,
+"note": "**angle between two lines** — page-18 formula `tan θ = |(m₁ − m₂)/(1 + m₁ m₂)|`, with the absolute value picking out the acute angle"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "**inverse problem on a line** — use the **slope constraint** AND the **area constraint** simultaneously. Two solutions (mirror-image around the origin) because area is unsigned"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q2(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**tangent at a known point on a circle** — slope of radius from centre to that point, then slope of tangent is the negative reciprocal (perpendicular). Use point-slope form"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q1(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "slope between two points — page 18 of the log tables"
+}
+],
+"the-line-8-construction-21-centroid": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 15,
+"note": "**centroid construction** — the medians of a triangle meet at the centroid. Construct any **two** medians; their intersection is the centroid"
+},
+{
+"year": 2017,
+"paper": 2,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 9,
+"note": "**point dividing a segment in a given ratio** — `G` divides `AP` in ratio `|AG|:|GP| = 2:1`. Use Section/Division formula"
+},
+{
+"year": 2017,
+"paper": 2,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 8,
+"note": "since `AP` is a median from `A`, the foot `P` is the **midpoint of `BC`**. Use the midpoint formula and solve for `B`"
+}
+],
+"geometry-1-5-construction-22-orthocentre": [
+{
+"year": 2019,
+"paper": 2,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 13,
+"note": "**construction 22** — the orthocentre of a triangle, the intersection of the three **altitudes** (perpendiculars from each vertex to the opposite side)"
+}
+],
+"geometry-1-13-proof-of-theorem-12": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 15,
+"note": "**prescribed proof of Theorem 12** — one of the three required LCHL geometry proofs"
+},
+{
+"year": 2018,
+"paper": 2,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 13,
+"note": "**prescribed geometry proof** — Theorem 12. **Tier 0 — drill cold.**"
+}
+],
+"geometry-1-11-proof-of-theorem-19": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q8(c)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**Theorem 19** (angle in semicircle) — the angle subtended at the circumference by a diameter is a right angle"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q8(a)",
+"level": "HL",
+"marks": 25,
+"note": "**angle-in-semicircle theorem** (Thales) — the angle at the third vertex of a triangle inscribed in a semicircle, with the diameter as one side, is a **right angle**. The triangle is therefore right-angled, with the two non-diameter sides as the legs"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 10,
+"note": "angle-chase using the **Theorem of Thales** (angle in semicircle) and angles-in-same-segment"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q6(c)",
+"level": "HL",
+"marks": 10,
+"note": "**proof by contradiction** in geometry — exploit the circumcentre property `|OP| = |OQ| = |OR|` plus the angle-at-centre-vs-angle-at-circumference relation"
+}
+],
+"geometry-1-1-axioms-theorems-corollaries": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "**triangle congruence** — use ASA or AAS (whichever fits cleanly), citing one piece of given data and two angle facts that follow from the parallel lines + vertically opposite angles"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 15,
+"note": "**prescribed proof of Theorem 12** — one of the three required LCHL geometry proofs"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "**angle-chase** in a circle using **isosceles-triangle base angles** (two radii are equal in length, so any triangle formed by two radii is isosceles), **triangle angle-sum** (`= 180°`), and **straight-line angle-sum** (`= 180°`)"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q8(a)",
+"level": "HL",
+"marks": 25,
+"note": "**angle-in-semicircle theorem** (Thales) — the angle at the third vertex of a triangle inscribed in a semicircle, with the diameter as one side, is a **right angle**. The triangle is therefore right-angled, with the two non-diameter sides as the legs"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 10,
+"note": "logical reasoning about an **\"if and only if\"** statement — and the geometric definition of **vertically opposite angles**"
+}
+],
+"geometry-1-13-congruent-triangles": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 10,
+"note": "**triangle congruence** — use ASA or AAS (whichever fits cleanly), citing one piece of given data and two angle facts that follow from the parallel lines + vertically opposite angles"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q6(b)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**congruent triangles** — use the **ASA** (Angle-Side-Angle) or **AAS** criterion to show two triangles are congruent, hence corresponding sides equal"
+},
+{
+"year": 2023,
+"paper": 2,
+"question": "Q7(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**tangent perpendicular to radius** + **bisection by congruent right triangles**"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q10(d)(ii)",
+"level": "HL",
+"marks": 6,
+"note": "**congruent triangles** — match sides and angles via ASA, SAS, SSS, or RHS"
+}
+],
+"geometry-1-3-construction-16-circumcircle": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q1(a)(iii)",
+"level": "HL",
+"marks": 7,
+"note": "**circumcentre** = intersection of any two perpendicular bisectors of a triangle's sides. Use one bisector from (a)(ii); find a second bisector from another side; solve simultaneously"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 10,
+"note": "standard compass-and-straight-edge construction"
+}
+],
+"geometry-1-14-proof-of-theorem-13": [
+{
+"year": 2021,
+"paper": 2,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 15,
+"note": "**prescribed proof** — Theorem 13 of the LCHL formal-geometry syllabus"
+}
+],
+"geometry-1-16-similar-triangles": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q5(b)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**scale factor of an enlargement** — ratio of corresponding distances from the centre"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q5(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**scale factor → image positions → length ratios → area**. Use the scale factor `k = 1.5` to locate `P'` on the line `XP`, then read off lengths along `PQ`. The shaded `P'QRY` is a **parallelogram** (because `P'Y` is parallel to `PS` from the enlargement); its area is `(base ratio) × area of PQRS`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(c)",
+"level": "HL",
+"marks": 8,
+"note": "**similarity** of right-angled triangles — two right triangles are similar iff their non-right angles are equal"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q8(c)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**AAA similarity** — two triangles with all three angles equal are similar"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q8(c)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "**use the similarity result** (sides in proportion)"
+}
+],
+"geometry-1-4-construction-21-centroid": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q4(a)",
+"level": "HL",
+"marks": 15,
+"note": "**centroid construction** — the medians of a triangle meet at the centroid. Construct any **two** medians; their intersection is the centroid"
+},
+{
+"year": 2015,
+"paper": 2,
+"question": "Q6(a)",
+"level": "HL",
+"marks": 13,
+"note": "**Construction 21** from the LCHL prescribed-constructions list. The **centroid** is the intersection of the three **medians** (each median joins a vertex to the **midpoint** of the opposite side)"
+}
+],
+"geometry-1-8-proof-of-theorem-11": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 15,
+"note": "**prescribed geometry proof** — Theorem 11. **Tier 0 — drill cold.** One of the **three LCHL-required geometry proofs** (Theorems 11, 12, 13)"
+}
+],
+"geometry-1-19-enlargements": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q5(b)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**scale factor of an enlargement** — ratio of corresponding distances from the centre"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q5(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**scale factor → image positions → length ratios → area**. Use the scale factor `k = 1.5` to locate `P'` on the line `XP`, then read off lengths along `PQ`. The shaded `P'QRY` is a **parallelogram** (because `P'Y` is parallel to `PS` from the enlargement); its area is `(base ratio) × area of PQRS`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(c)",
+"level": "HL",
+"marks": 8,
+"note": "**scaling** — surface area scales as length², volume as length³"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q9(a)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "**area scales as length²**. Convert units carefully"
+}
+],
+"geometry-1-11-questions-on-theorem-19-circle-questions": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "**angle-chase** in a circle using **isosceles-triangle base angles** (two radii are equal in length, so any triangle formed by two radii is isosceles), **triangle angle-sum** (`= 180°`), and **straight-line angle-sum** (`= 180°`)"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 10,
+"note": "angle-chase using the **Theorem of Thales** (angle in semicircle) and angles-in-same-segment"
+},
+{
+"year": 2019,
+"paper": 2,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 12,
+"note": "angle-chasing in a circle diagram, using **equilateral triangle from radius-chord equality**, **alternate interior angles** with parallel lines, **isosceles triangle from two radii**, and the **tangent-perpendicular-to-radius** theorem"
+}
+],
+"geometry-1-18-transformations": [
+{
+"year": 2022,
+"paper": 2,
+"question": "Q10(b)",
+"level": "HL",
+"marks": 7,
+"note": "**axial symmetry** in the x-axis sends `(x, y) ↦ (x, −y)`. To find the image of a curve, replace `y` with `−y` in its equation"
+}
+],
+"geometry-1-2-constructions-overview": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q8(a)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "**net construction** — sketch the unfolded surface of the pyramid (the square base + 4 triangular faces). The question provides the square + 2 triangles; you add the remaining 2 triangles"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "**Construction 19** — tangent to a circle at a point on the circle, by compass-and-straight-edge"
+},
+{
+"year": 2019,
+"paper": 2,
+"question": "Q5(a)",
+"level": "HL",
+"marks": 13,
+"note": "**construction 22** — the orthocentre of a triangle, the intersection of the three **altitudes** (perpendiculars from each vertex to the opposite side)"
+},
+{
+"year": 2019,
+"paper": 2,
+"question": "Q9(d)(i)",
+"level": "HL",
+"marks": 8,
+"note": "**inradius identity** — the incircle is **tangent to each of the three sides**, so the perpendicular distance from the incentre `P` to any side equals the inradius `r`. Each sub-triangle formed by a side and the two segments from `P` to its endpoints has the side as base and `r` as height"
+},
+{
+"year": 2016,
+"paper": 2,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 8,
+"note": "**compass-and-straight-edge construction** — apply the `y = √x` relation by setting `|TU| = x` and `|extension| = 1`, then drawing a semicircle and dropping a perpendicular"
+}
+],
+"number-theory-3-proof-root-2-irrational": [
+{
+"year": 2023,
+"paper": 1,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 8,
+"note": "**prescribed proof** — proof by contradiction. One of the **five Paper 1 proofs** that may be asked verbatim on LCHL"
+},
+{
+"year": 2019,
+"paper": 1,
+"question": "Q6(b)",
+"level": "HL",
+"marks": 8,
+"note": "**prescribed proof** by contradiction. One of the **five Paper 1 proofs** named in the LCHL syllabus that examiners may ask on demand"
+}
+],
+"number-theory-1-types-of-numbers": [
+{
+"year": 2025,
+"paper": 1,
+"question": "Q8(a)",
+"level": "HL",
+"marks": 8,
+"note": "successive percentage discounts"
+},
+{
+"year": 2024,
+"paper": 1,
+"question": "Q6(b)(i)",
+"level": "HL",
+"marks": 8,
+"note": "evaluating `e^(some number)` on the calculator; scientific notation"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q1(c)",
+"level": "HL",
+"marks": 10,
+"note": "classify each of six complex numbers into the correct region of a Venn diagram. `ℝ` is the set of real numbers, `ℂ` is the set of complex numbers, and `X` is the set of complex numbers whose **real and imaginary parts are both rational**. The six numbers are `√17`, `3i`, `3 + 2i`, `π + 5i`, `2·5`, and `cos 180° + i sin 180°`"
+},
+{
+"year": 2022,
+"paper": 1,
+"question": "Q2(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "direct algebraic proof — substitute the \"general odd number\" form into the expansion from (a)(i) and read off the structure of the result"
+},
+{
+"year": 2021,
+"paper": 1,
+"question": "Q4(b)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "integer constraint — find the smallest natural `p` such that `Tₙ = 2021` has a positive-integer solution `n`"
+}
+],
+"number-theory-2-prime-factorisation": [
+{
+"year": 2023,
+"paper": 1,
+"question": "Q9(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "factors of a prime power — every factor of `pⁿ` (where `p` is prime) is itself a power of `p`, with exponent ranging from `0` to `n`"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q9(a)(ii)",
+"level": "HL",
+"marks": 9,
+"note": "counting factors of a prime power — apply the `(n + 1)` rule from (i)"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q9(a)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "counting factors of a number with **multiple distinct prime factors** — extend the `(n + 1)` rule with the **multiplication principle**"
+},
+{
+"year": 2023,
+"paper": 1,
+"question": "Q9(b)",
+"level": "HL",
+"marks": 8,
+"note": "listing factor-pairs of a small natural number"
+}
+],
+"the-circle-1-introduction": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q2(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**standard form** of a circle: `(x − h)² + (y − k)² = r²` has centre `(h, k)` and radius `r`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "**tangent condition** — a line is tangent to a circle ⟺ the **perpendicular distance from the centre to the line equals the radius**. Set up the equation, square both sides, solve the resulting quadratic"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(c)(i)",
+"level": "HL",
+"marks": 7,
+"note": "**standard-form circle equation**"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q5(b)",
+"level": "HL",
+"marks": 10,
+"note": "**find a circle's equation** given its centre lies on a known line + two points on the circle. Use the equidistance condition (centre to each point = radius, so the two distances are equal)"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q9(a)(i)",
+"level": "HL",
+"marks": 9,
+"note": "**centre-radius form** of a circle: `(x − h)² + (y − k)² = r²`"
+}
+],
+"the-circle-8-tangent-from-the-point": [
+{
+"year": 2020,
+"paper": 2,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 13,
+"note": "**tangent from an external point** — by Pythagoras in the right triangle formed by the centre, the external point, and the tangent's point of contact: `|BT|² = |BA|² − r²`"
+},
+{
+"year": 2020,
+"paper": 2,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 12,
+"note": "**two-tangents-from-a-point** to a circle + **internal tangency** of two circles. Sets up a right triangle whose hypotenuse is `|OD|`, then uses the chord-of-internal-tangency relation `|OC| = |OD| + r`"
+}
+],
+"the-circle-5-intersecting-and-touching-circles": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q7(c)(v)",
+"level": "HL",
+"marks": 7,
+"note": "**lens area** = sum of two **circular segments**, each = (sector area) − (triangle area)"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(a)(ii)",
+"level": "HL",
+"marks": 8,
+"note": "**two-circles classification** — touching externally iff `|C₁ C₂| = R₁ + R₂`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q5(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**touching circles classification** — two circles touch **externally** if `|C₁C₂| = R₁ + R₂`, **internally** if `|C₁C₂| = |R₁ − R₂|`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q8(e)",
+"level": "HL",
+"marks": 8,
+"note": "**geometry of nested circles** — extract distances by walking through the configuration: small circles touching ⟹ centre-to-centre distance equals `2r_small`; centres forming a square ⟹ diagonal of that square is the key length; large circle's radius equals the distance from its centre to a small circle's centre plus `r_small`; large circle inscribed in tile ⟹ tile side equals large circle's diameter"
+},
+{
+"year": 2021,
+"paper": 2,
+"question": "Q3(b)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**distance-between-centres test for touching circles** — two circles touch externally iff `|C₁C₂| = r₁ + r₂`"
+}
+],
+"the-circle-6-circles-with-the-axes-as-a-tangent": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q2(c)",
+"level": "HL",
+"marks": 10,
+"note": "**build a circle from tangent + intersection constraints** — use the two geometric facts (tangent to y-axis at a given point; chord on the x-axis of given length) to pin down the centre and the radius"
+},
+{
+"year": 2022,
+"paper": 2,
+"question": "Q3(c)",
+"level": "HL",
+"marks": 10,
+"note": "circles tangent to both coordinate axes — centre at `(±r, ±r)` for some radius `r`"
+},
+{
+"year": 2019,
+"paper": 2,
+"question": "Q3(b)",
+"level": "HL",
+"marks": 12,
+"note": "**both-axes-tangent rule** — when a circle touches both axes in Q1, the centre is `(k, k)` and the radius is `k`. Then apply the **perpendicular-distance = radius** condition for the given tangent line"
+}
+],
+"the-circle-7-tangent-at-point-or-parallel-to-line": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q2(a)(ii)",
+"level": "HL",
+"marks": 10,
+"note": "**tangent at a known point on a circle** — slope of radius from centre to that point, then slope of tangent is the negative reciprocal (perpendicular). Use point-slope form"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(b)(i)",
+"level": "HL",
+"marks": 7,
+"note": "combined coordinate-geometry/circle/geometry problem — use the fact that **two tangents from a common external point are perpendicular only if the angle subtended at the centre is right**, deriving the distance from origin to the tangent point, then to side `AB`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q9(b)",
+"level": "HL",
+"marks": 8,
+"note": "**vertical tangent to a circle** — the line `x = constant` is tangent to the circle iff `|h ± constant| = r`, where the centre is at `(h, k)`"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q2(c)",
+"level": "HL",
+"marks": 10,
+"note": "**build a circle from tangent + intersection constraints** — use the two geometric facts (tangent to y-axis at a given point; chord on the x-axis of given length) to pin down the centre and the radius"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 10,
+"note": "**Construction 19** — tangent to a circle at a point on the circle, by compass-and-straight-edge"
+}
+],
+"the-circle-3-proving-a-point-on-inside-or-outside": [
+{
+"year": 2024,
+"paper": 2,
+"question": "Q9(a)(iii)",
+"level": "HL",
+"marks": 8,
+"note": "**shortest distance from a point to a circle** = `|distance from point to centre − radius|`. (Each unit on the diagram = 100 m.)"
+},
+{
+"year": 2019,
+"paper": 2,
+"question": "Q3(a)",
+"level": "HL",
+"marks": 13,
+"note": "substitute a point into a circle equation to get a quadratic in the remaining unknown coordinate; solve"
+}
+],
+"the-circle-4-intersection-of-line-and-circle": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "**tangent condition** — a line is tangent to a circle ⟺ the **perpendicular distance from the centre to the line equals the radius**. Set up the equation, square both sides, solve the resulting quadratic"
+}
+],
+"the-circle-9-simultaneous-equations": [
+{
+"year": 2023,
+"paper": 2,
+"question": "Q4(b)",
+"level": "HL",
+"marks": 10,
+"note": "find the equation of a circle given **three points on it** — exploit the geometric observation that two of the points share an x-coordinate, so the chord between them is **vertical**, which pins down the y-coordinate of the centre"
+}
+],
+"the-circle-2-characteristics-of-the-equation": [
+{
+"year": 2025,
+"paper": 2,
+"question": "Q2(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**standard form** of a circle: `(x − h)² + (y − k)² = r²` has centre `(h, k)` and radius `r`"
+},
+{
+"year": 2025,
+"paper": 2,
+"question": "Q6(a)(i)",
+"level": "HL",
+"marks": 8,
+"note": "convert the **general form** `x² + y² + 2gx + 2fy + c = 0` of a circle to centre `(−g, −f)` and radius `√(g² + f² − c)`. Page 19 of the log tables"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q5(a)(i)",
+"level": "HL",
+"marks": 10,
+"note": "**general form** of a circle: `x² + y² + 2gx + 2fy + c = 0` has **centre `(−g, −f)`** and **radius `√(g² + f² − c)`**"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q2(a)",
+"level": "HL",
+"marks": 10,
+"note": "**circle equation from centre + one point** — radius equals the distance from the centre to the given point; then plug into the standard circle equation `(x − h)² + (y − k)² = r²` (page 19 of the log tables)"
+},
+{
+"year": 2024,
+"paper": 2,
+"question": "Q2(b)",
+"level": "HL",
+"marks": 10,
+"note": "**symmetries of a circle** — any point obtained by reflecting a known point through the centre (or across the horizontal/vertical diameter through the centre) is also on the circle"
+}
+]
+}

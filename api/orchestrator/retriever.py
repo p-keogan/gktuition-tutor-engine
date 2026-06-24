@@ -558,6 +558,17 @@ async def retrieve(query: str, query_class: QueryClass) -> RetrievalResult:
         query_class.value, services_called, len(chunks), top_score, elapsed_ms,
     )
 
+    # Attach curated exam appearances for the top cited tutorials (loaded from
+    # the shipped corpus/exam_appearances.json). Best-effort: never fail
+    # retrieval if the index is missing or a row is malformed.
+    from . import exam_refs
+
+    try:
+        exam_appearances = exam_refs.exam_appearances_for_citations(citations)
+    except Exception:
+        logger.exception("exam-appearance lookup failed (non-fatal)")
+        exam_appearances = []
+
     return RetrievalResult(
         query_class=query_class,
         chunks=chunks,
@@ -566,6 +577,7 @@ async def retrieve(query: str, query_class: QueryClass) -> RetrievalResult:
         analyst_sql=analyst_sql,
         top_reranker_score=top_score,
         services_called=services_called,
+        exam_appearances=exam_appearances,
     )
 
 

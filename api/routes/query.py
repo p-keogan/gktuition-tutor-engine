@@ -380,6 +380,9 @@ async def _stream_pipeline(
         "from_cache": False,
         "voice_anchor_strand": voice_anchor_strand,
         "elapsed_ms": elapsed_ms,
+        # Curated exam appearances for the cited tutorials — the widget renders
+        # the most recent couple as a "seen in exams" block under the answer.
+        "exam_appearances": [a.model_dump() for a in retrieval.exam_appearances],
     }
     yield _format_sse("done", done_payload)
 
@@ -446,6 +449,7 @@ async def _wrap_full_response_as_sse(resp: QueryResponse) -> AsyncIterator[bytes
             "from_cache": resp.from_cache,
             "voice_anchor_strand": resp.voice_anchor_strand,
             "elapsed_ms": resp.elapsed_ms,
+            "exam_appearances": [a.model_dump() for a in resp.exam_appearances],
         },
     )
 

@@ -47,12 +47,18 @@ declare global {
   }
 }
 
-const PLOTLY_CDN_URL = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
-
 // Module-level promise — once one `<PlotlyGraph>` mounts, every subsequent
-// instance reuses the same Promise so we never inject two <script> tags.
+// instance reuses the same Promise.
 let _plotlyLoader: Promise<NonNullable<Window['Plotly']>> | null = null;
 
+/**
+ * Resolve once Plotly is available on `window`.
+ *
+ * Plotly is enqueued by the WordPress plugin from cdnjs (the site CSP blocks
+ * scripts the widget injects itself — same issue we hit with KaTeX). So we
+ * poll for `window.Plotly` rather than injecting a <script>. Plotly is large
+ * and loads deferred, so we allow a generous window (12s) before giving up.
+ */
 function loadPlotly(): Promise<NonNullable<Window['Plotly']>> {
   if (typeof window === 'undefined') {
     return Promise.reject(new Error('window is not available'));
@@ -61,25 +67,19 @@ function loadPlotly(): Promise<NonNullable<Window['Plotly']>> {
   if (_plotlyLoader) return _plotlyLoader;
 
   _plotlyLoader = new Promise((resolve, reject) => {
-    const existing = document.querySelector(
-      `script[data-gktuition-plotly]`,
-    ) as HTMLScriptElement | null;
-    const onLoad = () => {
-      if (window.Plotly) resolve(window.Plotly);
-      else reject(new Error('Plotly failed to attach to window'));
+    const start = Date.now();
+    const tick = () => {
+      if (window.Plotly) {
+        resolve(window.Plotly);
+        return;
+      }
+      if (Date.now() - start > 12000) {
+        reject(new Error('Plotly not available (not enqueued?)'));
+        return;
+      }
+      setTimeout(tick, 150);
     };
-    if (existing) {
-      existing.addEventListener('load', onLoad);
-      existing.addEventListener('error', () => reject(new Error('Plotly CDN load failed')));
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = PLOTLY_CDN_URL;
-    script.async = true;
-    script.setAttribute('data-gktuition-plotly', 'true');
-    script.addEventListener('load', onLoad);
-    script.addEventListener('error', () => reject(new Error('Plotly CDN load failed')));
-    document.head.appendChild(script);
+    tick();
   });
   return _plotlyLoader;
 }
