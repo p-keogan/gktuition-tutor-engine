@@ -928,6 +928,251 @@ def plot_modulus(
 
 
 # ---------------------------------------------------------------------------
+# 1f. plot_venn
+# ---------------------------------------------------------------------------
+#
+# Venn diagrams are the canonical visual for the LCHL probability set concepts:
+# mutually exclusive events (two disjoint circles), not-mutually-exclusive /
+# overlapping events and the addition rule (two intersecting circles with the
+# A∩B region), and one event contained in another (subset). Plotly has no Venn
+# trace, so we draw the sample-space rectangle and the set circles as layout
+# ``shapes`` and label the regions with annotations. Equal axis scaling keeps
+# the circles round in the narrow chat panel.
+
+_VENN_RELATIONSHIPS = {
+    "disjoint": "disjoint",
+    "mutually_exclusive": "disjoint",
+    "mutually exclusive": "disjoint",
+    "exclusive": "disjoint",
+    "overlapping": "overlapping",
+    "overlap": "overlapping",
+    "intersecting": "overlapping",
+    "not_mutually_exclusive": "overlapping",
+    "not mutually exclusive": "overlapping",
+    "subset": "subset",
+    "contained": "subset",
+}
+
+
+def plot_venn(
+    relationship: str = "overlapping",
+    set_labels: list[str] | tuple[str, str] = ("A", "B"),
+    *,
+    region_values: dict[str, str] | None = None,
+    title: str = "",
+    show_sample_space: bool = True,
+) -> dict[str, Any]:
+    """Draw a two-set Venn diagram for a probability set concept.
+
+    Args:
+        relationship: ``"disjoint"`` (mutually exclusive — separate circles),
+                      ``"overlapping"`` (not mutually exclusive — intersecting,
+                      shows A∩B), or ``"subset"`` (B inside A). Common synonyms
+                      ("mutually exclusive", "not mutually exclusive", …) accepted.
+        set_labels:   two labels for the circles (default ``("A", "B")``).
+        region_values: optional text to place in regions — keys among
+                       ``"A"``/``"B"``/``"both"``/``"neither"`` (e.g. probabilities).
+        show_sample_space: draw the enclosing sample-space rectangle (S).
+
+    Raises:
+        ValueError: if ``relationship`` is unrecognised or ``set_labels`` isn't
+        a pair.
+    """
+    rel = _VENN_RELATIONSHIPS.get(str(relationship).strip().lower())
+    if rel is None:
+        raise ValueError(
+            "relationship must be one of disjoint / overlapping / subset "
+            f"(or a known synonym); got {relationship!r}"
+        )
+    if not (isinstance(set_labels, list | tuple) and len(set_labels) == 2):
+        raise ValueError(f"set_labels must be a pair; got {set_labels!r}")
+    a_label, b_label = str(set_labels[0]), str(set_labels[1])
+    region_values = region_values or {}
+
+    a_fill = "rgba(31, 64, 104, 0.32)"   # navy
+    b_fill = "rgba(192, 57, 43, 0.30)"   # crimson
+    line_a = {"color": "#1f4068", "width": 2}
+    line_b = {"color": "#c0392b", "width": 2}
+
+    shapes: list[dict[str, Any]] = []
+    annotations: list[dict[str, Any]] = []
+
+    if show_sample_space:
+        shapes.append(
+            {
+                "type": "rect", "xref": "x", "yref": "y",
+                "x0": 0.3, "y0": 0.3, "x1": 9.7, "y1": 5.7,
+                "line": {"color": "#9ca3af", "width": 1.5}, "fillcolor": "rgba(0,0,0,0)",
+            }
+        )
+        annotations.append(
+            {"xref": "x", "yref": "y", "x": 0.7, "y": 5.3, "text": "S",
+             "showarrow": False, "font": {"size": 14, "color": "#6b7280"}}
+        )
+
+    def circle(cx: float, cy: float, r: float, fill: str, line: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "type": "circle", "xref": "x", "yref": "y",
+            "x0": cx - r, "y0": cy - r, "x1": cx + r, "y1": cy + r,
+            "fillcolor": fill, "line": line, "layer": "above",
+        }
+
+    def label(x: float, y: float, text: str, color: str = "#111827", size: int = 15) -> None:
+        annotations.append(
+            {"xref": "x", "yref": "y", "x": x, "y": y, "text": text,
+             "showarrow": False, "font": {"size": size, "color": color}}
+        )
+
+    if rel == "disjoint":
+        shapes += [circle(3.0, 3.0, 1.7, a_fill, line_a), circle(7.0, 3.0, 1.7, b_fill, line_b)]
+        label(3.0, 4.4, a_label, "#1f4068"); label(7.0, 4.4, b_label, "#c0392b")
+        if "A" in region_values: label(3.0, 3.0, region_values["A"])
+        if "B" in region_values: label(7.0, 3.0, region_values["B"])
+        if "neither" in region_values: label(5.0, 1.0, region_values["neither"], "#6b7280", 12)
+        auto_title = title or "Mutually exclusive events (A ∩ B = ∅)"
+    elif rel == "overlapping":
+        shapes += [circle(4.1, 3.0, 2.2, a_fill, line_a), circle(5.9, 3.0, 2.2, b_fill, line_b)]
+        label(2.7, 4.2, a_label, "#1f4068"); label(7.3, 4.2, b_label, "#c0392b")
+        if "A" in region_values: label(2.9, 3.0, region_values["A"])
+        if "both" in region_values: label(5.0, 3.0, region_values["both"])
+        if "B" in region_values: label(7.1, 3.0, region_values["B"])
+        if "neither" in region_values: label(5.0, 0.9, region_values["neither"], "#6b7280", 12)
+        auto_title = title or "Overlapping events (A ∩ B ≠ ∅)"
+    else:  # subset
+        shapes += [circle(5.0, 3.0, 2.4, a_fill, line_a), circle(5.0, 2.6, 1.1, b_fill, line_b)]
+        label(5.0, 4.8, a_label, "#1f4068"); label(5.0, 2.6, b_label, "#c0392b")
+        auto_title = title or f"{b_label} ⊆ {a_label} (subset)"
+
+    invisible = {
+        "type": "scatter", "mode": "markers", "name": "venn",
+        "x": [0, 10], "y": [0, 6], "marker": {"opacity": 0}, "hoverinfo": "skip",
+        "showlegend": False,
+    }
+
+    layout: dict[str, Any] = {
+        "title": {"text": auto_title, "x": 0.5, "xanchor": "center"},
+        "plot_bgcolor": "#ffffff", "paper_bgcolor": "#ffffff", "showlegend": False,
+        "margin": {"l": 10, "r": 10, "t": 50, "b": 10},
+        "xaxis": {"visible": False, "range": [0, 10], "fixedrange": True},
+        "yaxis": {
+            "visible": False, "range": [0, 6], "fixedrange": True,
+            "scaleanchor": "x", "scaleratio": 1,
+        },
+        "shapes": shapes,
+        "annotations": annotations,
+        "meta": {"summary": f"{auto_title}: a Venn diagram of sets {a_label} and {b_label}."},
+    }
+    return {"data": [invisible], "layout": layout}
+
+
+def _fmt_num(v: float) -> str:
+    f = float(v)
+    return str(int(f)) if f.is_integer() else f"{f:.2f}".rstrip("0").rstrip(".")
+
+
+def plot_argand(
+    real: float = 3.0,
+    imag: float = 2.0,
+    *,
+    title: str = "",
+    show_modulus: bool = True,
+) -> dict[str, Any]:
+    """Draw a complex number on the Argand plane, showing its argument θ.
+
+    Renders the number ``a + bi`` as a vector from the origin, with the
+    argument (the angle measured anticlockwise from the positive real axis)
+    drawn as an arc and labelled θ, the modulus r along the vector, and dashed
+    projections onto the real and imaginary axes.
+
+    Args:
+        real:  the real part ``a``.
+        imag:  the imaginary part ``b``.
+        title: optional override for the auto-generated title.
+        show_modulus: label the vector with the computed modulus value.
+
+    Raises:
+        ValueError: if the number is 0 (the argument is undefined).
+    """
+    a = float(real)
+    b = float(imag)
+    if a == 0.0 and b == 0.0:
+        raise ValueError("0 has no argument — cannot draw an Argand argument diagram for it.")
+
+    r = float(np.hypot(a, b))
+    # Measure the argument anticlockwise from the positive real axis in [0, 360),
+    # matching how it's taught at LCHL (Q3 = 180 + ref, Q4 = 360 − ref) rather
+    # than the principal-value (−180, 180] convention atan2 returns.
+    theta = float(np.arctan2(b, a))
+    if theta < 0:
+        theta += 2.0 * np.pi
+    theta_deg = float(np.degrees(theta))  # [0, 360)
+    lim = r * 1.25 + 0.6
+
+    label = (
+        f"{_fmt_num(a)} + {_fmt_num(b)}i" if b >= 0 else f"{_fmt_num(a)} − {_fmt_num(abs(b))}i"
+    )
+
+    ra = float(max(0.45, min(0.9, 0.32 * r)))
+    ts = np.linspace(0.0, theta, 60)
+
+    vector = {
+        "type": "scatter", "mode": "lines+markers", "x": [0.0, a], "y": [0.0, b],
+        "line": {"color": "#1f4068", "width": 3},
+        "marker": {"size": [0, 10], "color": "#1f4068"},
+        "hoverinfo": "skip", "showlegend": False, "name": "z",
+    }
+    proj = {
+        "type": "scatter", "mode": "lines",
+        "x": [a, a, None, a, 0.0], "y": [b, 0.0, None, b, b],
+        "line": {"color": "#9ca3af", "width": 1.5, "dash": "dot"},
+        "hoverinfo": "skip", "showlegend": False,
+    }
+    arc = {
+        "type": "scatter", "mode": "lines",
+        "x": (ra * np.cos(ts)).tolist(), "y": (ra * np.sin(ts)).tolist(),
+        "line": {"color": "#6b2d8e", "width": 2.5},
+        "hoverinfo": "skip", "showlegend": False,
+    }
+
+    mid = theta / 2.0
+    annotations = [
+        {"x": a, "y": b, "text": label, "showarrow": False,
+         "xanchor": "left" if a >= 0 else "right", "yanchor": "bottom" if b >= 0 else "top",
+         "xshift": 8 if a >= 0 else -8, "yshift": 8 if b >= 0 else -8,
+         "font": {"size": 15, "color": "#1f4068"}},
+        {"x": (ra + 0.3) * float(np.cos(mid)), "y": (ra + 0.3) * float(np.sin(mid)),
+         "text": "θ", "showarrow": False, "font": {"size": 17, "color": "#6b2d8e"}},
+        {"x": a / 2.0, "y": b / 2.0, "text": (f"r = {_fmt_num(r)}" if show_modulus else "r"),
+         "showarrow": False, "xshift": -12, "yshift": 12,
+         "font": {"size": 13, "color": "#1f4068"}},
+        {"x": lim - 0.1, "y": 0.0, "text": "Re", "showarrow": False,
+         "xanchor": "right", "yanchor": "top", "font": {"size": 12, "color": "#6b7280"}},
+        {"x": 0.0, "y": lim - 0.1, "text": "Im", "showarrow": False,
+         "xanchor": "left", "yanchor": "top", "xshift": 6, "font": {"size": 12, "color": "#6b7280"}},
+    ]
+
+    auto_title = title or f"Argument of {label}:  θ ≈ {_fmt_num(round(theta_deg, 1))}°"
+    axis = {
+        "range": [-lim, lim], "zeroline": True, "zerolinecolor": "#374151",
+        "zerolinewidth": 1.5, "showgrid": False, "fixedrange": True, "visible": True,
+        "showticklabels": False,
+    }
+    layout = {
+        "title": {"text": auto_title, "x": 0.5, "xanchor": "center"},
+        "plot_bgcolor": "#ffffff", "paper_bgcolor": "#ffffff", "showlegend": False,
+        "margin": {"l": 10, "r": 10, "t": 50, "b": 10},
+        "xaxis": dict(axis),
+        "yaxis": {**axis, "scaleanchor": "x", "scaleratio": 1},
+        "annotations": annotations,
+        "meta": {"summary": (
+            f"Argand diagram of {label} showing its modulus r and argument "
+            f"θ ≈ {_fmt_num(round(theta_deg, 1))}° from the positive real axis."
+        )},
+    }
+    return {"data": [proj, vector, arc], "layout": layout}
+
+
+# ---------------------------------------------------------------------------
 # 2. plot_trig
 # ---------------------------------------------------------------------------
 
@@ -1462,6 +1707,8 @@ GENERATOR_REGISTRY: dict[str, Callable[..., dict[str, Any]]] = {
     "plot_linear_inequality": plot_linear_inequality,
     "plot_polynomial_shapes": plot_polynomial_shapes,
     "plot_modulus": plot_modulus,
+    "plot_venn": plot_venn,
+    "plot_argand": plot_argand,
     "plot_trig": plot_trig,
     "plot_exponential": plot_exponential,
     "plot_log": plot_log,

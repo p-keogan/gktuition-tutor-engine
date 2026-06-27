@@ -2196,7 +2196,7 @@
 "question": "Q9(a)(iv)",
 "level": "HL",
 "marks": 7,
-"note": "**Bayes-style conditional probability** — `P(has | positive) = P(has AND positive) / P(positive)`"
+"note": "**conditional probability** — `P(has | positive) = P(has AND positive) / P(positive)`"
 },
 {
 "year": 2025,

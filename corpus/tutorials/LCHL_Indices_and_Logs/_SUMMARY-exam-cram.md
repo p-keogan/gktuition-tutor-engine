@@ -71,6 +71,8 @@ From the 11-year exam-trends analysis (2015–2025, 30 papers, 1,212 tagged ques
 
 ## 📚 Learning work — what must be in your head before you sit down
 
+> **🎯 You do NOT memorise the rules of logs — they're all on page 21.** The log–index conversion, the product / quotient / power rules, and change of base are **printed in the Formulae & Tables booklet (page 21)** you get in the exam. So "what do I need to learn for logs?" is about **application, not memorisation** — which rule to reach for, and the techniques built on them (taking logs to bring the unknown down — IL-5; change of base — IL-4; the `y = aˣ` substitution — IL-6/7). The list below is the *only* part you carry in your head: the bonus identities and anchor values that aren't printed.
+
 The log tables give you the formulas. These are the **bonus identities** and **anchor values** that make the formulas collapse cleanly.
 
 ### 1. The bonus identities — `log_a(a^k) = k` and `ln(e^k) = k`

@@ -57,6 +57,18 @@ GRAPH_TRIGGER_PHRASES: tuple[str, ...] = (
     r"\bshapes?\s+of\b",
     # Modulus / absolute-value graphs are inherently visual at LCHL.
     r"\bmodulus\b",
+    # Probability set concepts — a Venn diagram is the canonical visual. The
+    # router still decides (plot_venn) and returns none when not applicable.
+    r"\bvenn\b",
+    # Argand-plane / argument-of-a-complex-number questions are inherently a
+    # diagram (the angle θ from the positive real axis).
+    r"\bargand\b",
+    r"\bargument\b",
+    r"\bmodulus and argument\b",
+    r"\bpolar form\b",
+    r"\bmutually exclusive\b",
+    r"\bconditional probabilit\w*\b",
+    r"\bindependent events?\b",
     r"\bdraw\b",
     r"\bbehaviour at infinity\b",
     r"\bbehavior at infinity\b",
@@ -252,6 +264,14 @@ _TOOL_CALL_SCHEMA: dict[str, dict[str, Any]] = {
         "required": [],
         "optional": ["inner_coefficients", "x_range", "title"],
     },
+    "plot_venn": {
+        "required": [],
+        "optional": ["relationship", "set_labels", "region_values", "title", "show_sample_space"],
+    },
+    "plot_argand": {
+        "required": [],
+        "optional": ["real", "imag", "title", "show_modulus"],
+    },
     "plot_trig": {
         "required": ["family"],
         "optional": [
@@ -331,6 +351,24 @@ Functions available:
    it gives one (|x-2| → [1,-2], |x²-4| → [1,0,-4]).
 * plot_trig(family, amplitude?, period?, phase?, vertical_shift?, x_range?, title?)
    — family ∈ {"sin","cos","tan","sec","cosec","cot"}.
+* plot_venn(relationship?, set_labels?, region_values?, title?)
+   — for PROBABILITY set-relationship concepts a Venn diagram clarifies:
+   mutually exclusive events -> relationship="disjoint"; not-mutually-exclusive /
+   overlapping events / the addition rule / conditional probability /
+   independent events -> relationship="overlapping"; one event contained in
+   another -> relationship="subset". set_labels defaults to ["A","B"] (use the
+   event names from the question if given). Use this for mutually-exclusive,
+   union/intersection, conditional-probability and similar probability set
+   questions.
+* plot_argand(real?, imag?, title?, show_modulus?)
+   — for COMPLEX-NUMBER questions about the Argand plane: the argument
+   (angle θ from the positive real axis), the modulus, or plotting/representing
+   a + bi. Draws the number as a vector with the argument arc θ and modulus r.
+   Take real and imag from the worked example in the question or answer (e.g.
+   "argument of 3 + 2i" → real=3, imag=2); they default to 3 + 2i if the
+   answer only explains the method generically. Use this for "find the
+   argument", "modulus and argument", "represent z on an Argand diagram",
+   "convert to polar form" style questions.
 * plot_exponential(base?, multiplier?, growth_rate?, offset?, x_range?, title?)
 * plot_log(base?, multiplier?, inner_scale?, offset?, x_range?, title?)
 * plot_piecewise(pieces, title?)  — pieces is JSON-incompatible (callables);

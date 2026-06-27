@@ -402,9 +402,14 @@ def _from_tutor_search(query: str) -> tuple[list[RetrievedChunk], list[Citation]
         slug = str(h.get("slug") or "")
         if not slug:
             continue
-        snippet = _shorten(h.get("body") or h.get("title") or "", 600)
+        # 2000 (was 600): 600 chars truncated short "hub"/overview tutorials
+        # mid-list — e.g. the Paper 1 Proofs hub lists six proofs but only the
+        # first two fit in 600 chars, so the model saw a partial set and
+        # hallucinated the rest. 2000 captures a full short tutorial body
+        # (and matches the solutions-snippet budget).
+        snippet = _shorten(h.get("body") or h.get("title") or "", 2000)
         score = _normalise_score(h)
-        chunks.append(RetrievedChunk(slug=slug, snippet=snippet, score=score))
+        chunks.append(RetrievedChunk(slug=slug, title=str(h.get("title") or slug), snippet=snippet, score=score))
         citations.append(
             Citation(
                 slug=slug,

@@ -56,7 +56,7 @@ From the 11-year exam-trends analysis (2015–2025, 30 papers, 1,212 tagged ques
 |---|---|---|
 | **p. 33** | `P(A∪B) = P(A) + P(B) − P(A∩B)` | Not-mutually-exclusive addition rule |
 | **p. 33** | `P(A∩B) = P(A)·P(B)` (independent events) | Multiplication rule; independence test |
-| **p. 33** | `P(A\|B) = P(A∩B)/P(B)` | Conditional probability; Bayes-style questions |
+| **p. 33** | `P(A\|B) = P(A∩B)/P(B)` | Conditional probability questions |
 | **p. 33** | `nPr = n!/(n−r)!` | Permutations (order matters) |
 | **p. 33** | `nCr = n!/[r!(n−r)!]` | Combinations (order doesn't matter); also p. 20 |
 | **p. 33** | `P(R of n) = C(n,R)·p^R·q^(n−R)` | Bernoulli/binomial — **tested 11/11 years** |

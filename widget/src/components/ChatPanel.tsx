@@ -109,6 +109,12 @@ export function ChatPanel({
     setInput('');
     setError(null);
 
+    // Conversation context = the turns so far (before this question). The
+    // engine condenses these + the new question into a standalone query.
+    const history = messages
+      .slice(-6)
+      .map((m) => ({ role: m.role, text: m.text }));
+
     const userMsg: ChatMessage = { id: makeId(), role: 'user', text: q };
     setMessages((prev) => [...prev, userMsg]);
     setBusy(true);
@@ -124,7 +130,7 @@ export function ChatPanel({
     if (useStream) {
       setThinking(true);
       setProgress(null);
-      const ok = await runStreamingQuery(q, ctrl);
+      const ok = await runStreamingQuery(q, ctrl, history);
       if (ok) {
         setBusy(false);
         setThinking(false);
@@ -138,7 +144,7 @@ export function ChatPanel({
 
     setProgress('concept'); // generic initial guess; replaced by server response
     try {
-      const res = await client.postQuery({ q, debug: false }, ctrl.signal);
+      const res = await client.postQuery({ q, debug: false, history }, ctrl.signal);
       setProgress(res.query_class);
       const assistantMsg: ChatMessage = {
         id: makeId(),
@@ -243,7 +249,11 @@ export function ChatPanel({
    * error before ``done`` — the caller then falls back to the JSON path.
    * Mid-stream tokens append to a draft assistant message in-place.
    */
-  async function runStreamingQuery(q: string, ctrl: AbortController): Promise<boolean> {
+  async function runStreamingQuery(
+    q: string,
+    ctrl: AbortController,
+    history: { role: 'user' | 'assistant'; text: string }[] = [],
+  ): Promise<boolean> {
     // We need the current JWT + fastapiUrl from the api client. The
     // ``_currentToken`` accessor is documented as test-only but it's
     // also the cleanest way to share the in-memory token with the
@@ -298,7 +308,7 @@ export function ChatPanel({
 
     try {
       await streamQuery(
-        { q, debug: false },
+        { q, debug: false, history },
         {
           onToken: (ev) => {
             if (!firstTokenSeen) {

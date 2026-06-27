@@ -32,13 +32,28 @@ import { CORPUS_TO_WP_SLUG } from './slugMap';
  * correct in both places with no rebuild. Falls back to the production
  * origin in non-browser contexts (SSR / unit tests).
  */
-function topicBase(): string {
+function siteOrigin(): string {
   const origin =
     typeof window !== 'undefined' && window.location && window.location.origin
       ? window.location.origin
       : 'https://gktuition.ie';
-  return `${origin.replace(/\/$/, '')}/topic`;
+  return origin.replace(/\/$/, '');
 }
+
+function topicBase(): string {
+  return `${siteOrigin()}/topic`;
+}
+
+/**
+ * Corpus docs that map to a LearnDash *strand* page (/lessons/<slug>/) rather
+ * than an individual /topic/ lesson. The retrievable proof hubs are synthetic
+ * docs with no /topic/ page of their own — their natural landing page is the
+ * strand topic page that lists the proofs. Value is the full path from origin.
+ */
+const CORPUS_TO_WP_PATH: Record<string, string> = {
+  'paper-1-proofs': '/lessons/proofs/',
+  'paper-2-proofs': '/lessons/proofs-2/',
+};
 
 /**
  * Build the topic-page URL for a citation, or ``null`` when the cited corpus
@@ -47,6 +62,10 @@ function topicBase(): string {
  * the WordPress topic slug via the generated CORPUS_TO_WP_SLUG map.
  */
 export function citationGktuitionUrl(citation: Citation): string | null {
+  // Strand-level pages (e.g. the proof hubs) take precedence over /topic/.
+  const strandPath = CORPUS_TO_WP_PATH[citation.slug];
+  if (strandPath) return `${siteOrigin()}${strandPath}`;
+
   const wpSlug = CORPUS_TO_WP_SLUG[citation.slug];
   if (!wpSlug) return null;
   const base = `${topicBase()}/${encodeURIComponent(wpSlug)}/`;

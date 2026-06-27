@@ -65,14 +65,14 @@ These items the log tables **don't** give you. Drill until they're automatic.
 
 ### 1. The 4-step skeleton — write it BEFORE reading the algebra
 
-| Step | Action | Output |
+| Step | Title to write (EXACT words) | What you do |
 |---|---|---|
-| 1 | **Prove P(N₀)** | Substitute smallest `n`; verify LHS = RHS (or LHS > RHS, etc.). |
-| 2 | **Assume P(k)** | State the proposition with `n = k` — highlight it. |
-| 3 | **Prove P(k+1)** | Manipulate LHS-at-(k+1) using the assumption + algebra until it equals RHS-at-(k+1). |
-| 4 | **Conclude** | The explicit conclusion sentence (verbatim). |
+| 1 | **Prove `P(n)` is true for `n = N₀`** | Substitute smallest `n` (`N₀`, e.g. `n = 1` or `n = 7`); verify LHS = RHS (or LHS > RHS, etc.). |
+| 2 | **Assume `P(n)` is true for `n = k`** | State the proposition with `n = k` — highlight it. |
+| 3 | **Hence, prove `P(n)` is true for `n = k+1`** | Manipulate LHS-at-(k+1) using the assumption + algebra until it equals RHS-at-(k+1). |
+| 4 | **Conclusion** | The explicit conclusion sentence (verbatim). |
 
-> 🚨 **Write the skeleton across your answer sheet FIRST, then fill it in.** The four boxes are method marks regardless of what's inside them.
+> 🚨 **Write the skeleton across your answer sheet FIRST, then fill it in.** The four boxes are method marks regardless of what's inside them — but you must **label each step with the exact title above.** Shortening Step 2 to just "Assumption", dropping the "Hence," in Step 3, or omitting the Conclusion all cost marks.
 
 ### 2. The conclusion sentence — verbatim
 
@@ -133,7 +133,7 @@ If the question says **"Prove by induction"**, the **4-step skeleton is mandator
 
 ## 🎯 The 7 techniques you must execute without thinking
 
-1. **Write the 4-step skeleton first.** Four boxes on the page before you read the algebra. Headings: `Step 1 — P(N₀)`, `Step 2 — Assume P(k)`, `Step 3 — Prove P(k+1)`, `Step 4 — Conclude`.
+1. **Write the 4-step skeleton first.** Four boxes on the page before you read the algebra. Exact headings: `Step 1 — Prove P(n) is true for n = N₀`, `Step 2 — Assume P(n) is true for n = k`, `Step 3 — Hence, prove P(n) is true for n = k+1`, `Step 4 — Conclusion`.
 2. **Test the starting value.** Substitute `n = 1, 2, 3, ...` until the proposition first becomes true. That's your `N₀`. For `n! > 2ⁿ` it's `n = 4`; for `n² > 4n + 3` it's `n = 5`. The question's stated range usually tells you, but verify by substitution.
 3. **State the assumption explicitly.** Box it or label it `[Eq. A]`. Paul (induction-1 [04:10]): *"you should always highlight your assumption because it's impossible to finish off this question without writing that out."*
 4. **Split-into-pairs / factor-distribution** for inequalities. Coefficient `a` → split as `1·X + (a−1)·X`. Used at 2019: `3·3^k = 3^k + 2·3^k` — first piece matches assumption, second bounds against the range condition.

@@ -17,6 +17,20 @@ From the 11-year exam-trends analysis (2015–2025):
 
 ---
 
+## 🧰 The applications of integration (Int 8–13)
+
+If asked *"what are the applications of integration?"*, give the **full** set — not just find-`f(x)` and kinematics:
+
+- **Finding `f(x)` from `f'(x)`** — anti-differentiate + pin `+ C` with an initial condition (Int 8)
+- **Kinematics** — acceleration → velocity → position (Int 9)
+- **Anti-derivatives** — differentiate-then-rearrange (Int 10)
+- **Average (mean) value of a function** — `(1/(b−a))·∫ₐᵇ f(x) dx` (Int 11) — *not in the tables; memorise it*
+- **Area between a curve and the x-axis** (Int 12) and **the y-axis** (Int 13)
+
+> **Average value and area under a curve are core applications — never omit them.** Both are regularly examined (area every year; average value 6× in 9 recent years).
+
+---
+
 ## ⏱ Suggested time split (90 min)
 
 | Activity | Time | Why |

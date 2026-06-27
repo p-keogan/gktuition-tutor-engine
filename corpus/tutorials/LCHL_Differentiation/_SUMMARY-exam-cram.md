@@ -17,6 +17,18 @@ From the 11-year exam-trends analysis (2015–2025, 30 papers, 1,212 tagged ques
 
 ---
 
+## 🧰 The function types you're expected to differentiate (Diff 1–10)
+
+If asked *"what types of functions am I expected to differentiate?"*, this is the menu — the mechanics half of the strand. Everything in Diff 13–21 (second derivative, slopes, turning points, rates of change) is an **application** of these, not a new function type.
+
+- **Polynomials / powers** — power rule (Diff 1); **from first principles** (Diff 2)
+- **Trig functions** `sin/cos/tan` + angle chain (Diff 3); **powers of trig** (PTA, Diff 4)
+- **Exponentials** `eˣ`, `e^(f(x))` (Diff 5); **logs** `ln x` (Diff 9)
+- **Products** `u·v` (Diff 6); **quotients** `u/v` (Diff 7); **composites** — chain rule (Diff 8)
+- **Implicit functions** `y` in terms of `x` (Diff 10); **inverse trig** (Diff 11); **substitution / Leibniz** `dy/dx = dy/du · du/dx` (Diff 12)
+
+---
+
 ## ⏱ Suggested time split (90 min)
 
 | Activity | Time | Why |
@@ -46,6 +58,8 @@ From the 11-year exam-trends analysis (2015–2025, 30 papers, 1,212 tagged ques
 | 9 | `differentiation-3` Trig Derivatives | **9** | `sin → cos → −sin → ...` cycle. |
 
 > **Read this as:** tutorials 1, 2, 8, 15, 18, 20 alone account for >100 cited appearances. Nothing else is close.
+
+> **🎯 Most commonly asked *application*: turning points / max–min (Diff 15, 24 citations).** Excluding the pure mechanics (power rule Diff 1, chain Diff 8, exponentials Diff 5), the most-asked application is finding turning points by solving `f'(x) = 0` and classifying with `f''(x)`. The curve-analysis family (turning points Diff 15, slopes/tangents Diff 14, increasing/decreasing Diff 16, concavity & points of inflection Diff 13/17) dominates. **Rates of change (Diff 18, 16 citations) is common but ranks second** — don't call it the most common application.
 
 ---
 

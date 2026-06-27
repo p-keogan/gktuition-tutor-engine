@@ -3,6 +3,7 @@ import type { Citation as CitationT, ExamAppearance, GraphSpec } from '../api/ty
 import { Citation } from './Citation';
 import { PlotlyGraph } from './PlotlyGraph';
 import { ensureKatex, renderMath } from '../utils/katex';
+import { renderAnswer } from '../utils/richtext';
 
 export interface ChatMessage {
   id: string;
@@ -47,7 +48,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   useEffect(() => {
     const el = answerRef.current;
     if (!el || !isAssistant) return;
-    el.textContent = message.text;
+    // Render the small Markdown subset (lists / bold / paragraphs) into real
+    // DOM, then let KaTeX typeset any LaTeX in the resulting text nodes.
+    renderAnswer(el, message.text);
     ensureKatex()
       .then(() => {
         if (answerRef.current) renderMath(answerRef.current);

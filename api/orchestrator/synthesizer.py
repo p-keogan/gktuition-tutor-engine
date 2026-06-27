@@ -154,6 +154,10 @@ def slug_anchor_override(retrieval: RetrievalResult, query: str) -> bool:
             return False
 
         top_slug = retrieval.chunks[0].slug.lower()
+        # The slug is terse (e.g. "differentiation-18") so a concept the student
+        # names ("velocity") may live only in the human title. Match against the
+        # title too, so a sub-floor-but-on-topic hit is still rescued.
+        top_title = (getattr(retrieval.chunks[0], "title", "") or "").lower()
         query_lower = (query or "").lower()
 
         query_content_words = {
@@ -171,6 +175,12 @@ def slug_anchor_override(retrieval: RetrievalResult, query: str) -> bool:
         matched_words += [
             t for t in slug_tokens
             if t in query_lower and t not in matched_words
+        ]
+        # Title-level anchor: a query content word appearing in the tutorial's
+        # human title (concept words the slug omits, e.g. "velocity", "argument").
+        matched_words += [
+            w for w in query_content_words
+            if w in top_title and w not in matched_words
         ]
 
         if matched_words:
@@ -197,21 +207,43 @@ SYSTEM_PROMPT = (
     "3. Keep the answer short. Two to four sentences for a concept; five "
     "to eight for a worked-solution walkthrough; one sentence for an "
     "analytical question (the number plus a short interpretation).\n"
-    "4. Use plain text. Markdown is fine; LaTeX is preferred for "
-    "equations (wrap in $...$). Do not use code fences.\n"
+    "4. Use plain text with Markdown, and LaTeX for maths. Small symbols or "
+    "quantities that belong mid-sentence (e.g. $P(A)$, $x = 3$, $n$) stay "
+    "inline with $...$. But any KEY FORMULA, defining equation, or final "
+    "result must be DISPLAYED on its own line using $$...$$ with a blank line "
+    "before and after, so it stands out — e.g.\n"
+    "\n"
+    "$$P(A \\cup B) = P(A) + P(B)$$\n"
+    "\n"
+    "Never bury an important formula inline in a sentence. Do not use code "
+    "fences.\n"
     "5. Do not introduce yourself or thank the student.\n"
     "6. When the answer is a genuine enumeration — a set of types, "
     "categories, steps, or several distinct items — present it as a "
     "Markdown bullet list: a short lead-in sentence, then one item per "
     "line starting with '- '. Use bullets ONLY for real lists; keep "
     "explanations, definitions, and worked steps of a single argument as "
-    "prose.\n"
+    "prose. When the question asks WHAT a set is (e.g. 'what are the Paper 1 "
+    "proofs?'), give the list, not a worked example of one item, and include "
+    "every item the evidence actually names. CRITICAL: list ONLY items the "
+    "evidence states — if the evidence says there are N (e.g. 'six') but only "
+    "shows some of them, list the ones shown and say the rest are in the "
+    "linked tutorial; NEVER invent or guess items to reach the stated count "
+    "(an invented proof/item is worse than a short list).\n"
     "7. The tutorials are taught by Paul, the GKTuition teacher. Where the "
     "evidence supports it, refer to him by name to reinforce that a real "
     "teacher stands behind the material — e.g. 'Paul covers this in...', "
     "'Paul recommends...', 'as Paul explains'. Do this naturally and "
     "sparingly, not in every sentence, and never invent quotes or "
     "attribute claims to Paul that the evidence does not support.\n"
+    "8. The Formulae & Tables booklet (the 'log tables') is provided in every "
+    "Irish state maths exam. Whenever you state a formula that the evidence "
+    "indicates appears in the log tables, tell the student so and give the page "
+    "number IF the evidence states it — e.g. 'this is on page 20 of the log "
+    "tables, so read it off rather than memorise it.' Conversely, if the "
+    "evidence indicates a formula is NOT in the log tables, flag that it must "
+    "be learned off by heart. Only cite a page number the evidence actually "
+    "gives — never guess or invent a page.\n"
 )
 
 

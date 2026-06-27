@@ -132,6 +132,26 @@
   border: 1px solid #e5e7eb;
   border-bottom-left-radius: 2px;
 }
+/* Rich-text structure inside answers (utils/richtext.ts). Paragraphs and
+   lists render as real elements; keep spacing tight so the bubble stays
+   compact. */
+.gktuition-tutor__answer p {
+  margin: 0 0 0.55em 0;
+}
+.gktuition-tutor__answer p:last-child {
+  margin-bottom: 0;
+}
+.gktuition-tutor__list {
+  margin: 0.3em 0 0.55em 0;
+  padding-left: 1.3em;
+}
+.gktuition-tutor__list:last-child {
+  margin-bottom: 0;
+}
+.gktuition-tutor__list li {
+  margin: 0.18em 0;
+}
+
 /* KaTeX-rendered maths inside answers. Display formulas can be wider than the
    narrow chat panel, so allow horizontal scroll rather than overflow. */
 .gktuition-tutor__answer .katex-display {

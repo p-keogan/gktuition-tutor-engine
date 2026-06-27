@@ -64,11 +64,18 @@ export interface GraphSpec {
   figure: Record<string, unknown>;
 }
 
+export interface ConversationTurn {
+  role: 'user' | 'assistant';
+  text: string;
+}
+
 export interface QueryRequest {
   q: string;
   /** Ignored by the server — the JWT-decoded tier is authoritative. */
   tier?: Tier;
   debug?: boolean;
+  /** Recent prior turns (oldest first) for conversational context. */
+  history?: ConversationTurn[];
 }
 
 export interface QueryResponse {

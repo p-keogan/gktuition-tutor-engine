@@ -165,7 +165,7 @@ Each `(constant)/n^k` term tends to 0. Companion fact: `rⁿ → 0` whenever `|r
 4. **Slice-sum trick.** `S_m − S_k` = sum of terms from `T_{k+1}` to `T_m`. Useful when the question asks for a partial range, e.g. "sum of terms 10 to 20".
 5. **Patterns method (quadratic / cubic).** Build a difference table. Constant 2nd diff ⇒ quadratic; constant 3rd diff ⇒ cubic. Use `2a = constant 2nd diff` (or `6a = constant 3rd diff`), then 2 (or 3) simultaneous equations from `T₁, T₂` (and `T₃`) to get the remaining coefficients.
 6. **Recurring decimal → fraction via `S∞`.** Write the recurring block as a geometric series with first term = block/10^(block length) and ratio = 1/10^(block length); apply `S∞` (sequences-series-9).
-7. **Induction proof of `Sₙ`.** The 4-step framework — `P(1)`, assume `P(k)`, prove `P(k+1)`, conclude — applied to the arithmetic or geometric sum formula (sequences-series-10). Requires the full Induction §1–6 chapter as prerequisite.
+7. **Induction proof of `Sₙ`.** The 4-step framework — *Prove P(n) is true for n = 1; Assume P(n) is true for n = k; Hence, prove P(n) is true for n = k+1; Conclusion* — applied to the arithmetic or geometric sum formula (sequences-series-10). Requires the full Induction §1–6 chapter as prerequisite.
 
 ---
 
@@ -197,7 +197,7 @@ Each `(constant)/n^k` term tends to 0. Companion fact: `rⁿ → 0` whenever `|r
 | *"For what value of `x` does the series have a sum to infinity?"* | Solve `\|r(x)\| < 1` — usually a linear or quadratic inequality on `x` |
 | *"Find `n` such that `Sₙ > bound`"* (AP) | Set up `(n/2)[2a + (n−1)d] = bound`, solve quadratic, round up |
 | *"Express the recurring decimal as a fraction"* | Decompose as a geometric series, apply `S∞` |
-| *"Prove by induction that …"* | 4-step framework — base case `P(1)`, induction hypothesis `P(k)`, step `P(k+1)`, conclusion |
+| *"Prove by induction that …"* | 4-step framework — *Prove P(n) is true for n = 1; Assume P(n) is true for n = k; Hence, prove P(n) is true for n = k+1; Conclusion* |
 | *"Find the limit as `n → ∞`"* | Divide top and bottom by highest power of `n`, send each `c/n^k → 0` |
 | *"Verify that the second difference is constant"* | Build a difference table; state "second difference = …" explicitly |
 

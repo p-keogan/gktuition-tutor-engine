@@ -86,6 +86,7 @@ class RetrievedChunk(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     slug: str = Field(..., description="Source slug.")
+    title: str = Field(default="", description="Human-readable tutorial title (used for lexical anchoring + display).")
     snippet: str = Field(..., description="Verbatim text chunk used as evidence.")
     score: float = Field(..., ge=0.0, le=1.0, description="Reranker score.")
 
